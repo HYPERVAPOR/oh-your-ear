@@ -22,7 +22,9 @@ func run() error {
 	r := gin.Default()
 
 	server := api.NewServer()
-	api.RegisterHandlers(r, server)
+	// The route prefix must match `servers` in openapi.yaml, which the web client
+	// (src/api/client.ts) and nginx both assume.
+	api.RegisterHandlersWithOptions(r, server, api.GinServerOptions{BaseURL: "/api/v1"})
 
 	log.Printf("server listening on %s", cfg.ServerAddr)
 	if err := r.Run(cfg.ServerAddr); err != nil {
