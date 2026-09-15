@@ -1,110 +1,42 @@
 # Oh Your Ear
 
-A responsive web-based ear training application.
+A responsive, web-based ear training application for musicians.
+
+Train your ear with single notes, intervals, chords, melodies, and rhythms — on desktop, tablet, or phone.
+
+## Features
+
+- **Five exercise modules**: Single Note, Interval, Chord, Melody, Rhythm
+- **Real piano samples** powered by Tone.js
+- **Responsive design** — works on desktop, tablet, and mobile
+- **Light / dark / system theme** support
+- **Multi-language** support (English & 简体中文 at launch)
+- **Guest mode** — no sign-in required for basic practice
+- **Sign-in benefits** — study plans, progress stats, mistake notebook, streaks, and achievements
 
 ## Tech Stack
 
-- **Frontend**: React 18 + Vite + TypeScript + Tailwind CSS v4
+- **Frontend**: React + Vite + TypeScript + Tailwind CSS v4
 - **State**: Zustand + TanStack Query
 - **Audio**: Tone.js + Salamander piano samples
-- **i18n**: i18next
-- **Backend**: Golang + Gin + PostgreSQL
-- **Auth**: JWT + Google OAuth + email verification code
-- **Monorepo**: pnpm workspaces + Turborepo
+- **Music Theory**: tonal
+- **Backend**: Go + Gin + PostgreSQL
+- **Auth**: JWT + Google OAuth + email verification
 - **Deployment**: Self-hosted server + Podman Compose
-- **Local Dev**: Dev Container + Podman
 
-## Project Structure
+## Live Demo
 
-```
-oh-your-ear/
-├── apps/
-│   ├── web/            # React frontend
-│   └── api/            # Golang backend
-├── compose/            # Podman Compose files
-├── .devcontainer/      # Dev Container config
-├── docs/               # PRD + tech spec
-└── package.json        # pnpm workspace root
-```
-
-## Quick Start
-
-### With Dev Container (recommended)
-
-The dev container only provides the runtime (Node/Go/Postgres). **Keep using your own nvim on the host** to edit code; the project directory is mounted into the container.
-
-1. Install the [Dev Container CLI](https://github.com/devcontainers/cli):
-   ```bash
-   npm install -g @devcontainers/cli
-   ```
-2. Start the dev container with Podman:
-   ```bash
-   export DOCKER_HOST=unix:///run/user/$(id - u)/podman/podman.sock
-   podman system service --time=0 &
-
-   # make podman available as 'docker' for the CLI
-   mkdir -p ~/.local/bin
-   ln -sf $(which podman) ~/.local/bin/docker
-   export PATH="$HOME/.local/bin:$PATH"
-
-   devcontainer up --workspace-folder .
-   ```
-3. In another terminal, run the dev servers inside the container:
-   ```bash
-   devcontainer exec --workspace-folder . bash
-   # inside the container:
-   pnpm dev          # starts web + api via turbo
-   ```
-4. Use your host nvim to edit files normally. Changes are synced into the container via bind mount.
-
-### Manual Local Development
-
-Requirements:
-- Node.js 24.16.0
-- pnpm 10.15.0
-- Go 1.26.4
-- PostgreSQL 17
-- Podman + podman-compose
-
-```bash
-# install dependencies
-pnpm install
-cd apps/api && go mod download
-
-# start database
-podman compose -f compose/compose.dev.yml up db -d
-
-# start dev servers
-pnpm dev
-```
-
-- Web: http://localhost:5173
-- API: http://localhost:8080
-- API health: http://localhost:8080/health
-
-## Build & Deploy
-
-```bash
-# production build
-pnpm build
-
-# deploy with Podman Compose
-cp .env.example .env
-# edit .env with your secrets
-podman compose -f compose/compose.yml up --build -d
-```
-
-## Scripts
-
-| Command | Description |
-| --- | --- |
-| `pnpm dev` | Start all apps in dev mode |
-| `pnpm build` | Build all apps |
-| `pnpm lint` | Lint all apps |
-| `pnpm typecheck` | Type-check all apps |
+> Coming soon — deployment instructions are in [`docs/tech-spec.md`](./docs/tech-spec.md).
 
 ## Documentation
 
-- [Product Requirements](./docs/prd.md)
-- [Tech Stack](./docs/tech-spec.md)
-- [Agent Guide](./AGENTS.md)
+| Document | Description |
+| --- | --- |
+| [`docs/prd.md`](./docs/prd.md) | Product requirements and feature roadmap |
+| [`docs/tech-spec.md`](./docs/tech-spec.md) | Final tech stack and architecture |
+| [`docs/development.md`](./docs/development.md) | Local development and Dev Container setup |
+| [`AGENTS.md`](./AGENTS.md) | Guide for AI agents working on this repo |
+
+## License
+
+MIT
