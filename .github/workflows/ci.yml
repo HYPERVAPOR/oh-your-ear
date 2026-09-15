@@ -10,7 +10,7 @@ env:
   NODE_VERSION: '24.16.0'
   PNPM_VERSION: '10.15.0'
   GO_VERSION: '1.26.4'
-  GOLANGCI_LINT_VERSION: 'v1.64.8'
+  GOLANGCI_LINT_VERSION: 'v2.13.2'
 
 jobs:
   lockfile:
@@ -135,7 +135,7 @@ jobs:
         run: go vet ./...
 
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v6.5.0
+        uses: golangci/golangci-lint-action@v9.3.0
         with:
           version: ${{ env.GOLANGCI_LINT_VERSION }}
           working-directory: apps/api

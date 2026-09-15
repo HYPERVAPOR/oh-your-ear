@@ -1,29 +1,31 @@
-run:
-  timeout: 5m
-
+version: "2"
 linters:
   enable:
-    - errcheck
-    - gosimple
-    - govet
-    - ineffassign
-    - staticcheck
-    - unused
-    - gofmt
-    - goimports
+    - bodyclose
+    - copyloopvar
+    - errname
+    - gocritic
     - misspell
     - revive
-    - bodyclose
-    - gocritic
-    - errname
-    - copyloopvar
-
-issues:
-  exclude-files:
-    - internal/api/generated.go
-
-linters-settings:
-  revive:
-    rules:
-      - name: exported
-        disabled: false
+  settings:
+    revive:
+      rules:
+        - name: exported
+          disabled: false
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - internal/api/generated.go
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  exclusions:
+    generated: lax
+    paths:
+      - internal/api/generated.go
