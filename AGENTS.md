@@ -18,15 +18,15 @@ Oh Your Ear is a responsive web-based ear training application. It covers five c
 
 ## Tech Stack at a Glance
 
-- **Frontend**: React 18 + Vite + TypeScript + Tailwind CSS + shadcn/ui
+- **Frontend**: React 19 + Vite + TypeScript + Tailwind CSS v4
 - **State**: Zustand + TanStack Query
 - **Audio**: Tone.js + Salamander piano samples
 - **Music Theory**: tonal
 - **i18n**: i18next
 - **Backend**: Golang + Gin + PostgreSQL (pgx + sqlc)
 - **Auth**: JWT + Google OAuth + email verification code
-- **Deployment**: Self-hosted server + Docker Compose
-- **Local Dev**: VS Code Dev Container + Podman/Docker
+- **Deployment**: Self-hosted server + Podman Compose
+- **Local Dev**: Dev Container + Podman
 
 ## Agent Working Principles
 

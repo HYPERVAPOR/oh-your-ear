@@ -55,7 +55,8 @@
 
 ## 部署
 
-- **方式**：服务器自建 + Docker Compose
+- **方式**：服务器自建 + Podman Compose
+- **容器文件**：`Containerfile`（Podman 原生，兼容 Docker）
 - **基础镜像**：
   - 构建：`node:24.16.0-slim`、`golang:1.26.4-bookworm`
   - 运行：`nginx:1.27.5-alpine`、`gcr.io/distroless/static-debian12`
@@ -69,10 +70,10 @@
 
 ## 本地开发
 
-- **环境**：VS Code Dev Container
+- **环境**：Dev Container（通过 `@devcontainers/cli`）
 - **基础镜像**：`mcr.microsoft.com/devcontainers/go:1.26-bookworm`
-- **组成**：前端 Vite 热更新 + Golang 后端 + PostgreSQL，统一用 Docker Compose 拉起
-- **容器运行时**：Podman（兼容 Docker）
+- **组成**：前端 Vite 热更新 + Golang 后端 + PostgreSQL，统一用 Podman Compose 拉起
+- **容器运行时**：Podman
 
 ## 目录结构
 
@@ -81,11 +82,11 @@ oh-your-ear/
 ├── apps/
 │   ├── web/                # React 前端
 │   └── api/                # Golang 后端
-├── docker/
-│   ├── docker-compose.yml      # 生产部署
-│   └── docker-compose.dev.yml  # 本地 Dev Container
+├── compose/
+│   ├── compose.yml      # 生产部署
+│   └── compose.dev.yml  # 本地 Dev Container
 ├── .devcontainer/
-│   ├── Dockerfile
+│   ├── Containerfile
 │   └── devcontainer.json
 ├── docs/
 │   ├── prd.md
@@ -105,5 +106,5 @@ oh-your-ear/
 | Tailwind CSS v4 | 新版 CSS-first 配置，减少配置文件，主题切换方便 |
 | Tone.js + Salamander | 真实钢琴采样，音质好，社区验证 |
 | Golang + Gin + PostgreSQL | 自研后端可控，性能稳定，适合长期维护 |
-| Docker Compose | 前后端+数据库一次拉起，部署和本地开发一致 |
+| Podman Compose | 前后端+数据库一次拉起，部署和本地开发一致 |
 | Dev Container | 团队开发环境统一，避免「我电脑上能跑」 |

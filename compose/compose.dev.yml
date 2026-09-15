@@ -1,8 +1,10 @@
+name: oh-your-ear
+
 services:
   app:
     build:
       context: ..
-      dockerfile: .devcontainer/Dockerfile
+      dockerfile: .devcontainer/Containerfile
     volumes:
       - ..:/workspace:cached
     command: sleep infinity

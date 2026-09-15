@@ -1,6 +1,6 @@
 {
   "name": "Oh Your Ear Dev",
-  "dockerComposeFile": "../docker/docker-compose.dev.yml",
+  "dockerComposeFile": "../compose/compose.dev.yml",
   "service": "app",
   "workspaceFolder": "/workspace",
   "shutdownAction": "stopCompose",

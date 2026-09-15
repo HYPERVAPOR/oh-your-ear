@@ -7,7 +7,7 @@ bin
 .github
 .vscode
 .devcontainer
-docker
+compose
 docs
 README.md
 .env

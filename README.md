@@ -11,8 +11,8 @@ A responsive web-based ear training application.
 - **Backend**: Golang + Gin + PostgreSQL
 - **Auth**: JWT + Google OAuth + email verification code
 - **Monorepo**: pnpm workspaces + Turborepo
-- **Deployment**: Self-hosted server + Docker Compose
-- **Local Dev**: VS Code Dev Container + Podman/Docker
+- **Deployment**: Self-hosted server + Podman Compose
+- **Local Dev**: Dev Container + Podman
 
 ## Project Structure
 
@@ -21,7 +21,7 @@ oh-your-ear/
 ├── apps/
 │   ├── web/            # React frontend
 │   └── api/            # Golang backend
-├── docker/             # Docker Compose files
+├── compose/            # Podman Compose files
 ├── .devcontainer/      # Dev Container config
 ├── docs/               # PRD + tech spec
 └── package.json        # pnpm workspace root
@@ -31,9 +31,24 @@ oh-your-ear/
 
 ### With Dev Container (recommended)
 
-1. Open the project in VS Code.
-2. Run **"Reopen in Container"**.
-3. Once ready:
+1. Install the [Dev Container CLI](https://github.com/devcontainers/cli):
+   ```bash
+   npm install -g @devcontainers/cli
+   ```
+2. Start the dev container with Podman:
+   ```bash
+   export DOCKER_HOST=unix:///run/user/$(id - u)/podman/podman.sock
+   podman system service --time=0 &
+
+   # make podman available as 'docker' for the CLI
+   mkdir -p ~/.local/bin
+   ln -sf $(which podman) ~/.local/bin/docker
+   export PATH="$HOME/.local/bin:$PATH"
+
+   devcontainer up --workspace-folder .
+   devcontainer exec --workspace-folder . bash
+   ```
+3. Inside the container:
    ```bash
    pnpm dev          # starts web + api via turbo
    ```
@@ -45,6 +60,7 @@ Requirements:
 - pnpm 10.15.0
 - Go 1.26.4
 - PostgreSQL 17
+- Podman + podman-compose
 
 ```bash
 # install dependencies
@@ -52,7 +68,7 @@ pnpm install
 cd apps/api && go mod download
 
 # start database
-docker compose -f docker/docker-compose.dev.yml up db -d
+podman compose -f compose/compose.dev.yml up db -d
 
 # start dev servers
 pnpm dev
@@ -68,10 +84,10 @@ pnpm dev
 # production build
 pnpm build
 
-# deploy with Docker Compose
+# deploy with Podman Compose
 cp .env.example .env
 # edit .env with your secrets
-docker compose -f docker/docker-compose.yml up --build -d
+podman compose -f compose/compose.yml up --build -d
 ```
 
 ## Scripts
