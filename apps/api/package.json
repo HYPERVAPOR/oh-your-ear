@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "go run ./cmd/server",
     "build": "go build -o bin/server ./cmd/server",
+    "generate": "go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@v2.4.1 --package=api --generate=gin,types,spec ../../openapi.yaml > internal/api/generated.go",
     "lint": "gofmt -l .",
     "typecheck": "go vet ./...",
     "clean": "rm -rf bin"
