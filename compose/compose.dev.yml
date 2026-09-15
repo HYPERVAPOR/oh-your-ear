@@ -39,7 +39,8 @@ services:
         go mod download
         go run ./cmd/server
     depends_on:
-      - db
+      db:
+        condition: service_healthy
 
   db:
     image: postgres:17.4-alpine
@@ -51,6 +52,11 @@ services:
       - postgres-data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ohyourear"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
 volumes:
   postgres-data:

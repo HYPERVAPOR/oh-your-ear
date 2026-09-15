@@ -1,0 +1,5 @@
+bin
+.turbo
+*.log
+.env
+.env.local

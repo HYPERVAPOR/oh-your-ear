@@ -19,7 +19,7 @@ linters:
     - copyloopvar
 
 issues:
-  exclude-dirs:
+  exclude-files:
     - internal/api/generated.go
 
 linters-settings:
