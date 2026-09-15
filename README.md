@@ -34,7 +34,7 @@ Train your ear with single notes, intervals, chords, melodies, and rhythms — o
 | --- | --- |
 | [`docs/prd.md`](./docs/prd.md) | Product requirements and feature roadmap |
 | [`docs/tech-spec.md`](./docs/tech-spec.md) | Final tech stack and architecture |
-| [`docs/development.md`](./docs/development.md) | Local development and Dev Container setup |
+| [`docs/development.md`](./docs/development.md) | Local development setup |
 | [`AGENTS.md`](./AGENTS.md) | Guide for AI agents working on this repo |
 
 ## License

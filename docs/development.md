@@ -19,83 +19,82 @@ oh-your-ear/
 │   ├── web/            # React frontend
 │   └── api/            # Golang backend
 ├── compose/            # Podman Compose files
-├── .devcontainer/      # Dev Container config
 ├── docs/               # PRD + tech spec + this doc
 └── package.json        # pnpm workspace root
 ```
 
-## Option 1: Dev Container (recommended)
+## Local Development
 
-The dev container only provides the runtime (Node/Go/Postgres). **Keep using your own editor on the host** to edit code; the project directory is mounted into the container.
+Requirements:
+- Podman + podman-compose
 
-1. Install the [Dev Container CLI](https://github.com/devcontainers/cli):
-   ```bash
-   npm install -g @devcontainers/cli
-   ```
-2. Start the dev container with Podman:
-   ```bash
-   export DOCKER_HOST=unix:///run/user/$(id - u)/podman/podman.sock
-   podman system service --time=0 &
+All services run in containers. You edit code with your own editor on the host.
 
-   # make podman available as 'docker' for the CLI
-   mkdir -p ~/.local/bin
-   ln -sf $(which podman) ~/.local/bin/docker
-   export PATH="$HOME/.local/bin:$PATH"
+```bash
+# start web + api + db
+podman compose -f compose/compose.dev.yml up -d
+```
 
-   devcontainer up --workspace-folder .
-   ```
-3. In another terminal, run the dev servers inside the container:
-   ```bash
-   devcontainer exec --workspace-folder . bash
-   # inside the container:
-   pnpm dev          # starts web + api via turbo
-   ```
-4. Use your host editor to edit files normally. Changes are synced into the container via bind mount.
+Services:
 
-- Web: http://localhost:5173
-- API: http://localhost:8080
-- API health: http://localhost:8080/health
+| Service | Host URL | Container |
+| --- | --- | --- |
+| Web | http://localhost:5173 | `oh-your-ear-web-1` |
+| API | http://localhost:8080 | `oh-your-ear-api-1` |
+| API health | http://localhost:8080/health | `oh-your-ear-api-1` |
+| Postgres | localhost:5432 | `oh-your-ear-db-1` |
 
-## Option 2: Manual Local Development
+### View logs
+
+```bash
+podman compose -f compose/compose.dev.yml logs -f web
+podman compose -f compose/compose.dev.yml logs -f api
+podman compose -f compose/compose.dev.yml logs -f db
+```
+
+### Run a command inside a container
+
+```bash
+# front-end shell
+podman exec -it oh-your-ear-web-1 bash
+
+# back-end shell
+podman exec -it oh-your-ear-api-1 bash
+```
+
+### Stop everything
+
+```bash
+podman compose -f compose/compose.dev.yml down
+```
+
+## Manual Development (without containers)
 
 Requirements:
 - Node.js 24.16.0
 - pnpm 10.15.0
 - Go 1.26.4
 - PostgreSQL 17
-- Podman + podman-compose
 
 ```bash
-# install dependencies
 pnpm install
-cd apps/api && go mod download
+cd apps/api && go mod download && cd ../..
 
-# start database
+# start your local Postgres, then:
 podman compose -f compose/compose.dev.yml up db -d
 
-# start dev servers
 pnpm dev
 ```
 
-### Run only the frontend
-
-```bash
-pnpm --filter @oh-your-ear/web dev
-```
-
-### Run only the backend
-
-Requires the database to be running first.
-
-```bash
-pnpm --filter @oh-your-ear/api dev
-```
+- Web: http://localhost:5173
+- API: http://localhost:8080
+- API health: http://localhost:8080/health
 
 ## Common Scripts
 
 | Command | Description |
 | --- | --- |
-| `pnpm dev` | Start all apps in dev mode |
+| `pnpm dev` | Start all apps in dev mode (manual mode) |
 | `pnpm build` | Build all apps |
 | `pnpm lint` | Lint all apps |
 | `pnpm typecheck` | Type-check all apps |

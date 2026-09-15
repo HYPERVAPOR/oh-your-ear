@@ -70,10 +70,12 @@
 
 ## 本地开发
 
-- **环境**：Dev Container（通过 `@devcontainers/cli`）
-- **基础镜像**：`mcr.microsoft.com/devcontainers/go:1.26-bookworm`
-- **组成**：前端 Vite 热更新 + Golang 后端 + PostgreSQL，统一用 Podman Compose 拉起
-- **容器运行时**：Podman
+- **环境**：Podman Compose
+- **开发服务**：
+  - `web`：`node:24.16.0-slim` + pnpm，跑 Vite 热更新
+  - `api`：`golang:1.26.4-bookworm`，跑 `go run`
+  - `db`：`postgres:17.4-alpine`
+- **工作流**：编辑器在宿主机，服务在容器，源码通过 bind mount 同步
 
 ## 目录结构
 
@@ -84,10 +86,7 @@ oh-your-ear/
 │   └── api/                # Golang 后端
 ├── compose/
 │   ├── compose.yml      # 生产部署
-│   └── compose.dev.yml  # 本地 Dev Container
-├── .devcontainer/
-│   ├── Containerfile
-│   └── devcontainer.json
+│   └── compose.dev.yml  # 本地开发
 ├── docs/
 │   ├── prd.md
 │   └── tech-spec.md
@@ -107,4 +106,4 @@ oh-your-ear/
 | Tone.js + Salamander | 真实钢琴采样，音质好，社区验证 |
 | Golang + Gin + PostgreSQL | 自研后端可控，性能稳定，适合长期维护 |
 | Podman Compose | 前后端+数据库一次拉起，部署和本地开发一致 |
-| Dev Container | 团队开发环境统一，避免「我电脑上能跑」 |
+| Podman Compose 分离服务 | 开发环境与生产架构一致，web/api/db 独立容器 |

@@ -26,7 +26,7 @@ Oh Your Ear is a responsive web-based ear training application. It covers five c
 - **Backend**: Golang + Gin + PostgreSQL (pgx + sqlc)
 - **Auth**: JWT + Google OAuth + email verification code
 - **Deployment**: Self-hosted server + Podman Compose
-- **Local Dev**: Dev Container + Podman
+- **Local Dev**: Podman Compose
 
 ## Agent Working Principles
 

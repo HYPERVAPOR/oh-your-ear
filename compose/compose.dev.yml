@@ -1,17 +1,43 @@
 name: oh-your-ear
 
 services:
-  app:
-    build:
-      context: ..
-      dockerfile: .devcontainer/Containerfile
+  web:
+    image: node:24.16.0-slim
+    working_dir: /workspace
     volumes:
       - ..:/workspace:cached
-    command: sleep infinity
+    ports:
+      - "5173:5173"
     environment:
+      VITE_API_PROXY_TARGET: "http://api:8080"
+    command:
+      - sh
+      - -c
+      - |
+        corepack enable
+        corepack prepare pnpm@10.15.0 --activate
+        pnpm install
+        pnpm --filter @oh-your-ear/web dev
+    depends_on:
+      - api
+
+  api:
+    image: golang:1.26.4-bookworm
+    working_dir: /workspace/apps/api
+    volumes:
+      - ..:/workspace:cached
+    ports:
+      - "8080:8080"
+    environment:
+      SERVER_ADDR: ":8080"
       DATABASE_URL: "postgres://postgres:postgres@db:5432/ohyourear?sslmode=disable"
       JWT_SECRET: "dev-secret"
-      SERVER_ADDR: ":8080"
+    command:
+      - sh
+      - -c
+      - |
+        go mod download
+        go run ./cmd/server
     depends_on:
       - db
 
