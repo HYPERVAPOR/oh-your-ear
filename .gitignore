@@ -1,0 +1,12 @@
+node_modules
+.pnpm-store
+*.log
+dist
+bin
+.env
+.env.local
+.env.*.local
+.DS_Store
+.vscode/settings.json
+.turbo
+.idea

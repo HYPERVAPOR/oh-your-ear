@@ -1,0 +1,24 @@
+{
+  "appName": "Oh Your Ear",
+  "tagline": "Train your ear, anywhere.",
+  "modules": {
+    "singleNote": "Single Note",
+    "interval": "Interval",
+    "chord": "Chord",
+    "melody": "Melody",
+    "rhythm": "Rhythm"
+  },
+  "actions": {
+    "play": "Play",
+    "replay": "Replay",
+    "next": "Next",
+    "settings": "Settings",
+    "login": "Log in",
+    "logout": "Log out"
+  },
+  "theme": {
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  }
+}

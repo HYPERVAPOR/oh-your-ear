@@ -1,0 +1,27 @@
+{
+  "name": "Oh Your Ear Dev",
+  "dockerComposeFile": "../docker/docker-compose.dev.yml",
+  "service": "app",
+  "workspaceFolder": "/workspace",
+  "shutdownAction": "stopCompose",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "24.16.0"
+    }
+  },
+  "postCreateCommand": "corepack enable && corepack prepare pnpm@10.15.0 --activate && pnpm install && cd apps/api && go mod download",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "golang.go",
+        "bradlc.vscode-tailwindcss"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "go.toolsManagement.autoUpdate": false
+      }
+    }
+  },
+  "forwardPorts": [5173, 8080, 5432]
+}

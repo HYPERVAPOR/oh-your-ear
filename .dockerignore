@@ -1,0 +1,15 @@
+node_modules
+.pnpm-store
+*.log
+dist
+bin
+.git
+.github
+.vscode
+.devcontainer
+docker
+docs
+README.md
+.env
+.env.local
+.env.*.local
