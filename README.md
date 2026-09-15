@@ -31,6 +31,8 @@ oh-your-ear/
 
 ### With Dev Container (recommended)
 
+The dev container only provides the runtime (Node/Go/Postgres). **Keep using your own nvim on the host** to edit code; the project directory is mounted into the container.
+
 1. Install the [Dev Container CLI](https://github.com/devcontainers/cli):
    ```bash
    npm install -g @devcontainers/cli
@@ -46,12 +48,14 @@ oh-your-ear/
    export PATH="$HOME/.local/bin:$PATH"
 
    devcontainer up --workspace-folder .
-   devcontainer exec --workspace-folder . bash
    ```
-3. Inside the container:
+3. In another terminal, run the dev servers inside the container:
    ```bash
+   devcontainer exec --workspace-folder . bash
+   # inside the container:
    pnpm dev          # starts web + api via turbo
    ```
+4. Use your host nvim to edit files normally. Changes are synced into the container via bind mount.
 
 ### Manual Local Development
 

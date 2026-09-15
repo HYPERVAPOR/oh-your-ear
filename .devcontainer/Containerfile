@@ -2,16 +2,12 @@ FROM mcr.microsoft.com/devcontainers/go:1.26-bookworm
 
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
-ENV EDITOR="nvim"
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-       neovim \
        git \
        curl \
        ca-certificates \
-       ripgrep \
-       fd-find \
     && rm -rf /var/lib/apt/lists/*
 
 RUN corepack enable && corepack prepare pnpm@10.15.0 --activate
