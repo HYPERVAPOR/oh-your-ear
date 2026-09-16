@@ -69,6 +69,61 @@ jobs:
       - name: Check for drift
         run: git diff --exit-code
 
+  file-size-check:
+    name: Source file size check
+    runs-on: ubuntu-24.04
+    continue-on-error: true
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.2.2
+
+      - name: Check source file lengths
+        run: |
+          #!/usr/bin/env bash
+          set -euo pipefail
+
+          declare -A limits=(
+            [go]=300
+            [py]=300
+            [ts]=250
+            [tsx]=250
+            [js]=250
+            [jsx]=250
+            [rs]=300
+            [java]=300
+            [c]=300
+            [cpp]=300
+            [h]=300
+            [cs]=300
+            [rb]=300
+            [php]=300
+            [swift]=300
+            [kt]=300
+            [scala]=300
+          )
+
+          over_limit=0
+          while IFS= read -r file; do
+            ext="${file##*.}"
+            ext_lower="${ext,,}"
+            limit="${limits[$ext_lower]:-}"
+            [[ -z "$limit" ]] && continue
+
+            case "$file" in
+              */generated.*|*.generated.*|*.gen.*|*.d.ts) continue ;;
+            esac
+
+            lines=$(wc -l < "$file")
+            if (( lines > limit )); then
+              over_limit=1
+              echo "::warning file=$file,line=$limit::$file has $lines lines (limit $limit)"
+            fi
+          done < <(git ls-files)
+
+          if (( over_limit == 0 )); then
+            echo "All source files are within line limits."
+          fi
+
   web:
     name: Web checks
     runs-on: ubuntu-24.04
