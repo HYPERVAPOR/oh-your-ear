@@ -16,7 +16,7 @@ services:
       - |
         corepack enable
         corepack prepare pnpm@10.15.0 --activate
-        pnpm install
+        pnpm install --config.confirmModulesPurge=false
         pnpm --filter @oh-your-ear/web dev
     depends_on:
       - api
