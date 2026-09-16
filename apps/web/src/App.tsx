@@ -4,8 +4,9 @@ import { Music, Layers, AudioLines, Timer, Volume2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { PlayButton } from '@/components/play-button'
-import { SingleNoteExercise } from '@/components/exercises/single-note-exercise'
+import { ChordExercise } from '@/components/exercises/chord-exercise'
 import { IntervalExercise } from '@/components/exercises/interval-exercise'
+import { SingleNoteExercise } from '@/components/exercises/single-note-exercise'
 import { getPiano } from '@/lib/audio'
 import { useAppStore, type Language, type Theme } from '@/stores/app-store'
 
@@ -20,7 +21,7 @@ const modules = [
 export default function App() {
   const { t, i18n } = useTranslation('common')
   const { theme, language, setTheme, setLanguage } = useAppStore()
-  const [view, setView] = useState<'home' | 'single-note' | 'interval'>('home')
+  const [view, setView] = useState<'home' | 'single-note' | 'interval' | 'chord'>('home')
 
   // Prefetch piano samples on mount so the first Play click is responsive.
   useEffect(() => {
@@ -38,6 +39,10 @@ export default function App() {
 
   if (view === 'interval') {
     return <IntervalExercise onBack={() => setView('home')} />
+  }
+
+  if (view === 'chord') {
+    return <ChordExercise onBack={() => setView('home')} />
   }
 
   return (
@@ -84,6 +89,7 @@ export default function App() {
               onClick={() => {
                 if (key === 'singleNote') setView('single-note')
                 if (key === 'interval') setView('interval')
+                if (key === 'chord') setView('chord')
               }}
             >
               <Icon className="h-8 w-8" />
