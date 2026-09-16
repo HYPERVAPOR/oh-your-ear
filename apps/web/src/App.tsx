@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { Music, Layers, AudioLines, Timer, Volume2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import { PlayButton } from '@/components/play-button'
 import { useAppStore, type Language, type Theme } from '@/stores/app-store'
 
 const modules = [
@@ -49,7 +50,12 @@ export default function App() {
       </header>
 
       <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col items-center justify-center px-6 py-12">
-        <p className="mb-10 text-center text-lg text-muted-foreground">{t('tagline')}</p>
+        <p className="mb-6 text-center text-lg text-muted-foreground">{t('tagline')}</p>
+
+        <div className="mb-10 flex items-center gap-3">
+          <PlayButton note="C4" />
+          <span className="text-sm text-muted-foreground">{t('actions.play')} C4</span>
+        </div>
 
         <div className="grid w-full gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {modules.map(({ key, icon: Icon }) => (
