@@ -49,7 +49,7 @@ export function SingleNoteExercise({ onBack }: SingleNoteExerciseProps) {
         setScore((prev) => prev + 1)
       }
     },
-    [selected, target]
+    [selected, target],
   )
 
   const isCorrect = selected ? Note.midi(selected) === Note.midi(target) : null
@@ -83,7 +83,7 @@ export function SingleNoteExercise({ onBack }: SingleNoteExerciseProps) {
               'mb-6 rounded-md px-4 py-2 text-center text-sm font-medium',
               isCorrect
                 ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100'
-                : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100'
+                : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100',
             )}
           >
             {isCorrect ? t('feedback.correct') : t('feedback.wrong', { answer: target })}
@@ -99,10 +99,12 @@ export function SingleNoteExercise({ onBack }: SingleNoteExerciseProps) {
               onClick={() => handleGuess(note)}
               className={cn(
                 'h-14 text-lg',
-                selected && Note.midi(note) === Note.midi(target) &&
+                selected &&
+                  Note.midi(note) === Note.midi(target) &&
                   'border-green-500 bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-200',
-                selected === note && !isCorrect &&
-                  'border-red-500 bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-200'
+                selected === note &&
+                  !isCorrect &&
+                  'border-red-500 bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-200',
               )}
             >
               {note}
