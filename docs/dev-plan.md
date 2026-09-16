@@ -14,13 +14,13 @@
 
 ### 1.1 Tone.js + Salamander piano samples integration
 
-- **status**: 🔴 todo
+- **status**: 🟡 doing
 - **description**: Initialize Tone.js, load Salamander samples, support offline fallback.
 - **depends on**: none
 
 ### 1.2 Basic "play note" button
 
-- **status**: 🟡 doing
+- **status**: 🟢 done
 - **description**: A reusable button that plays a given note and handles audio context resume.
 - **depends on**: 1.1
 
