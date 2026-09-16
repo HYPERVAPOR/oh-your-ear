@@ -52,13 +52,13 @@
 
 ### 3.1 Interval playback
 
-- **status**: 🔴 todo
+- **status**: 🟢 done
 - **description**: Play two notes sequentially and identify interval.
 - **depends on**: 1.2
 
 ### 3.2 Interval answer options
 
-- **status**: 🔴 todo
+- **status**: 🟢 done
 - **description**: Display interval names, validate answer.
 - **depends on**: 3.1
 
