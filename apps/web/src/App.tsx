@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Music, Layers, AudioLines, Timer, Volume2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { PlayButton } from '@/components/play-button'
 import { SingleNoteExercise } from '@/components/exercises/single-note-exercise'
+import { getPiano } from '@/lib/audio'
 import { useAppStore, type Language, type Theme } from '@/stores/app-store'
 
 const modules = [
@@ -19,6 +20,11 @@ export default function App() {
   const { t, i18n } = useTranslation('common')
   const { theme, language, setTheme, setLanguage } = useAppStore()
   const [view, setView] = useState<'home' | 'single-note'>('home')
+
+  // Prefetch piano samples on mount so the first Play click is responsive.
+  useEffect(() => {
+    getPiano()
+  }, [])
 
   const handleLanguageChange = (lang: Language) => {
     setLanguage(lang)
