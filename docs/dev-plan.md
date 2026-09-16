@@ -68,13 +68,13 @@
 
 ### 4.1 Chord playback
 
-- **status**: 🔴 todo
+- **status**: 🟢 done
 - **description**: Play block chords using Tone.js polyphony.
 - **depends on**: 1.2
 
 ### 4.2 Chord recognition UI
 
-- **status**: 🔴 todo
+- **status**: 🟢 done
 - **description**: Show chord type options and validate.
 - **depends on**: 4.1
 
