@@ -14,7 +14,7 @@
 
 ### 1.1 Tone.js + Salamander piano samples integration
 
-- **status**: 🟡 doing
+- **status**: 🟢 done
 - **description**: Initialize Tone.js, load Salamander samples, support offline fallback.
 - **depends on**: none
 
