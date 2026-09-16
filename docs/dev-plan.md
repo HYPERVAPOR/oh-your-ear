@@ -36,13 +36,13 @@
 
 ### 2.1 Exercise UI layout
 
-- **status**: 🔴 todo
+- **status**: 🟢 done
 - **description**: Note buttons, feedback area, score counter.
 - **depends on**: none
 
 ### 2.2 Answer validation
 
-- **status**: 🔴 todo
+- **status**: 🟢 done
 - **description**: Compare played note with user selection using `tonal`.
 - **depends on**: 2.1, 1.2
 
