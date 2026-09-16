@@ -22,7 +22,11 @@ function buildSampleMap(): Record<string, string> {
 }
 
 export interface Piano {
-  triggerAttackRelease(note: string, duration: string | number, time?: Tone.Unit.Time): void
+  triggerAttackRelease(
+    note: string | string[],
+    duration: string | number,
+    time?: Tone.Unit.Time,
+  ): void
 }
 
 let pianoPromise: Promise<Piano> | null = null
@@ -61,4 +65,10 @@ export async function playSequence(
   notes.forEach((note, index) => {
     piano.triggerAttackRelease(note, duration, now + index * gap)
   })
+}
+
+export async function playChord(notes: string[], duration: string | number = '2n'): Promise<void> {
+  await Tone.start()
+  const piano = await getPiano()
+  piano.triggerAttackRelease(notes, duration, Tone.now())
 }
