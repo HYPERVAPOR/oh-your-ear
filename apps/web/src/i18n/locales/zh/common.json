@@ -19,7 +19,8 @@
   },
   "score": "得分：{{correct}}/{{total}}",
   "exercises": {
-    "instruction": "听音，选择正确的音符。"
+    "instruction": "听音，选择正确的音符。",
+    "instructionInterval": "听两个音，选择音程。"
   },
   "feedback": {
     "correct": "答对了！",

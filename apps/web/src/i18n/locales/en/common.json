@@ -19,7 +19,8 @@
   },
   "score": "Score: {{correct}}/{{total}}",
   "exercises": {
-    "instruction": "Listen to the note and pick the right one."
+    "instruction": "Listen to the note and pick the right one.",
+    "instructionInterval": "Listen to both notes and pick the interval."
   },
   "feedback": {
     "correct": "Correct!",
