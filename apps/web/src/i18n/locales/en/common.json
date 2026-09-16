@@ -12,9 +12,18 @@
     "play": "Play",
     "replay": "Replay",
     "next": "Next",
+    "back": "Back",
     "settings": "Settings",
     "login": "Log in",
     "logout": "Log out"
+  },
+  "score": "Score: {{correct}}/{{total}}",
+  "exercises": {
+    "instruction": "Listen to the note and pick the right one."
+  },
+  "feedback": {
+    "correct": "Correct!",
+    "wrong": "Wrong! It was {{answer}}."
   },
   "theme": {
     "light": "Light",

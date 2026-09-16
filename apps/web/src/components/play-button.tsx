@@ -12,9 +12,10 @@ export interface PlayButtonProps {
   note: string
   className?: string
   duration?: string
+  label?: string
 }
 
-export function PlayButton({ note, className, duration = '8n' }: PlayButtonProps) {
+export function PlayButton({ note, className, duration = '8n', label }: PlayButtonProps) {
   const synthRef = useRef<Tone.Synth | null>(null)
   const [busy, setBusy] = useState(false)
 
@@ -34,14 +35,15 @@ export function PlayButton({ note, className, duration = '8n' }: PlayButtonProps
   return (
     <Button
       type="button"
-      size="icon"
+      size={label ? 'default' : 'icon'}
       className={cn(className)}
       onClick={handleClick}
       disabled={busy}
       aria-label={`Play ${note}`}
       title={`Play ${note}`}
     >
-      <Volume2 className="h-5 w-5" />
+      <Volume2 className={cn('h-5 w-5', label && 'h-4 w-4')} />
+      {label}
     </Button>
   )
 }

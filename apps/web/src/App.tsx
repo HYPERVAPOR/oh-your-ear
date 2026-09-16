@@ -1,8 +1,10 @@
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Music, Layers, AudioLines, Timer, Volume2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { PlayButton } from '@/components/play-button'
+import { SingleNoteExercise } from '@/components/exercises/single-note-exercise'
 import { useAppStore, type Language, type Theme } from '@/stores/app-store'
 
 const modules = [
@@ -16,10 +18,15 @@ const modules = [
 export default function App() {
   const { t, i18n } = useTranslation('common')
   const { theme, language, setTheme, setLanguage } = useAppStore()
+  const [view, setView] = useState<'home' | 'single-note'>('home')
 
   const handleLanguageChange = (lang: Language) => {
     setLanguage(lang)
     i18n.changeLanguage(lang)
+  }
+
+  if (view === 'single-note') {
+    return <SingleNoteExercise onBack={() => setView('home')} />
   }
 
   return (
@@ -63,6 +70,7 @@ export default function App() {
               key={key}
               variant="outline"
               className="flex h-32 flex-col items-center justify-center gap-3 text-lg"
+              onClick={() => key === 'singleNote' && setView('single-note')}
             >
               <Icon className="h-8 w-8" />
               {t(`modules.${key}`)}
