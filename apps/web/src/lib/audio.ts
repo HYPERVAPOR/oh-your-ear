@@ -49,3 +49,16 @@ export async function getPiano(): Promise<Piano> {
   }
   return pianoPromise
 }
+
+export async function playSequence(
+  notes: string[],
+  duration: string | number = '8n',
+  gap = 0.5,
+): Promise<void> {
+  await Tone.start()
+  const piano = await getPiano()
+  const now = Tone.now()
+  notes.forEach((note, index) => {
+    piano.triggerAttackRelease(note, duration, now + index * gap)
+  })
+}
