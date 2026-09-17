@@ -30,6 +30,8 @@ Oh Your Ear is a responsive web-based ear training application. It covers five c
 
 ## Agent Working Principles
 
+> 提示：项目历史决策、踩坑记录和用户偏好沉淀在 [`memory/`](./memory/) 目录。需要时按需读取，不要把它当成热上下文反复注入。
+
 ### 1. 遵循开发流程与计划
 
 所有需求、bug 先建 GitHub Issue，用 GitHub Project 看板管理。开发从 `main` 切新分支，CI 通过后提 PR 合并。分支名、commit、PR 遵循常规规范（如 `feature/12-tonejs-playback`、`feat: ...`、`Closes #12`）。
@@ -70,4 +72,4 @@ Oh Your Ear is a responsive web-based ear training application. It covers five c
 - bugfix/踩坑：`YYYY-MM-DD-short-title.md`
 - 偏好/约定：`preference-short-title.md`
 - 决策记录：`decision-short-title.md`
-  新增条目时复制 `memory/.template.md`。
+  新增条目时复制 `memory/.template.md`。在上下文压缩（compact）或开启新对话之前，先回顾本轮是否有值得沉淀的内容，并写入 memory/。
