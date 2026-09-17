@@ -14,9 +14,12 @@
     "replay": "重放",
     "next": "下一题",
     "back": "返回",
+    "tap": "敲击",
+    "finish": "完成",
     "showNotes": "显示音符",
     "hideNotes": "隐藏音符",
     "newMelody": "新旋律",
+    "newRhythm": "新节奏",
     "settings": "设置",
     "login": "登录",
     "logout": "退出"
@@ -27,6 +30,8 @@
     "instructionInterval": "听两个音，选择音程。",
     "instructionChord": "听和弦，选择和弦类型。",
     "instructionMelody": "听旋律，可重复播放并显示音符。",
+    "instructionRhythm": "听节奏，然后把它敲出来。",
+    "tapHint": "按空格键或点击按钮敲击。",
     "hiddenNotation": "音符已隐藏"
   },
   "feedback": {

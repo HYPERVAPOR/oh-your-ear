@@ -14,9 +14,12 @@
     "replay": "Replay",
     "next": "Next",
     "back": "Back",
+    "tap": "Tap",
+    "finish": "Finish",
     "showNotes": "Show notes",
     "hideNotes": "Hide notes",
     "newMelody": "New melody",
+    "newRhythm": "New rhythm",
     "settings": "Settings",
     "login": "Log in",
     "logout": "Log out"
@@ -27,6 +30,8 @@
     "instructionInterval": "Listen to both notes and pick the interval.",
     "instructionChord": "Listen to the chord and pick the chord type.",
     "instructionMelody": "Listen to the melody, replay as needed, and reveal the notes.",
+    "instructionRhythm": "Listen to the rhythm, then tap it back.",
+    "tapHint": "Press Space or click the button to tap.",
     "hiddenNotation": "Notation hidden"
   },
   "feedback": {
