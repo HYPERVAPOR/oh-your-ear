@@ -4,6 +4,7 @@ import { Music, Layers, AudioLines, Timer, Volume2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { PlayButton } from '@/components/play-button'
+
 import { ChordExercise } from '@/components/exercises/chord-exercise'
 import { IntervalExercise } from '@/components/exercises/interval-exercise'
 import { MelodyExercise } from '@/components/exercises/melody-exercise'
@@ -11,6 +12,7 @@ import { RhythmExercise } from '@/components/exercises/rhythm-exercise'
 import { SingleNoteExercise } from '@/components/exercises/single-note-exercise'
 import { getPiano } from '@/lib/audio'
 import { useAppStore, type Language, type Theme } from '@/stores/app-store'
+import { useAuthStore, type User } from '@/stores/auth-store'
 
 const modules = [
   { key: 'singleNote', icon: Music },
@@ -20,9 +22,28 @@ const modules = [
   { key: 'rhythm', icon: Timer },
 ] as const
 
+async function fetchUser(token: string): Promise<User | null> {
+  const res = await fetch('/api/v1/auth/me', {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  if (!res.ok) return null
+  return (await res.json()) as User
+}
+
+async function refreshAccessToken(): Promise<string | null> {
+  const res = await fetch('/api/v1/auth/refresh', {
+    method: 'POST',
+    credentials: 'include',
+  })
+  if (!res.ok) return null
+  const data = await res.json()
+  return data.access_token ?? null
+}
+
 export default function App() {
   const { t, i18n } = useTranslation('common')
   const { theme, language, setTheme, setLanguage } = useAppStore()
+  const { accessToken, user, setAccessToken, setUser, logout } = useAuthStore()
   const [view, setView] = useState<
     'home' | 'single-note' | 'interval' | 'chord' | 'melody' | 'rhythm'
   >('home')
@@ -32,9 +53,57 @@ export default function App() {
     getPiano()
   }, [])
 
+  // Handle OAuth callback token and restore session on reload.
+  useEffect(() => {
+    async function initAuth() {
+      const hash = window.location.hash
+      const match = hash.match(/access_token=([^&]+)/)
+      if (match) {
+        const token = decodeURIComponent(match[1])
+        window.history.replaceState(null, '', window.location.pathname + window.location.search)
+        setAccessToken(token)
+        const profile = await fetchUser(token)
+        if (profile) setUser(profile)
+        return
+      }
+
+      if (!accessToken) {
+        const refreshed = await refreshAccessToken()
+        if (refreshed) {
+          setAccessToken(refreshed)
+          const profile = await fetchUser(refreshed)
+          if (profile) setUser(profile)
+        }
+      }
+    }
+    initAuth()
+  }, [accessToken, setAccessToken, setUser])
+
   const handleLanguageChange = (lang: Language) => {
     setLanguage(lang)
     i18n.changeLanguage(lang)
+  }
+
+  async function handleMockLogin() {
+    const res = await fetch('/api/v1/auth/mock', {
+      method: 'POST',
+      credentials: 'include',
+    })
+    if (!res.ok) return
+    const data = await res.json()
+    if (data.access_token) {
+      setAccessToken(data.access_token)
+      setUser(data.user as User)
+    }
+  }
+
+  function handleGoogleLogin() {
+    window.location.href = '/api/v1/auth/google'
+  }
+
+  async function handleLogout() {
+    await fetch('/api/v1/auth/logout', { method: 'POST', credentials: 'include' })
+    logout()
   }
 
   if (view === 'single-note') {
@@ -63,6 +132,25 @@ export default function App() {
         <div className="mx-auto flex max-w-5xl items-center justify-between">
           <h1 className="text-xl font-bold">{t('appName')}</h1>
           <div className="flex items-center gap-3">
+            {user ? (
+              <>
+                <span className="hidden text-sm text-muted-foreground sm:inline">
+                  {t('auth.loggedInAs', { email: user.email })}
+                </span>
+                <Button variant="outline" size="sm" onClick={handleLogout}>
+                  {t('actions.logout')}
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="outline" size="sm" onClick={handleMockLogin}>
+                  {t('auth.loginMock')}
+                </Button>
+                <Button size="sm" onClick={handleGoogleLogin}>
+                  {t('auth.loginWithGoogle')}
+                </Button>
+              </>
+            )}
             <select
               value={language}
               onChange={(e) => handleLanguageChange(e.target.value as Language)}

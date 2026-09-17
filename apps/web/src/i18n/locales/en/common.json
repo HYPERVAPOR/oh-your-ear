@@ -34,6 +34,11 @@
     "tapHint": "Press Space or click the button to tap.",
     "hiddenNotation": "Notation hidden"
   },
+  "auth": {
+    "loginWithGoogle": "Google login",
+    "loginMock": "Mock login",
+    "loggedInAs": "Logged in as {{email}}"
+  },
   "feedback": {
     "correct": "Correct!",
     "wrong": "Wrong! It was {{answer}}."

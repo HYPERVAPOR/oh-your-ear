@@ -34,6 +34,11 @@
     "tapHint": "按空格键或点击按钮敲击。",
     "hiddenNotation": "音符已隐藏"
   },
+  "auth": {
+    "loginWithGoogle": "Google 登录",
+    "loginMock": "模拟登录",
+    "loggedInAs": "已登录：{{email}}"
+  },
   "feedback": {
     "correct": "答对了！",
     "wrong": "错了！正确答案是 {{answer}}。"
