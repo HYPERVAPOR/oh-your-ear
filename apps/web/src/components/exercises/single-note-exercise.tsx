@@ -1,13 +1,13 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ArrowLeft, ChevronRight } from 'lucide-react'
 import { Note } from 'tonal'
 
 import { Button } from '@/components/ui/button'
 import { PlayButton } from '@/components/play-button'
+import { BooleanToggle, ConfigPanel } from '@/components/exercises/config-panel'
 import { cn } from '@/lib/utils'
-
-const NOTE_POOL = ['C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4', 'C5']
+import { buildSingleNotePool, useExerciseConfig } from '@/lib/exercise-config'
 
 function shuffle<T>(array: T[]): T[] {
   const copy = [...array]
@@ -18,27 +18,27 @@ function shuffle<T>(array: T[]): T[] {
   return copy
 }
 
-function pickTarget(): string {
-  return NOTE_POOL[Math.floor(Math.random() * NOTE_POOL.length)]
-}
-
 interface SingleNoteExerciseProps {
   onBack?: () => void
 }
 
 export function SingleNoteExercise({ onBack }: SingleNoteExerciseProps) {
   const { t } = useTranslation('common')
-  const [target, setTarget] = useState(pickTarget)
-  const [options, setOptions] = useState(() => shuffle(NOTE_POOL))
+  const { config, updateConfig, resetConfig } = useExerciseConfig('singleNote')
+  const notePool = useMemo(() => buildSingleNotePool(config), [config])
+  const [target, setTarget] = useState(() => notePool[Math.floor(Math.random() * notePool.length)])
+  const [options, setOptions] = useState(() => shuffle(notePool).slice(0, 8))
   const [selected, setSelected] = useState<string | null>(null)
   const [score, setScore] = useState(0)
   const [total, setTotal] = useState(0)
 
   const startRound = useCallback(() => {
-    setTarget(pickTarget())
-    setOptions(shuffle(NOTE_POOL))
+    const pool = buildSingleNotePool(config)
+    const nextTarget = pool[Math.floor(Math.random() * pool.length)]
+    setTarget(nextTarget)
+    setOptions(shuffle(pool).slice(0, 8))
     setSelected(null)
-  }, [])
+  }, [config])
 
   const handleGuess = useCallback(
     (guess: string) => {
@@ -62,7 +62,10 @@ export function SingleNoteExercise({ onBack }: SingleNoteExerciseProps) {
             <Button variant="ghost" size="icon" onClick={onBack} aria-label={t('actions.back')}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <h1 className="text-lg font-semibold">{t('modules.singleNote')}</h1>
+            <div>
+              <h1 className="text-lg font-semibold">{t('modules.singleNote')}</h1>
+              <p className="text-xs text-muted-foreground">{t('exercises.randomTest')}</p>
+            </div>
           </div>
           <div className="text-sm text-muted-foreground">
             {t('score', { correct: score, total })}
@@ -110,6 +113,23 @@ export function SingleNoteExercise({ onBack }: SingleNoteExerciseProps) {
               {note}
             </Button>
           ))}
+        </div>
+
+        <div className="mt-8 w-full max-w-md">
+          <ConfigPanel title={t('exerciseConfig.title')} onReset={resetConfig}>
+            <div className="space-y-3">
+              <BooleanToggle
+                label={t('exerciseConfig.whiteKeys')}
+                checked={config.whiteKeys}
+                onChange={(whiteKeys) => updateConfig({ whiteKeys })}
+              />
+              <BooleanToggle
+                label={t('exerciseConfig.blackKeys')}
+                checked={config.blackKeys}
+                onChange={(blackKeys) => updateConfig({ blackKeys })}
+              />
+            </div>
+          </ConfigPanel>
         </div>
 
         {selected && (

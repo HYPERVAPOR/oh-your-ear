@@ -1,66 +1,20 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ArrowLeft, Music } from 'lucide-react'
 import * as Tone from 'tone'
 
 import { Button } from '@/components/ui/button'
+import { CheckboxGroup, ConfigPanel, SliderField } from '@/components/exercises/config-panel'
 import { cn } from '@/lib/utils'
-
-const BPM = 100
-const BEAT_DURATION = 60 / BPM
-const PATTERN_LENGTH = 4
-const TAP_TOLERANCE = 0.2
-
-function generatePattern(): number[] {
-  const pattern: number[] = []
-  let remaining = PATTERN_LENGTH
-  while (remaining > 0) {
-    const choices = remaining >= 1 ? [1, 0.5] : [0.5]
-    const dur = choices[Math.floor(Math.random() * choices.length)]
-    pattern.push(dur)
-    remaining -= dur
-  }
-  return pattern
-}
-
-function toTransportTime(quarterNotes: number): string {
-  const sixteenths = Math.round(quarterNotes * 4)
-  const bars = Math.floor(sixteenths / 16)
-  const quarters = Math.floor((sixteenths % 16) / 4)
-  const sixteenth = sixteenths % 4
-  return `${bars}:${quarters}:${sixteenth}`
-}
-
-function getExpectedTimes(pattern: number[]): number[] {
-  let cumulative = 0
-  return pattern.map((dur) => {
-    const time = cumulative * BEAT_DURATION
-    cumulative += dur
-    return time
-  })
-}
-
-function countMatches(expected: number[], actual: number[], tolerance: number): number {
-  const used = new Set<number>()
-  let matched = 0
-  for (const target of expected) {
-    let bestIndex = -1
-    let bestDiff = Infinity
-    for (let i = 0; i < actual.length; i++) {
-      if (used.has(i)) continue
-      const diff = Math.abs(actual[i] - target)
-      if (diff <= tolerance && diff < bestDiff) {
-        bestDiff = diff
-        bestIndex = i
-      }
-    }
-    if (bestIndex !== -1) {
-      used.add(bestIndex)
-      matched++
-    }
-  }
-  return matched
-}
+import { useExerciseConfig } from '@/lib/exercise-config'
+import {
+  BPM,
+  TAP_TOLERANCE,
+  countMatches,
+  generatePattern,
+  getExpectedTimes,
+  toTransportTime,
+} from '@/lib/rhythm'
 
 interface RhythmExerciseProps {
   onBack?: () => void
@@ -68,7 +22,11 @@ interface RhythmExerciseProps {
 
 export function RhythmExercise({ onBack }: RhythmExerciseProps) {
   const { t } = useTranslation('common')
-  const [pattern, setPattern] = useState(generatePattern)
+  const { config, updateConfig, resetConfig } = useExerciseConfig('rhythm')
+  const beatDuration = useMemo(() => 60 / BPM, [])
+  const [pattern, setPattern] = useState(() =>
+    generatePattern(config.patternLength, config.durations),
+  )
   const [phase, setPhase] = useState<'idle' | 'playing' | 'tapping' | 'result'>('idle')
   const [roundScore, setRoundScore] = useState(0)
   const [score, setScore] = useState(0)
@@ -80,12 +38,20 @@ export function RhythmExercise({ onBack }: RhythmExerciseProps) {
   const tapsRef = useRef<number[]>([])
   const patternEndRef = useRef<number | null>(null)
 
+  const durationOptions = useMemo(
+    () => [
+      { value: '1', label: t('exerciseConfig.quarterNote') },
+      { value: '0.5', label: t('exerciseConfig.eighthNote') },
+    ],
+    [t],
+  )
+
   const startRound = useCallback(() => {
-    setPattern(generatePattern())
+    setPattern(generatePattern(config.patternLength, config.durations))
     tapsRef.current = []
     setRoundScore(0)
     setPhase('idle')
-  }, [])
+  }, [config])
 
   const handlePlay = useCallback(async () => {
     await Tone.start()
@@ -112,35 +78,33 @@ export function RhythmExercise({ onBack }: RhythmExerciseProps) {
     Tone.Transport.position = 0
     Tone.Transport.bpm.value = BPM
 
-    const expected = getExpectedTimes(pattern)
+    const expected = getExpectedTimes(pattern, beatDuration)
     for (const time of expected) {
       Tone.Transport.scheduleOnce(
         (when) => {
           clickSynthRef.current?.triggerAttackRelease('C2', '32n', when)
         },
-        toTransportTime(time / BEAT_DURATION),
+        toTransportTime(time / beatDuration),
       )
     }
 
-    const endTime = PATTERN_LENGTH * BEAT_DURATION
     Tone.Transport.scheduleOnce(() => {
       Tone.Transport.stop()
       setPhase('tapping')
-    }, toTransportTime(PATTERN_LENGTH))
+    }, toTransportTime(config.patternLength))
 
     tapsRef.current = []
     setPhase('playing')
     startTimeRef.current = performance.now() / 1000
     Tone.Transport.start()
 
-    // Safety fallback in case scheduled end callback is missed.
     patternEndRef.current = window.setTimeout(
       () => {
         setPhase((current) => (current === 'playing' ? 'tapping' : current))
       },
-      endTime * 1000 + 500,
+      config.patternLength * beatDuration * 1000 + 500,
     )
-  }, [pattern])
+  }, [pattern, beatDuration, config.patternLength])
 
   const recordTap = useCallback(() => {
     if (phase !== 'tapping' && phase !== 'playing') return
@@ -155,13 +119,13 @@ export function RhythmExercise({ onBack }: RhythmExerciseProps) {
       clearTimeout(patternEndRef.current)
       patternEndRef.current = null
     }
-    const expected = getExpectedTimes(pattern)
+    const expected = getExpectedTimes(pattern, beatDuration)
     const matched = countMatches(expected, tapsRef.current, TAP_TOLERANCE)
     setRoundScore(matched)
     setScore((prev) => prev + matched)
     setTotal((prev) => prev + expected.length)
     setPhase('result')
-  }, [pattern])
+  }, [pattern, beatDuration])
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -182,7 +146,10 @@ export function RhythmExercise({ onBack }: RhythmExerciseProps) {
             <Button variant="ghost" size="icon" onClick={onBack} aria-label={t('actions.back')}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <h1 className="text-lg font-semibold">{t('modules.rhythm')}</h1>
+            <div>
+              <h1 className="text-lg font-semibold">{t('modules.rhythm')}</h1>
+              <p className="text-xs text-muted-foreground">{t('exercises.randomTest')}</p>
+            </div>
           </div>
           <div className="text-sm text-muted-foreground">
             {t('score', { correct: score, total })}
@@ -227,7 +194,10 @@ export function RhythmExercise({ onBack }: RhythmExerciseProps) {
         {phase === 'result' && (
           <div className="mb-8 rounded-md bg-muted px-6 py-4 text-center">
             <p className="text-sm text-muted-foreground">
-              {t('score', { correct: roundScore, total: getExpectedTimes(pattern).length })}
+              {t('score', {
+                correct: roundScore,
+                total: getExpectedTimes(pattern, beatDuration).length,
+              })}
             </p>
           </div>
         )}
@@ -237,6 +207,28 @@ export function RhythmExercise({ onBack }: RhythmExerciseProps) {
             {t('actions.newRhythm')}
           </Button>
         )}
+
+        <div className="mt-8 w-full max-w-md">
+          <ConfigPanel title={t('exerciseConfig.title')} onReset={resetConfig}>
+            <div className="space-y-4">
+              <SliderField
+                label={t('exerciseConfig.patternLength')}
+                value={config.patternLength}
+                min={2}
+                max={8}
+                onChange={(patternLength) => updateConfig({ patternLength })}
+              />
+              <CheckboxGroup
+                label={t('exerciseConfig.durations')}
+                options={durationOptions}
+                selected={config.durations.map(String)}
+                onChange={(selected) =>
+                  updateConfig({ durations: selected.map(Number).sort((a, b) => b - a) })
+                }
+              />
+            </div>
+          </ConfigPanel>
+        </div>
       </main>
     </div>
   )

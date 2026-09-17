@@ -26,6 +26,7 @@
   },
   "score": "Score: {{correct}}/{{total}}",
   "exercises": {
+    "randomTest": "Random Test",
     "instruction": "Listen to the note and pick the right one.",
     "instructionInterval": "Listen to both notes and pick the interval.",
     "instructionChord": "Listen to the chord and pick the chord type.",
@@ -33,6 +34,18 @@
     "instructionRhythm": "Listen to the rhythm, then tap it back.",
     "tapHint": "Press Space or click the button to tap.",
     "hiddenNotation": "Notation hidden"
+  },
+  "exerciseConfig": {
+    "title": "Exercise Settings",
+    "whiteKeys": "White keys",
+    "blackKeys": "Black keys",
+    "intervals": "Allowed intervals",
+    "chordTypes": "Allowed chord types",
+    "melodyLength": "Melody length",
+    "patternLength": "Pattern length",
+    "durations": "Allowed durations",
+    "quarterNote": "Quarter note",
+    "eighthNote": "Eighth note"
   },
   "auth": {
     "loginWithGoogle": "Google login",

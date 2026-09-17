@@ -1,14 +1,15 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ArrowLeft, ChevronRight } from 'lucide-react'
 import { Chord, Note } from 'tonal'
 
 import { Button } from '@/components/ui/button'
 import { playChord } from '@/lib/audio'
+import { CheckboxGroup, ConfigPanel } from '@/components/exercises/config-panel'
 import { cn } from '@/lib/utils'
+import { CHORD_TYPES, useExerciseConfig } from '@/lib/exercise-config'
 
 const ROOT_POOL = ['C3', 'D3', 'E3', 'F3', 'G3', 'A3', 'B3', 'C4', 'D4', 'E4', 'F4', 'G4', 'A4']
-const CHORD_TYPES = ['major', 'minor', 'diminished', 'augmented', 'maj7', 'min7', '7']
 
 function shuffle<T>(array: T[]): T[] {
   const copy = [...array]
@@ -19,8 +20,9 @@ function shuffle<T>(array: T[]): T[] {
   return copy
 }
 
-function pickOptions(correct: string): string[] {
-  const others = CHORD_TYPES.filter((type) => type !== correct)
+function pickOptions(correct: string, allowed: string[]): string[] {
+  const pool = allowed.length > 0 ? allowed : [...CHORD_TYPES]
+  const others = pool.filter((type) => type !== correct)
   const picked = shuffle(others).slice(0, 3)
   return shuffle([correct, ...picked])
 }
@@ -31,22 +33,24 @@ interface ChordExerciseProps {
 
 export function ChordExercise({ onBack }: ChordExerciseProps) {
   const { t } = useTranslation('common')
-  const [{ type, notes }, setRound] = useState(createRound)
-  const [options] = useState(() => pickOptions(type))
+  const { config, updateConfig, resetConfig } = useExerciseConfig('chord')
+  const allowedTypes = useMemo(
+    () => (config.types.length > 0 ? config.types : [...CHORD_TYPES]),
+    [config.types],
+  )
+  const [round, setRound] = useState(() => createRound(allowedTypes))
   const [selected, setSelected] = useState<string | null>(null)
   const [score, setScore] = useState(0)
   const [total, setTotal] = useState(0)
 
+  const { type, notes } = round
   const isCorrect = selected ? selected === type : null
 
   const startRound = useCallback(() => {
-    const next = createRound()
-    setRound(next)
+    const pool = config.types.length > 0 ? config.types : [...CHORD_TYPES]
+    setRound(createRound(pool))
     setSelected(null)
-  }, [])
-
-  // Recompute options when the chord type changes.
-  const currentOptions = selected ? options : pickOptions(type)
+  }, [config.types])
 
   function handlePlay() {
     playChord(notes)
@@ -61,6 +65,10 @@ export function ChordExercise({ onBack }: ChordExerciseProps) {
     }
   }
 
+  const currentOptions = selected
+    ? pickOptions(type, allowedTypes)
+    : pickOptions(type, allowedTypes)
+
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       <header className="border-b border-border px-6 py-4">
@@ -69,7 +77,10 @@ export function ChordExercise({ onBack }: ChordExerciseProps) {
             <Button variant="ghost" size="icon" onClick={onBack} aria-label={t('actions.back')}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <h1 className="text-lg font-semibold">{t('modules.chord')}</h1>
+            <div>
+              <h1 className="text-lg font-semibold">{t('modules.chord')}</h1>
+              <p className="text-xs text-muted-foreground">{t('exercises.randomTest')}</p>
+            </div>
           </div>
           <div className="text-sm text-muted-foreground">
             {t('score', { correct: score, total })}
@@ -119,6 +130,17 @@ export function ChordExercise({ onBack }: ChordExerciseProps) {
           ))}
         </div>
 
+        <div className="mt-8 w-full max-w-md">
+          <ConfigPanel title={t('exerciseConfig.title')} onReset={resetConfig}>
+            <CheckboxGroup
+              label={t('exerciseConfig.chordTypes')}
+              options={CHORD_TYPES.map((chordType) => ({ value: chordType, label: chordType }))}
+              selected={config.types}
+              onChange={(types) => updateConfig({ types })}
+            />
+          </ConfigPanel>
+        </div>
+
         {selected && (
           <Button className="mt-8 gap-1" onClick={startRound}>
             {t('actions.next')}
@@ -130,9 +152,10 @@ export function ChordExercise({ onBack }: ChordExerciseProps) {
   )
 }
 
-function createRound() {
+function createRound(allowedTypes: string[]) {
+  const pool = allowedTypes.length > 0 ? allowedTypes : [...CHORD_TYPES]
   const root = ROOT_POOL[Math.floor(Math.random() * ROOT_POOL.length)]
-  const type = CHORD_TYPES[Math.floor(Math.random() * CHORD_TYPES.length)]
+  const type = pool[Math.floor(Math.random() * pool.length)]
   const intervals = Chord.get(type).intervals
   const notes = intervals.map((interval) => Note.transpose(root, interval))
   return { root, type, notes }

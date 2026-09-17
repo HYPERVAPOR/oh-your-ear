@@ -26,6 +26,7 @@
   },
   "score": "得分：{{correct}}/{{total}}",
   "exercises": {
+    "randomTest": "随机测试",
     "instruction": "听音，选择正确的音符。",
     "instructionInterval": "听两个音，选择音程。",
     "instructionChord": "听和弦，选择和弦类型。",
@@ -33,6 +34,18 @@
     "instructionRhythm": "听节奏，然后把它敲出来。",
     "tapHint": "按空格键或点击按钮敲击。",
     "hiddenNotation": "音符已隐藏"
+  },
+  "exerciseConfig": {
+    "title": "练习设置",
+    "whiteKeys": "白键",
+    "blackKeys": "黑键",
+    "intervals": "允许音程",
+    "chordTypes": "允许和弦类型",
+    "melodyLength": "旋律长度",
+    "patternLength": "节奏长度",
+    "durations": "允许时值",
+    "quarterNote": "四分音符",
+    "eighthNote": "八分音符"
   },
   "auth": {
     "loginWithGoogle": "Google 登录",
