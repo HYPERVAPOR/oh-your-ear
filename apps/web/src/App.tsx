@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { BrowserRouter, Link, Routes, Route, useNavigate } from 'react-router-dom'
+import { Link, Routes, Route, useNavigate } from 'react-router-dom'
 import { Music, Layers, AudioLines, Timer, Volume2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -160,7 +160,7 @@ function NotFound() {
   )
 }
 
-function AppContent() {
+export default function App() {
   const navigate = useNavigate()
   const { accessToken, setAccessToken, setUser } = useAuthStore()
 
@@ -211,13 +211,5 @@ function AppContent() {
       <Route path="/exercise/rhythm" element={<RhythmExercise onBack={() => navigate('/')} />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
-  )
-}
-
-export default function App() {
-  return (
-    <BrowserRouter>
-      <AppContent />
-    </BrowserRouter>
   )
 }
