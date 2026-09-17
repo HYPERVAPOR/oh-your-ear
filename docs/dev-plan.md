@@ -122,13 +122,13 @@
 
 ### 7.2 Google OAuth login
 
-- **status**: 🔴 todo
+- **status**: 🟢 done
 - **description**: OAuth callback, account linking.
 - **depends on**: 7.1
 
 ### 7.3 Protected routes
 
-- **status**: 🔴 todo
+- **status**: 🟡 doing
 - **description**: Frontend guards and backend JWT middleware.
 - **depends on**: 7.1
 
