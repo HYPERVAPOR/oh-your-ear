@@ -10,3 +10,4 @@ bin
 .vscode/settings.json
 .turbo
 .idea
+.agents/
