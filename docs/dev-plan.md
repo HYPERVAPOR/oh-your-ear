@@ -100,13 +100,13 @@
 
 ### 6.1 Rhythm playback
 
-- **status**: 🔴 todo
+- **status**: 🟢 done
 - **description**: Use Tone.js transport to play rhythmic patterns.
 - **depends on**: 1.2
 
 ### 6.2 Rhythm tap input
 
-- **status**: 🔴 todo
+- **status**: 🟢 done
 - **description**: Capture user tap timing and compare to pattern.
 - **depends on**: 6.1
 
