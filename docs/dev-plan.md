@@ -196,6 +196,12 @@
 - **description**: Consistent color tokens, system preference sync.
 - **depends on**: none
 
+### 11.3 Client-side routing
+
+- **status**: 🟢 done
+- **description**: React Router integration with per-exercise routes and browser history support.
+- **depends on**: none
+
 ---
 
 ## M12 Deployment & CI/CD
