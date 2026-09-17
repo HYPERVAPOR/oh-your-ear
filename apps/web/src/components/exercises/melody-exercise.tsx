@@ -1,21 +1,21 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ArrowLeft, Eye, EyeOff, RotateCcw } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { playSequence } from '@/lib/audio'
-
-const NOTE_POOL = ['C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4', 'C5']
+import { BooleanToggle, ConfigPanel, SliderField } from '@/components/exercises/config-panel'
+import { buildMelodyNotePool, useExerciseConfig } from '@/lib/exercise-config'
 
 interface MelodyNote {
   id: string
   note: string
 }
 
-function generateMelody(length = 5): MelodyNote[] {
+function generateMelody(length: number, notePool: string[]): MelodyNote[] {
   return Array.from({ length }, () => ({
     id: crypto.randomUUID(),
-    note: NOTE_POOL[Math.floor(Math.random() * NOTE_POOL.length)],
+    note: notePool[Math.floor(Math.random() * notePool.length)],
   }))
 }
 
@@ -25,7 +25,9 @@ interface MelodyExerciseProps {
 
 export function MelodyExercise({ onBack }: MelodyExerciseProps) {
   const { t } = useTranslation('common')
-  const [notes, setNotes] = useState(() => generateMelody())
+  const { config, updateConfig, resetConfig } = useExerciseConfig('melody')
+  const notePool = useMemo(() => buildMelodyNotePool(config), [config])
+  const [notes, setNotes] = useState(() => generateMelody(config.length, notePool))
   const [playing, setPlaying] = useState(false)
   const [showNotes, setShowNotes] = useState(false)
 
@@ -34,14 +36,13 @@ export function MelodyExercise({ onBack }: MelodyExerciseProps) {
   const playMelody = useCallback(async () => {
     setPlaying(true)
     await playSequence(noteNames, '8n', 0.4)
-    // Approximate playback duration so the button busy state clears itself.
     setTimeout(() => setPlaying(false), noteNames.length * 400)
   }, [noteNames])
 
   const newMelody = useCallback(() => {
-    setNotes(generateMelody())
+    setNotes(generateMelody(config.length, buildMelodyNotePool(config)))
     setShowNotes(false)
-  }, [])
+  }, [config])
 
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
@@ -51,7 +52,10 @@ export function MelodyExercise({ onBack }: MelodyExerciseProps) {
             <Button variant="ghost" size="icon" onClick={onBack} aria-label={t('actions.back')}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <h1 className="text-lg font-semibold">{t('modules.melody')}</h1>
+            <div>
+              <h1 className="text-lg font-semibold">{t('modules.melody')}</h1>
+              <p className="text-xs text-muted-foreground">{t('exercises.randomTest')}</p>
+            </div>
           </div>
         </div>
       </header>
@@ -103,6 +107,30 @@ export function MelodyExercise({ onBack }: MelodyExerciseProps) {
           <Button variant="secondary" onClick={newMelody}>
             {t('actions.newMelody')}
           </Button>
+        </div>
+
+        <div className="mt-8 w-full max-w-md">
+          <ConfigPanel title={t('exerciseConfig.title')} onReset={resetConfig}>
+            <div className="space-y-4">
+              <SliderField
+                label={t('exerciseConfig.melodyLength')}
+                value={config.length}
+                min={3}
+                max={7}
+                onChange={(length) => updateConfig({ length })}
+              />
+              <BooleanToggle
+                label={t('exerciseConfig.whiteKeys')}
+                checked={config.whiteKeys}
+                onChange={(whiteKeys) => updateConfig({ whiteKeys })}
+              />
+              <BooleanToggle
+                label={t('exerciseConfig.blackKeys')}
+                checked={config.blackKeys}
+                onChange={(blackKeys) => updateConfig({ blackKeys })}
+              />
+            </div>
+          </ConfigPanel>
         </div>
       </main>
     </div>

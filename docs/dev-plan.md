@@ -224,3 +224,13 @@
 - **status**: 🔴 todo
 - **description**: Self-hosted server, reverse proxy, SSL, backups.
 - **depends on**: 12.2
+
+---
+
+## M13 Random Test Mode & Exercise Configuration
+
+### 13.1 Random test mode with per-exercise configuration
+
+- **status**: 🟢 done
+- **description**: Exercises are endless random tests with only in-session scoring; each exercise has configurable scope (white/black keys, allowed intervals/chord types, melody length, rhythm durations/length).
+- **depends on**: M1, M2–M6

@@ -1,14 +1,19 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ArrowLeft, ChevronRight } from 'lucide-react'
 import { Interval, Note } from 'tonal'
 
 import { Button } from '@/components/ui/button'
 import { playSequence } from '@/lib/audio'
+import { CheckboxGroup, ConfigPanel } from '@/components/exercises/config-panel'
 import { cn } from '@/lib/utils'
+import {
+  INTERVAL_OPTIONS,
+  pickAllowedIntervalSemitones,
+  useExerciseConfig,
+} from '@/lib/exercise-config'
 
 const ROOT_POOL = ['C3', 'D3', 'E3', 'F3', 'G3', 'A3', 'B3', 'C4', 'D4', 'E4', 'F4', 'G4', 'A4']
-const INTERVAL_OPTIONS = ['1P', '2m', '2M', '3m', '3M', '4P', '5P', '6m', '6M', '7m', '7M', '8P']
 
 function shuffle<T>(array: T[]): T[] {
   const copy = [...array]
@@ -19,8 +24,9 @@ function shuffle<T>(array: T[]): T[] {
   return copy
 }
 
-function pickOptions(correct: string): string[] {
-  const others = INTERVAL_OPTIONS.filter((ivl) => ivl !== correct)
+function pickOptions(correct: string, allowed: string[]): string[] {
+  const pool = allowed.length > 0 ? allowed : [...INTERVAL_OPTIONS]
+  const others = pool.filter((ivl) => ivl !== correct)
   const picked = shuffle(others).slice(0, 3)
   return shuffle([correct, ...picked])
 }
@@ -31,10 +37,20 @@ interface IntervalExerciseProps {
 
 export function IntervalExercise({ onBack }: IntervalExerciseProps) {
   const { t } = useTranslation('common')
+  const { config, updateConfig, resetConfig } = useExerciseConfig('interval')
+  const allowedSemitones = useMemo(() => pickAllowedIntervalSemitones(config), [config])
+  const allowedIntervals = useMemo(
+    () => config.intervals.filter((ivl) => config.intervals.includes(ivl)),
+    [config.intervals],
+  )
   const [root, setRoot] = useState(pickRoot)
-  const [semitones, setSemitones] = useState(pickSemitones)
-  const [second, setSecond] = useState(() => computeSecond(pickRoot(), pickSemitones()))
-  const [options, setOptions] = useState(() => pickOptions(Interval.fromSemitones(pickSemitones())))
+  const [semitones, setSemitones] = useState(() => pickSemitones(allowedSemitones))
+  const [second, setSecond] = useState(() =>
+    computeSecond(pickRoot(), pickSemitones(allowedSemitones)),
+  )
+  const [options, setOptions] = useState(() =>
+    pickOptions(Interval.fromSemitones(pickSemitones(allowedSemitones)), allowedIntervals),
+  )
   const [selected, setSelected] = useState<string | null>(null)
   const [score, setScore] = useState(0)
   const [total, setTotal] = useState(0)
@@ -43,14 +59,15 @@ export function IntervalExercise({ onBack }: IntervalExerciseProps) {
   const isCorrect = selected ? selected === correctInterval : null
 
   const startRound = useCallback(() => {
+    const semitonesPool = pickAllowedIntervalSemitones(config)
+    const nextSemitones = pickSemitones(semitonesPool)
     const nextRoot = pickRoot()
-    const nextSemitones = pickSemitones()
     setRoot(nextRoot)
     setSemitones(nextSemitones)
     setSecond(computeSecond(nextRoot, nextSemitones))
-    setOptions(pickOptions(Interval.fromSemitones(nextSemitones)))
+    setOptions(pickOptions(Interval.fromSemitones(nextSemitones), config.intervals))
     setSelected(null)
-  }, [])
+  }, [config])
 
   function handlePlay() {
     playSequence([root, second])
@@ -73,7 +90,10 @@ export function IntervalExercise({ onBack }: IntervalExerciseProps) {
             <Button variant="ghost" size="icon" onClick={onBack} aria-label={t('actions.back')}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <h1 className="text-lg font-semibold">{t('modules.interval')}</h1>
+            <div>
+              <h1 className="text-lg font-semibold">{t('modules.interval')}</h1>
+              <p className="text-xs text-muted-foreground">{t('exercises.randomTest')}</p>
+            </div>
           </div>
           <div className="text-sm text-muted-foreground">
             {t('score', { correct: score, total })}
@@ -125,6 +145,17 @@ export function IntervalExercise({ onBack }: IntervalExerciseProps) {
           ))}
         </div>
 
+        <div className="mt-8 w-full max-w-md">
+          <ConfigPanel title={t('exerciseConfig.title')} onReset={resetConfig}>
+            <CheckboxGroup
+              label={t('exerciseConfig.intervals')}
+              options={INTERVAL_OPTIONS.map((ivl) => ({ value: ivl, label: ivl }))}
+              selected={config.intervals}
+              onChange={(intervals) => updateConfig({ intervals })}
+            />
+          </ConfigPanel>
+        </div>
+
         {selected && (
           <Button className="mt-8 gap-1" onClick={startRound}>
             {t('actions.next')}
@@ -140,13 +171,12 @@ function pickRoot(): string {
   return ROOT_POOL[Math.floor(Math.random() * ROOT_POOL.length)]
 }
 
-function pickSemitones(): number {
-  // 1–12 semitones; unison skipped for a more interesting exercise.
-  return Math.floor(Math.random() * 12) + 1
+function pickSemitones(allowed: number[]): number {
+  const pool = allowed.length > 0 ? allowed : [1]
+  return pool[Math.floor(Math.random() * pool.length)]
 }
 
 function computeSecond(root: string, semitones: number): string {
   const interval = Interval.fromSemitones(semitones)
-  const result = Note.transpose(root, interval)
-  return result
+  return Note.transpose(root, interval)
 }
