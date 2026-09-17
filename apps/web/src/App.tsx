@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { PlayButton } from '@/components/play-button'
 import { ChordExercise } from '@/components/exercises/chord-exercise'
 import { IntervalExercise } from '@/components/exercises/interval-exercise'
+import { MelodyExercise } from '@/components/exercises/melody-exercise'
 import { SingleNoteExercise } from '@/components/exercises/single-note-exercise'
 import { getPiano } from '@/lib/audio'
 import { useAppStore, type Language, type Theme } from '@/stores/app-store'
@@ -21,7 +22,7 @@ const modules = [
 export default function App() {
   const { t, i18n } = useTranslation('common')
   const { theme, language, setTheme, setLanguage } = useAppStore()
-  const [view, setView] = useState<'home' | 'single-note' | 'interval' | 'chord'>('home')
+  const [view, setView] = useState<'home' | 'single-note' | 'interval' | 'chord' | 'melody'>('home')
 
   // Prefetch piano samples on mount so the first Play click is responsive.
   useEffect(() => {
@@ -43,6 +44,10 @@ export default function App() {
 
   if (view === 'chord') {
     return <ChordExercise onBack={() => setView('home')} />
+  }
+
+  if (view === 'melody') {
+    return <MelodyExercise onBack={() => setView('home')} />
   }
 
   return (
@@ -90,6 +95,7 @@ export default function App() {
                 if (key === 'singleNote') setView('single-note')
                 if (key === 'interval') setView('interval')
                 if (key === 'chord') setView('chord')
+                if (key === 'melody') setView('melody')
               }}
             >
               <Icon className="h-8 w-8" />

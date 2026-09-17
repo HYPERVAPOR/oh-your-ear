@@ -10,9 +10,13 @@
   },
   "actions": {
     "play": "Play",
+    "playing": "Playing...",
     "replay": "Replay",
     "next": "Next",
     "back": "Back",
+    "showNotes": "Show notes",
+    "hideNotes": "Hide notes",
+    "newMelody": "New melody",
     "settings": "Settings",
     "login": "Log in",
     "logout": "Log out"
@@ -21,7 +25,9 @@
   "exercises": {
     "instruction": "Listen to the note and pick the right one.",
     "instructionInterval": "Listen to both notes and pick the interval.",
-    "instructionChord": "Listen to the chord and pick the chord type."
+    "instructionChord": "Listen to the chord and pick the chord type.",
+    "instructionMelody": "Listen to the melody, replay as needed, and reveal the notes.",
+    "hiddenNotation": "Notation hidden"
   },
   "feedback": {
     "correct": "Correct!",
