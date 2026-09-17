@@ -84,13 +84,13 @@
 
 ### 5.1 Melody playback
 
-- **status**: 🔴 todo
+- **status**: 🟢 done
 - **description**: Play short random melodies.
 - **depends on**: 1.2
 
 ### 5.2 Melody replay / notation
 
-- **status**: 🔴 todo
+- **status**: 🟢 done
 - **description**: Allow replay; optionally show simple notation.
 - **depends on**: 5.1
 
