@@ -43,6 +43,7 @@
     "correct": "Correct!",
     "wrong": "Wrong! It was {{answer}}."
   },
+  "notFound": "Page not found.",
   "theme": {
     "light": "Light",
     "dark": "Dark",

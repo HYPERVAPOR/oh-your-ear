@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import { BrowserRouter, Link, Routes, Route, useNavigate } from 'react-router-dom'
 import { Music, Layers, AudioLines, Timer, Volume2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -15,11 +16,11 @@ import { useAppStore, type Language, type Theme } from '@/stores/app-store'
 import { useAuthStore, type User } from '@/stores/auth-store'
 
 const modules = [
-  { key: 'singleNote', icon: Music },
-  { key: 'interval', icon: Layers },
-  { key: 'chord', icon: Volume2 },
-  { key: 'melody', icon: AudioLines },
-  { key: 'rhythm', icon: Timer },
+  { key: 'singleNote', icon: Music, route: '/exercise/single-note' },
+  { key: 'interval', icon: Layers, route: '/exercise/interval' },
+  { key: 'chord', icon: Volume2, route: '/exercise/chord' },
+  { key: 'melody', icon: AudioLines, route: '/exercise/melody' },
+  { key: 'rhythm', icon: Timer, route: '/exercise/rhythm' },
 ] as const
 
 async function fetchUser(token: string): Promise<User | null> {
@@ -40,44 +41,10 @@ async function refreshAccessToken(): Promise<string | null> {
   return data.access_token ?? null
 }
 
-export default function App() {
+function Home() {
   const { t, i18n } = useTranslation('common')
   const { theme, language, setTheme, setLanguage } = useAppStore()
-  const { accessToken, user, setAccessToken, setUser, logout } = useAuthStore()
-  const [view, setView] = useState<
-    'home' | 'single-note' | 'interval' | 'chord' | 'melody' | 'rhythm'
-  >('home')
-
-  // Prefetch piano samples on mount so the first Play click is responsive.
-  useEffect(() => {
-    getPiano()
-  }, [])
-
-  // Handle OAuth callback token and restore session on reload.
-  useEffect(() => {
-    async function initAuth() {
-      const hash = window.location.hash
-      const match = hash.match(/access_token=([^&]+)/)
-      if (match) {
-        const token = decodeURIComponent(match[1])
-        window.history.replaceState(null, '', window.location.pathname + window.location.search)
-        setAccessToken(token)
-        const profile = await fetchUser(token)
-        if (profile) setUser(profile)
-        return
-      }
-
-      if (!accessToken) {
-        const refreshed = await refreshAccessToken()
-        if (refreshed) {
-          setAccessToken(refreshed)
-          const profile = await fetchUser(refreshed)
-          if (profile) setUser(profile)
-        }
-      }
-    }
-    initAuth()
-  }, [accessToken, setAccessToken, setUser])
+  const { user, setAccessToken, setUser, logout } = useAuthStore()
 
   const handleLanguageChange = (lang: Language) => {
     setLanguage(lang)
@@ -102,28 +69,11 @@ export default function App() {
   }
 
   async function handleLogout() {
-    await fetch('/api/v1/auth/logout', { method: 'POST', credentials: 'include' })
+    await fetch('/api/v1/auth/logout', {
+      method: 'POST',
+      credentials: 'include',
+    })
     logout()
-  }
-
-  if (view === 'single-note') {
-    return <SingleNoteExercise onBack={() => setView('home')} />
-  }
-
-  if (view === 'interval') {
-    return <IntervalExercise onBack={() => setView('home')} />
-  }
-
-  if (view === 'chord') {
-    return <ChordExercise onBack={() => setView('home')} />
-  }
-
-  if (view === 'melody') {
-    return <MelodyExercise onBack={() => setView('home')} />
-  }
-
-  if (view === 'rhythm') {
-    return <RhythmExercise onBack={() => setView('home')} />
   }
 
   return (
@@ -181,25 +131,93 @@ export default function App() {
         </div>
 
         <div className="grid w-full gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {modules.map(({ key, icon: Icon }) => (
-            <Button
+          {modules.map(({ key, icon: Icon, route }) => (
+            <Link
               key={key}
-              variant="outline"
-              className="flex h-32 flex-col items-center justify-center gap-3 text-lg"
-              onClick={() => {
-                if (key === 'singleNote') setView('single-note')
-                if (key === 'interval') setView('interval')
-                if (key === 'chord') setView('chord')
-                if (key === 'melody') setView('melody')
-                if (key === 'rhythm') setView('rhythm')
-              }}
+              to={route}
+              className="inline-flex h-32 flex-col items-center justify-center gap-3 rounded-md border border-border bg-background text-lg font-medium transition-colors hover:bg-muted hover:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
             >
               <Icon className="h-8 w-8" />
               {t(`modules.${key}`)}
-            </Button>
+            </Link>
           ))}
         </div>
       </main>
     </div>
+  )
+}
+
+function NotFound() {
+  const navigate = useNavigate()
+  const { t } = useTranslation('common')
+
+  return (
+    <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background text-foreground">
+      <h1 className="text-2xl font-bold">404</h1>
+      <p className="text-muted-foreground">{t('notFound')}</p>
+      <Button onClick={() => navigate('/')}>{t('actions.back')}</Button>
+    </div>
+  )
+}
+
+function AppContent() {
+  const navigate = useNavigate()
+  const { accessToken, setAccessToken, setUser } = useAuthStore()
+
+  // Prefetch piano samples on mount so the first Play click is responsive.
+  useEffect(() => {
+    getPiano()
+  }, [])
+
+  // Handle OAuth callback token and restore session on reload.
+  useEffect(() => {
+    async function initAuth() {
+      const hash = window.location.hash
+      const match = hash.match(/access_token=([^&]+)/)
+      if (match) {
+        const token = decodeURIComponent(match[1])
+        window.history.replaceState(null, '', window.location.pathname + window.location.search)
+        setAccessToken(token)
+        const profile = await fetchUser(token)
+        if (profile) setUser(profile)
+        return
+      }
+
+      if (!accessToken) {
+        const refreshed = await refreshAccessToken()
+        if (refreshed) {
+          setAccessToken(refreshed)
+          const profile = await fetchUser(refreshed)
+          if (profile) setUser(profile)
+        }
+      }
+    }
+    initAuth()
+  }, [accessToken, setAccessToken, setUser])
+
+  return (
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route
+        path="/exercise/single-note"
+        element={<SingleNoteExercise onBack={() => navigate('/')} />}
+      />
+      <Route
+        path="/exercise/interval"
+        element={<IntervalExercise onBack={() => navigate('/')} />}
+      />
+      <Route path="/exercise/chord" element={<ChordExercise onBack={() => navigate('/')} />} />
+      <Route path="/exercise/melody" element={<MelodyExercise onBack={() => navigate('/')} />} />
+      <Route path="/exercise/rhythm" element={<RhythmExercise onBack={() => navigate('/')} />} />
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  )
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
+    </BrowserRouter>
   )
 }
