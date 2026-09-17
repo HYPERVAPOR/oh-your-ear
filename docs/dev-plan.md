@@ -1,10 +1,11 @@
 # Development Plan
 
-> 项目开发路线图，所有功能按模块拆分，每个条目必须是以下三种状态之一：
+> 项目开发路线图，所有功能按模块拆分，每个条目状态为以下四种之一：
 >
 > - `todo` / 🔴 没做
 > - `doing` / 🟡 在做
 > - `done` / 🟢 做完了
+> - `backlog` / ⚪ 暂不实现，待需要时重新评估
 >
 > 每次开发前参照本文件，开发后更新状态。
 
@@ -26,8 +27,8 @@
 
 ### 1.3 Latency and volume configuration
 
-- **status**: 🔴 todo
-- **description**: Expose Tone.js latency hint and master volume to user settings.
+- **status**: ⚪ backlog
+- **description**: Tone.js latency hint is unnecessary on modern devices; master volume control can be added later if users ask.
 - **depends on**: 1.2
 
 ---
