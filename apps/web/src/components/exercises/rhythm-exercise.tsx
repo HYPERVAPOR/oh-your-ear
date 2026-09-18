@@ -6,6 +6,7 @@ import * as Tone from 'tone'
 import { Button } from '@/components/ui/button'
 import { CheckboxGroup, ConfigPanel, SliderField } from '@/components/exercises/config-panel'
 import { cn } from '@/lib/utils'
+import { recordAnswer } from '@/lib/practice'
 import { useExerciseConfig } from '@/lib/exercise-config'
 import {
   BPM,
@@ -125,6 +126,13 @@ export function RhythmExercise({ onBack }: RhythmExerciseProps) {
     setScore((prev) => prev + matched)
     setTotal((prev) => prev + expected.length)
     setPhase('result')
+    // Rhythm is judged per round, not per answer: a round only counts when every
+    // beat was hit.
+    recordAnswer({
+      exercise: 'rhythm',
+      correct: matched === expected.length,
+      chosen: `${matched}/${expected.length}`,
+    })
   }, [pattern, beatDuration])
 
   useEffect(() => {

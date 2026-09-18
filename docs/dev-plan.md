@@ -139,8 +139,8 @@
 
 ### 8.1 Study plan model and API
 
-- **status**: 🔴 todo
-- **description**: CRUD for study plans, daily goals.
+- **status**: 🟢 done
+- **description**: `study_plans` (daily question goal + focus modules) and `practice_records` (one row per answered question, with chosen/expected for the mistake notebook later). Endpoints: `GET /me/plan`, `PUT /me/plan`, `POST /me/practice-records`. Single note, interval, chord and rhythm report from the web client; guests never report, and a failed report is swallowed so practice is unaffected. Rhythm is judged per round, melody is self-assessed and therefore not recorded at all (it stays out of the accuracy numbers until it gets a scoring mode). "Today" is the calendar day in `APP_TIMEZONE` (default Asia/Shanghai), not UTC. Home shows today's progress, `/me` edits the plan.
 - **depends on**: 7.3
 
 ### 8.2 Progress statistics dashboard

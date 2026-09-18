@@ -99,5 +99,16 @@
     "light": "Light",
     "dark": "Dark",
     "system": "System"
+  },
+  "plan": {
+    "today": "Today's progress",
+    "solvedOfGoal": "{{solved}} / {{goal}} questions",
+    "accuracy": "{{percent}}% correct",
+    "title": "Study plan",
+    "description": "Set a daily question goal. Leave focus modules empty to practise all of them.",
+    "dailyGoal": "Daily question goal",
+    "focus": "Focus modules",
+    "save": "Save plan",
+    "saved": "Saved"
   }
 }

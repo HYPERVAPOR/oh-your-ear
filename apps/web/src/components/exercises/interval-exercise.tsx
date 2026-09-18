@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { playSequence } from '@/lib/audio'
 import { CheckboxGroup, ConfigPanel } from '@/components/exercises/config-panel'
 import { cn, feedbackPill, optionHighlight } from '@/lib/utils'
+import { recordAnswer } from '@/lib/practice'
 import {
   INTERVAL_OPTIONS,
   pickAllowedIntervalSemitones,
@@ -77,9 +78,16 @@ export function IntervalExercise({ onBack }: IntervalExerciseProps) {
     if (selected) return
     setSelected(guess)
     setTotal((prev) => prev + 1)
-    if (guess === correctInterval) {
+    const isRight = guess === correctInterval
+    if (isRight) {
       setScore((prev) => prev + 1)
     }
+    recordAnswer({
+      exercise: 'interval',
+      correct: isRight,
+      chosen: guess,
+      expected: correctInterval,
+    })
   }
 
   return (

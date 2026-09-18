@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { PlayButton } from '@/components/play-button'
 import { BooleanToggle, ConfigPanel } from '@/components/exercises/config-panel'
 import { cn, feedbackPill, optionHighlight } from '@/lib/utils'
+import { recordAnswer } from '@/lib/practice'
 import { buildSingleNotePool, useExerciseConfig } from '@/lib/exercise-config'
 
 function shuffle<T>(array: T[]): T[] {
@@ -45,9 +46,11 @@ export function SingleNoteExercise({ onBack }: SingleNoteExerciseProps) {
       if (selected) return
       setSelected(guess)
       setTotal((prev) => prev + 1)
-      if (Note.midi(guess) === Note.midi(target)) {
+      const isRight = Note.midi(guess) === Note.midi(target)
+      if (isRight) {
         setScore((prev) => prev + 1)
       }
+      recordAnswer({ exercise: 'singleNote', correct: isRight, chosen: guess, expected: target })
     },
     [selected, target],
   )
