@@ -81,7 +81,6 @@
     "account": "My account",
     "backHome": "Back home",
     "email": "Email",
-    "name": "Name",
     "code": "Code",
     "sendCode": "Send code",
     "resendIn": "Resend in {{seconds}}s",
@@ -137,7 +136,8 @@
     "practice": "Re-practice",
     "remove": "Remove",
     "open": "Open the notebook",
-    "rhythmPattern": "{{count}} taps · {{bpm}} BPM"
+    "rhythmPattern": "{{count}} taps · {{bpm}} BPM",
+    "openHint": "Wrong answers collect here and leave once you get them right."
   },
   "achievements": {
     "firstSteps": {

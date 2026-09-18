@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { ChevronDown } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -7,7 +7,7 @@ import { useAppStore, type Language, type Theme } from '@/stores/app-store'
 import { useAuthStore } from '@/stores/auth-store'
 
 const pillControl =
-  'cursor-pointer appearance-none rounded-full border border-hairline-strong bg-transparent py-1.5 pl-2.5 pr-6 text-[12px] font-medium text-body transition-colors hover:bg-surface-strong hover:text-ink sm:pl-3 sm:pr-7 sm:text-[13px]'
+  'cursor-pointer appearance-none whitespace-nowrap rounded-full border border-hairline-strong bg-transparent py-1.5 pl-2.5 pr-6 text-[12px] font-medium text-body transition-colors hover:bg-surface-strong hover:text-ink sm:pl-3 sm:pr-7 sm:text-[13px]'
 
 /** Quiet pill control with its own chevron: an appearance-none select with no
  *  indicator reads as a static label. */
@@ -44,6 +44,7 @@ function NavSelect({
 export function AppHeader() {
   const { t, i18n } = useTranslation('common')
   const navigate = useNavigate()
+  const location = useLocation()
   const { theme, language, setTheme, setLanguage } = useAppStore()
   const user = useAuthStore((s) => s.user)
   const logout = useAuthStore((s) => s.logout)
@@ -60,7 +61,7 @@ export function AppHeader() {
 
   return (
     <header className="border-b border-hairline">
-      <div className="mx-auto flex h-16 max-w-[1200px] items-center justify-between gap-3 px-5 sm:px-6">
+      <div className="mx-auto flex min-h-16 max-w-[1200px] flex-wrap items-center justify-between gap-x-3 gap-y-1.5 px-5 py-2 sm:px-6">
         <Link
           to="/"
           className="font-display text-[18px] leading-none tracking-tight sm:text-[21px]"
@@ -90,9 +91,13 @@ export function AppHeader() {
 
           {user ? (
             <>
-              <Link to="/me" className={`${pillControl} no-underline`}>
-                {t('auth.account')}
-              </Link>
+              {/* Redundant on the account page itself, and it is the control that
+                  pushes the nav onto a second row on a 390px screen. */}
+              {location.pathname !== '/me' && (
+                <Link to="/me" className={`${pillControl} no-underline`}>
+                  {t('auth.account')}
+                </Link>
+              )}
               <Button variant="ghost" size="sm" onClick={handleLogout}>
                 {t('actions.logout')}
               </Button>
