@@ -171,7 +171,7 @@ export function MelodyExercise({ onBack }: MelodyExerciseProps) {
       </header>
 
       <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col items-center justify-center px-6 py-12">
-        <p className="mb-6 text-center text-muted-foreground">{t('exercises.instructionMelody')}</p>
+        <p className="mb-6 text-center text-muted-foreground">{t('moduleHints.melody')}</p>
 
         <div className="mb-8 flex flex-wrap items-center justify-center gap-3">
           <Button onClick={() => playMelody(question.notes)} disabled={playing}>

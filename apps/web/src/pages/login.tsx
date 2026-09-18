@@ -4,6 +4,9 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 
 import { apiClient } from '@/api/client'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Field, Input } from '@/components/ui/field'
+import { Orb } from '@/components/ui/orb'
 import { useAuthStore } from '@/stores/auth-store'
 
 const RESEND_SECONDS = 60
@@ -67,87 +70,90 @@ export function Login() {
   }, [from, navigate, setSession])
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-background px-6 text-foreground">
-      <div className="w-full max-w-sm rounded-md border border-border p-6">
-        <h1 className="text-xl font-bold">{t('auth.title')}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">{t('auth.subtitle')}</p>
+    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 py-16">
+      <Orb kind="ambient" size="lg" className="-top-32 left-1/2 -translate-x-1/2" />
 
-        <form className="mt-6 space-y-4" onSubmit={submit}>
-          <div className="space-y-2">
-            <label className="text-sm font-medium" htmlFor="email">
-              {t('auth.email')}
-            </label>
-            <input
-              id="email"
-              type="email"
-              required
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium" htmlFor="code">
-              {t('auth.code')}
-            </label>
-            <div className="flex gap-2">
-              <input
-                id="code"
-                inputMode="numeric"
-                maxLength={6}
-                required
-                autoComplete="one-time-code"
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm tracking-widest focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-              />
-              <Button
-                type="button"
-                variant="outline"
-                className="shrink-0"
-                disabled={busy || !email || cooldown > 0}
-                onClick={sendCode}
-              >
-                {cooldown > 0 ? t('auth.resendIn', { seconds: cooldown }) : t('auth.sendCode')}
-              </Button>
-            </div>
-            {sent && <p className="text-xs text-muted-foreground">{t('auth.codeSentHint')}</p>}
-          </div>
-
-          {error && <p className="text-sm text-destructive">{error}</p>}
-
-          <Button type="submit" className="w-full" disabled={busy || code.length < 6}>
-            {t('auth.submit')}
-          </Button>
-        </form>
-
-        <div className="my-5 border-t border-border" />
-
-        <div className="space-y-2">
-          <Button
-            variant="outline"
-            className="w-full"
-            onClick={() => {
-              window.location.href = '/api/v1/auth/google'
-            }}
-          >
-            {t('auth.loginWithGoogle')}
-          </Button>
-          {import.meta.env.DEV && (
-            <Button variant="ghost" className="w-full" onClick={loginWithMock}>
-              {t('auth.loginMock')}
-            </Button>
-          )}
-        </div>
-
-        <Link
-          to="/"
-          className="mt-6 block text-center text-sm text-muted-foreground hover:text-foreground"
-        >
-          {t('auth.backHome')}
+      <div className="relative w-full max-w-[440px]">
+        <Link to="/" className="font-display text-[21px] tracking-tight">
+          {t('appName')}
         </Link>
+
+        <Card className="mt-6 p-7">
+          <h1 className="font-display text-[28px] font-light leading-tight">{t('auth.title')}</h1>
+          <p className="mt-2 text-[15px] text-body">{t('auth.subtitle')}</p>
+
+          <form className="mt-7 space-y-5" onSubmit={submit}>
+            <Field label={t('auth.email')} htmlFor="email">
+              <Input
+                id="email"
+                type="email"
+                required
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </Field>
+
+            <Field
+              label={t('auth.code')}
+              htmlFor="code"
+              hint={sent ? t('auth.codeSentHint') : undefined}
+            >
+              <div className="flex gap-2">
+                <Input
+                  id="code"
+                  inputMode="numeric"
+                  maxLength={6}
+                  required
+                  autoComplete="one-time-code"
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
+                  className="tracking-[0.3em]"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="shrink-0"
+                  disabled={busy || !email || cooldown > 0}
+                  onClick={sendCode}
+                >
+                  {cooldown > 0 ? t('auth.resendIn', { seconds: cooldown }) : t('auth.sendCode')}
+                </Button>
+              </div>
+            </Field>
+
+            {error && <p className="text-[14px] text-error-text">{error}</p>}
+
+            <Button type="submit" size="lg" className="w-full" disabled={busy || code.length < 6}>
+              {t('auth.submit')}
+            </Button>
+          </form>
+
+          <div className="my-6 border-t border-hairline" />
+
+          <div className="space-y-2">
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => {
+                window.location.href = '/api/v1/auth/google'
+              }}
+            >
+              {t('auth.loginWithGoogle')}
+            </Button>
+            {import.meta.env.DEV && (
+              <Button variant="ghost" className="w-full" onClick={loginWithMock}>
+                {t('auth.loginMock')}
+              </Button>
+            )}
+          </div>
+        </Card>
+
+        <p className="mt-6 text-center text-[14px] text-muted">
+          <Link to="/" className="underline underline-offset-4">
+            {t('auth.backHome')}
+          </Link>
+        </p>
       </div>
     </div>
   )

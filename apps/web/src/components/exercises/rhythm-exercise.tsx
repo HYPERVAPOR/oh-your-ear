@@ -167,7 +167,7 @@ export function RhythmExercise({ onBack }: RhythmExerciseProps) {
       </header>
 
       <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col items-center justify-center px-6 py-12">
-        <p className="mb-8 text-center text-muted-foreground">{t('exercises.instructionRhythm')}</p>
+        <p className="mb-8 text-center text-muted-foreground">{t('moduleHints.rhythm')}</p>
 
         <div className="mb-8 flex flex-wrap items-center justify-center gap-3">
           <Button onClick={handlePlay} disabled={phase === 'playing'}>
@@ -212,7 +212,7 @@ export function RhythmExercise({ onBack }: RhythmExerciseProps) {
         )}
 
         {phase !== 'idle' && phase !== 'playing' && (
-          <Button variant="secondary" onClick={startRound}>
+          <Button variant="quiet" onClick={startRound}>
             {t('actions.newRhythm')}
           </Button>
         )}

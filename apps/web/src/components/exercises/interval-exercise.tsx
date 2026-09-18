@@ -101,9 +101,7 @@ export function IntervalExercise({ onBack }: IntervalExerciseProps) {
       </header>
 
       <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col items-center justify-center px-6 py-12">
-        <p className="mb-6 text-center text-muted-foreground">
-          {t('exercises.instructionInterval')}
-        </p>
+        <p className="mb-6 text-center text-muted-foreground">{t('moduleHints.interval')}</p>
 
         <div className="mb-8">
           <Button onClick={handlePlay}>{t('actions.play')}</Button>

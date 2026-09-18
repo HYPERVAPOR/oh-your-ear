@@ -32,17 +32,22 @@ export function TodayProgress() {
   return (
     <Link
       to="/me"
-      className="mb-8 w-full max-w-md rounded-md border border-border px-4 py-3 text-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+      className="flex flex-wrap items-center justify-between gap-x-8 gap-y-4 rounded-xl border border-hairline bg-surface px-6 py-5 transition-colors hover:border-hairline-strong"
     >
-      <div className="flex items-baseline justify-between">
-        <span className="font-medium">{t('plan.today')}</span>
-        <span className="text-muted-foreground">
+      <div>
+        <p className="badge-label text-muted">{t('plan.today')}</p>
+        <p className="mt-1.5 tabular text-[22px] font-medium">
           {t('plan.solvedOfGoal', { solved, goal })}
-          {solved > 0 && ` · ${t('plan.accuracy', { percent: accuracy })}`}
-        </span>
+        </p>
       </div>
-      <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-muted">
-        <div className="h-full rounded-full bg-primary" style={{ width: `${percent}%` }} />
+
+      <div className="min-w-[180px] flex-1">
+        <div className="h-1 w-full overflow-hidden rounded-full bg-surface-strong">
+          <div className="h-full rounded-full bg-primary" style={{ width: `${percent}%` }} />
+        </div>
+        {solved > 0 && (
+          <p className="mt-2 text-[13px] text-muted">{t('plan.accuracy', { percent: accuracy })}</p>
+        )}
       </div>
     </Link>
   )

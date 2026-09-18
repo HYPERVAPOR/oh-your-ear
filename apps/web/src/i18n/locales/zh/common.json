@@ -24,11 +24,6 @@
   "score": "得分：{{correct}}/{{total}}",
   "exercises": {
     "randomTest": "随机测试",
-    "instruction": "听音，选择正确的音符。",
-    "instructionInterval": "听两个音，选择音程。",
-    "instructionChord": "听和弦，选择和弦类型。",
-    "instructionMelody": "听旋律，选出你听到的那一条。",
-    "instructionRhythm": "听节奏，然后把它敲出来。",
     "tapHint": "按空格键或点击按钮敲击。"
   },
   "exerciseConfig": {
@@ -161,5 +156,24 @@
       "title": "坚持一周",
       "description": "连续 7 天练习"
     }
+  },
+  "moduleHints": {
+    "singleNote": "听一个音，说出音名。",
+    "interval": "听两个音，说出音程。",
+    "chord": "听一个和弦，说出性质。",
+    "melody": "听一段旋律，选出对应的那条。",
+    "rhythm": "听一段节奏，把它敲回来。"
+  },
+  "home": {
+    "modulesHeading": "五个模块",
+    "guestNote": "未登录也能练全部基础题，成绩只留在本次会话。",
+    "loginCtaHint": "学习计划、正确率趋势、错题重练、连续打卡与徽章。",
+    "loginHeading": "登录解锁进度与错题本",
+    "heroLine1": "五组练习，随时开始，无需注册。",
+    "heroLine2": "掌握音高、音程、和弦、旋律与节奏。"
+  },
+  "settings": {
+    "language": "语言",
+    "theme": "主题"
   }
 }
