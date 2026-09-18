@@ -1,0 +1,27 @@
+name: oh-your-ear
+
+# Optional TLS edge: podman compose -f compose/compose.yml -f compose/compose.tls.yml up -d
+#
+# Caddy obtains and renews Let's Encrypt certificates on its own, so there is no
+# certbot timer to babysit. Requires DOMAIN and ACME_EMAIL in .env, and both
+# 80 and 443 reachable from the internet (80 is used for the ACME challenge).
+services:
+  caddy:
+    image: caddy:2.10-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      DOMAIN: ${DOMAIN:?DOMAIN must be set for the TLS overlay}
+      ACME_EMAIL: ${ACME_EMAIL:?ACME_EMAIL must be set for the TLS overlay}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - web
+    restart: unless-stopped
+
+volumes:
+  caddy-data:
+  caddy-config:
