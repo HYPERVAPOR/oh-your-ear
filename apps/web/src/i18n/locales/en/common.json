@@ -82,7 +82,7 @@
     "code": "Code",
     "sendCode": "Send code",
     "resendIn": "Resend in {{seconds}}s",
-    "codeSentHint": "Code generated. Until mail delivery lands, read it from the api container log.",
+    "codeSentHint": "Code sent. If the server has no mail transport configured, it is printed in the server log instead.",
     "submit": "Log in",
     "invalidEmail": "That email address is not valid.",
     "invalidCode": "Wrong or expired code.",

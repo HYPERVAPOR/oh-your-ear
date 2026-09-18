@@ -82,7 +82,7 @@
     "code": "验证码",
     "sendCode": "发送验证码",
     "resendIn": "{{seconds}} 秒后重发",
-    "codeSentHint": "验证码已生成。未接入邮件服务前，请查看 api 容器日志获取验证码。",
+    "codeSentHint": "验证码已发送。若服务端未配置邮件投递，验证码会打印在服务端日志里。",
     "submit": "登录",
     "invalidEmail": "邮箱格式不正确。",
     "invalidCode": "验证码错误或已过期。",

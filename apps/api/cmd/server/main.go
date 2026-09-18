@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 	_ "time/tzdata" // embedded so APP_TIMEZONE resolves in images without tzdata
 
@@ -33,15 +34,27 @@ func run() error {
 
 	authSvc := services.NewAuthService(pool)
 
+	var mailer services.Mailer = services.NewLogMailer()
+	if cfg.MailDriver == "smtp" {
+		if cfg.SMTPHost == "" {
+			return fmt.Errorf("MAIL_DRIVER=smtp requires SMTP_HOST")
+		}
+		mailer = services.NewSMTPMailer(cfg.SMTPHost, cfg.SMTPPort, cfg.SMTPUsername, cfg.SMTPPassword, cfg.SMTPFrom)
+	}
+	log.Printf("verification codes are delivered via the %s transport", mailer.Driver())
+
 	loc, err := time.LoadLocation(cfg.AppTimezone)
 	if err != nil {
 		return fmt.Errorf("invalid APP_TIMEZONE %q: %w", cfg.AppTimezone, err)
 	}
 	practiceSvc := services.NewPracticeService(pool, loc)
 
-	server := api.NewServer(cfg, authSvc, practiceSvc)
+	server := api.NewServer(cfg, authSvc, practiceSvc, mailer)
 
 	r := gin.Default()
+	if err := r.SetTrustedProxies(strings.Split(cfg.TrustedProxies, ",")); err != nil {
+		return fmt.Errorf("invalid TRUSTED_PROXIES: %w", err)
+	}
 
 	// OAuth, token refresh, and the dev-only mock login are not in the OpenAPI
 	// contract yet, so they are registered by hand.
@@ -139,6 +152,16 @@ func registerAuthRoutes(r *gin.Engine, cfg config.Config, server *api.Server, au
 		claims, err := auth.ParseToken(refreshToken, cfg.JWTSecret)
 		if err != nil || claims.Type != "refresh" {
 			c.JSON(http.StatusUnauthorized, api.ErrorResponse{Error: "invalid refresh token"})
+			return
+		}
+
+		revoked, err := authSvc.IsTokenRevoked(c.Request.Context(), claims.ID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, api.ErrorResponse{Error: "failed to check token"})
+			return
+		}
+		if revoked {
+			c.JSON(http.StatusUnauthorized, api.ErrorResponse{Error: "refresh token revoked"})
 			return
 		}
 

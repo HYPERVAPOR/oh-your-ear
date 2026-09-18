@@ -30,7 +30,21 @@ GOOGLE_REDIRECT_URL=https://ear.example.com/api/v1/auth/google/callback
 # 只用 TLS overlay（Caddy 自动签证书）时需要：
 DOMAIN=ear.example.com
 ACME_EMAIL=you@example.com
+
+# 邮件验证码投递：MAIL_DRIVER=log 只在开发用，验证码会打在容器日志里
+MAIL_DRIVER=smtp
+SMTP_HOST=smtp.example.com
+SMTP_PORT=587
+SMTP_USERNAME=...
+SMTP_PASSWORD=...
+SMTP_FROM=no-reply@ear.example.com
+
+# 反代所在的网段，默认覆盖 compose 私网。限流按客户端 IP 计数，
+# 所以这个必须配，否则所有请求都会算成反代容器的 IP（等于变成全局限流）
+TRUSTED_PROXIES=10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
 ```
+
+`MAIL_DRIVER=smtp` 走 STARTTLS（587 常见），不引第三方 SDK：`net/smtp` 直接对话。发信失败只写日志、接口照旧返回 204 —— 否则响应差异会泄漏"这个邮箱存不存在"。
 
 这三个变量**没有默认值，没设就直接拒绝启动**（`JWT_SECRET`、`POSTGRES_PASSWORD`、`FRONTEND_URL`）。这是故意的：一个已知的兜底密钥等于任何人都能签发 token。
 
@@ -94,4 +108,14 @@ podman logs --tail 100 oh-your-ear-web-1
 podman logs --tail 100 oh-your-ear-caddy-1        # 用了 TLS overlay 时
 ```
 
-邮件验证码当前只打在 api 日志里（没有 SMTP 发送器），生产上需要真实投递时补发送实现，见 [dev-plan](./dev-plan.md) 的 M12.3 备注。
+## 8. 认证面的防线
+
+| 机制 | 位置 | 说明 |
+| --- | --- | --- |
+| 验证码冷却 | `POST /auth/code` | 同一邮箱 60s 内只能发一次（SQL 层原子实现） |
+| 验证码锁定 | `POST /auth/login` | 同一验证码错 5 次即作废 |
+| IP 限流 | `POST /auth/code` / `POST /auth/login` | 每 IP 每小时 10 次发码、每 15 分钟 30 次登录；进程内计数，单实例有效 |
+| token 吊销 | `POST /auth/logout` | refresh token 的 `jti` 写入 `revoked_tokens`，`/auth/refresh` 会拒绝；access token 短命(15m)不吊销 |
+| 可信代理 | `TRUSTED_PROXIES` | 决定 `X-Forwarded-For` 是否可信，限流依赖它 |
+
+限流是**进程内**的：多实例部署时每个实例各算各的，届时应换 redis（技术方案里也这么写）。

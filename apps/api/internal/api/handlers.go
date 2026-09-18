@@ -2,12 +2,14 @@ package api
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
 
 	"github.com/HYPERVAPOR/oh-your-ear/apps/api/internal/auth"
 	"github.com/HYPERVAPOR/oh-your-ear/apps/api/internal/config"
+	"github.com/HYPERVAPOR/oh-your-ear/apps/api/internal/middleware"
 	"github.com/HYPERVAPOR/oh-your-ear/apps/api/internal/models"
 	"github.com/HYPERVAPOR/oh-your-ear/apps/api/internal/services"
 	"github.com/gin-gonic/gin"
@@ -15,15 +17,33 @@ import (
 )
 
 // Server implements the generated OpenAPI server interface.
+// Request budgets per client IP. Sending mail and guessing codes are the two
+// endpoints worth throttling; the per-address cooldown on codes only stops
+// repetition against one address.
+const (
+	codeRequestsPerHour = 10
+	loginAttemptsPer15m = 30
+)
+
 type Server struct {
-	cfg      config.Config
-	auth     *services.AuthService
-	practice *services.PracticeService
+	cfg          config.Config
+	auth         *services.AuthService
+	practice     *services.PracticeService
+	mailer       services.Mailer
+	codeLimiter  *middleware.RateLimiter
+	loginLimiter *middleware.RateLimiter
 }
 
 // NewServer creates a new API server.
-func NewServer(cfg config.Config, authSvc *services.AuthService, practiceSvc *services.PracticeService) *Server {
-	return &Server{cfg: cfg, auth: authSvc, practice: practiceSvc}
+func NewServer(cfg config.Config, authSvc *services.AuthService, practiceSvc *services.PracticeService, mailer services.Mailer) *Server {
+	return &Server{
+		cfg:          cfg,
+		auth:         authSvc,
+		practice:     practiceSvc,
+		mailer:       mailer,
+		codeLimiter:  middleware.NewRateLimiter(codeRequestsPerHour, time.Hour),
+		loginLimiter: middleware.NewRateLimiter(loginAttemptsPer15m, 15*time.Minute),
+	}
 }
 
 // GetHealth handles GET /health.
@@ -43,6 +63,10 @@ func (s *Server) Login(c *gin.Context) {
 
 // RequestEmailCode handles POST /auth/code.
 func (s *Server) RequestEmailCode(c *gin.Context) {
+	if !s.codeLimiter.RateLimit(c) {
+		return
+	}
+
 	var body EmailCodeRequest
 	if err := c.ShouldBindJSON(&body); err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "invalid request body"})
@@ -57,15 +81,29 @@ func (s *Server) RequestEmailCode(c *gin.Context) {
 		log.Printf("failed to create email code: %v", err)
 		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "failed to send code"})
 	default:
-		// ponytail: delivery is a log line, no SMTP configured. Wire a real sender
-		// with the production deployment work (M12.3).
-		log.Printf("[auth] verification code for %s: %s (valid %s)", body.Email, code, services.EmailCodeTTL)
-		c.Status(http.StatusNoContent)
+		s.deliverEmailCode(c, string(body.Email), code)
 	}
+}
+
+// deliverEmailCode sends the code through the configured mailer. A delivery
+// failure still answers 204: the caller must not be able to tell whether an
+// address exists, and the code can be requested again after the cooldown.
+func (s *Server) deliverEmailCode(c *gin.Context, email, code string) {
+	subject := "Oh Your Ear verification code"
+	body := fmt.Sprintf("Your verification code is %s. It expires in %s.", code, services.EmailCodeTTL)
+
+	if err := s.mailer.Send(c.Request.Context(), email, subject, body); err != nil {
+		log.Printf("failed to deliver verification code to %s via %s: %v", email, s.mailer.Driver(), err)
+	}
+	c.Status(http.StatusNoContent)
 }
 
 // loginWithEmail verifies a code and signs the user in, registering on first use.
 func (s *Server) loginWithEmail(c *gin.Context) {
+	if !s.loginLimiter.RateLimit(c) {
+		return
+	}
+
 	var body EmailAuthRequest
 	if err := c.ShouldBindJSON(&body); err != nil {
 		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "invalid request body"})
@@ -172,8 +210,22 @@ func parseTTL(value string, fallback time.Duration) time.Duration {
 	return d
 }
 
-// Logout handles POST /auth/logout.
+// Logout handles POST /auth/logout. The refresh token is revoked server-side,
+// so clearing the cookie is not the only thing standing between a stolen token
+// and a new session.
 func (s *Server) Logout(c *gin.Context) {
+	if token, err := c.Cookie(auth.RefreshTokenCookieName); err == nil {
+		if claims, err := auth.ParseToken(token, s.cfg.JWTSecret); err == nil && claims.ID != "" {
+			expiresAt := time.Now().UTC().Add(24 * time.Hour)
+			if claims.ExpiresAt != nil {
+				expiresAt = claims.ExpiresAt.Time
+			}
+			if err := s.auth.RevokeToken(c.Request.Context(), claims.ID, expiresAt); err != nil {
+				log.Printf("failed to revoke refresh token: %v", err)
+			}
+		}
+	}
+
 	c.SetCookie(auth.RefreshTokenCookieName, "", -1, "/", "", false, true)
 	c.Status(http.StatusNoContent)
 }

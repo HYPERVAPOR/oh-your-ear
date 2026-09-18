@@ -118,7 +118,7 @@
 ### 7.1 Email verification code login
 
 - **status**: 🟢 done
-- **description**: `POST /auth/code` issues a 6-digit code (60s cooldown, 5-attempt lock, 10min TTL, hashed at rest); `POST /auth/login` and `POST /auth/register` verify it, upsert the user, and issue access + refresh tokens. Delivery is a server log line until an SMTP sender lands.
+- **description**: `POST /auth/code` issues a 6-digit code (60s per-address cooldown, 5-attempt lock, 10min TTL, hashed at rest, plus a per-IP budget of 10/hour); `POST /auth/login` and `POST /auth/register` verify it, upsert the user, and issue access + refresh tokens. Delivery is pluggable via `MAIL_DRIVER`: `log` (default, development) writes to the server log, `smtp` sends through a relay over STARTTLS using `net/smtp`. Delivery failures are logged but still answer 204, so the response cannot leak whether an address exists.
 - **depends on**: none
 
 ### 7.2 Google OAuth login
@@ -130,7 +130,7 @@
 ### 7.3 Protected routes
 
 - **status**: 🟢 done
-- **description**: Backend per-handler JWT guard on `/auth/me`; web `/login` page, `RequireAuth` guard, `/me` account page, and session restore from the refresh cookie on reload.
+- **description**: Backend per-handler JWT guard on `/auth/me`; web `/login` page, `RequireAuth` guard, `/me` account page, and session restore from the refresh cookie on reload. Logout revokes the refresh token server-side (`jti` row in `revoked_tokens`, checked by `/auth/refresh`) instead of only clearing the cookie, and `TRUSTED_PROXIES` decides whether `X-Forwarded-For` is believed.
 - **depends on**: 7.1
 
 ---
@@ -231,7 +231,7 @@
 ### 12.3 Production deployment
 
 - **status**: 🟡 doing
-- **description**: Artifacts are in place and verified locally: hardened `compose/compose.yml` (api and db publish no ports, `JWT_SECRET` / `POSTGRES_PASSWORD` / `FRONTEND_URL` have no fallback and refuse to start when unset), `compose/compose.tls.yml` + `Caddyfile` for automatic Let's Encrypt TLS, `compose/backup.sh` (pg_dump with retention, verified by restoring into a scratch database) and a runbook in [deploy.md](./deploy.md). What is left is server-side and needs a host, domain and secrets: DNS, `.env`, first deploy, cert issuance, cron for backups, and a real email sender for verification codes (currently a log line).
+- **description**: Artifacts are in place and verified locally: hardened `compose/compose.yml` (api and db publish no ports, `JWT_SECRET` / `POSTGRES_PASSWORD` / `FRONTEND_URL` have no fallback and refuse to start when unset), `compose/compose.tls.yml` + `Caddyfile` for automatic Let's Encrypt TLS, `compose/backup.sh` (pg_dump with retention, verified by restoring into a scratch database) and a runbook in [deploy.md](./deploy.md). What is left is server-side and needs a host, domain and secrets: DNS, `.env`, first deploy, cert issuance, and the cron entry for backups.
 - **depends on**: 12.2
 
 ---
