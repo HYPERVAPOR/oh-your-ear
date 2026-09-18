@@ -30,6 +30,10 @@ function practiceLink(mistake: Mistake): string {
       return `/exercise/interval?root=${encodeURIComponent(String(prompt.root ?? ''))}&interval=${encodeURIComponent(String(prompt.interval ?? ''))}`
     case 'chord':
       return `/exercise/chord?root=${encodeURIComponent(String(prompt.root ?? ''))}&type=${encodeURIComponent(String(prompt.type ?? ''))}`
+    case 'melody': {
+      const notes = Array.isArray(prompt.notes) ? prompt.notes.join(',') : ''
+      return `/exercise/melody?melody=${encodeURIComponent(notes)}`
+    }
     default:
       // Rhythm patterns have no per-question seed yet; the module itself is the drill.
       return '/exercise/rhythm'
