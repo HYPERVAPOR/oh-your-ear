@@ -27,6 +27,18 @@ type ExerciseStats struct {
 	Correct int
 }
 
+// Achievement is a milestone evaluated from the cumulative numbers.
+type Achievement struct {
+	ID       string
+	Progress int
+	Target   int
+}
+
+// Achieved reports whether the milestone is reached.
+func (a Achievement) Achieved() bool {
+	return a.Progress >= a.Target
+}
+
 // Mistake is one entry of the mistake notebook.
 type Mistake struct {
 	ID          uuid.UUID

@@ -411,6 +411,25 @@ components:
           type: string
           format: date-time
 
+    Achievement:
+      type: object
+      required:
+        - id
+        - progress
+        - target
+        - achieved
+      properties:
+        id:
+          type: string
+          description: Stable id; the client maps it to a title and description.
+          example: century
+        progress:
+          type: integer
+        target:
+          type: integer
+        achieved:
+          type: boolean
+
     ExerciseStats:
       type: object
       required:
@@ -435,6 +454,8 @@ components:
         - accuracy
         - byExercise
         - daily
+        - streak
+        - achievements
       properties:
         solved:
           type: integer
@@ -443,6 +464,16 @@ components:
         accuracy:
           type: number
           format: double
+        streak:
+          type: integer
+          description: |
+            Consecutive days ending today (or yesterday, when today has no
+            practice yet) with at least one answered question.
+        achievements:
+          type: array
+          description: Evaluated on read; the client owns the wording.
+          items:
+            $ref: '#/components/schemas/Achievement'
         byExercise:
           type: object
           description: Keyed by exercise kind; kinds never practised are absent.

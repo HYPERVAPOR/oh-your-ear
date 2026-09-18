@@ -283,6 +283,16 @@ export interface components {
       /** Format: date-time */
       lastWrongAt: string
     }
+    Achievement: {
+      /**
+       * @description Stable id; the client maps it to a title and description.
+       * @example century
+       */
+      id: string
+      progress: number
+      target: number
+      achieved: boolean
+    }
     ExerciseStats: {
       solved: number
       correct: number
@@ -297,6 +307,13 @@ export interface components {
       correct: number
       /** Format: double */
       accuracy: number
+      /**
+       * @description Consecutive days ending today (or yesterday, when today has no
+       *     practice yet) with at least one answered question.
+       */
+      streak: number
+      /** @description Evaluated on read; the client owns the wording. */
+      achievements: components['schemas']['Achievement'][]
       /** @description Keyed by exercise kind; kinds never practised are absent. */
       byExercise: {
         [key: string]: components['schemas']['ExerciseStats']

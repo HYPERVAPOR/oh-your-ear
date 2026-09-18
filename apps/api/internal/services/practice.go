@@ -172,10 +172,12 @@ const TrendDays = 14
 
 // Stats aggregates the numbers behind the progress dashboard.
 type Stats struct {
-	Solved     int
-	Correct    int
-	ByExercise map[string]models.ExerciseStats
-	Daily      []models.DailyProgress
+	Solved       int
+	Correct      int
+	Streak       int
+	Achievements []models.Achievement
+	ByExercise   map[string]models.ExerciseStats
+	Daily        []models.DailyProgress
 }
 
 // StatsForUser aggregates totals, a per-exercise breakdown, and a daily trend
@@ -239,7 +241,105 @@ func (s *PracticeService) StatsForUser(ctx context.Context, userID uuid.UUID) (*
 	}
 
 	stats.Daily = fillTrend(counts, s.loc, TrendDays)
+
+	streak, err := s.Streak(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	stats.Streak = streak
+	stats.Achievements = achievements(stats.Solved, streak)
+
 	return stats, nil
+}
+
+// Streak counts consecutive practised days ending today, or yesterday when
+// today has no practice yet: a streak should not read as broken at breakfast.
+func (s *PracticeService) Streak(ctx context.Context, userID uuid.UUID) (int, error) {
+	rows, err := s.pool.Query(ctx, `
+		SELECT DISTINCT (created_at AT TIME ZONE $2)::date AS day
+		FROM practice_records
+		WHERE user_id = $1
+		ORDER BY day DESC
+	`, userID, s.loc.String())
+	if err != nil {
+		return 0, fmt.Errorf("failed to read the practice calendar: %w", err)
+	}
+	defer rows.Close()
+
+	days := []time.Time{}
+	for rows.Next() {
+		var day time.Time
+		if err := rows.Scan(&day); err != nil {
+			return 0, fmt.Errorf("failed to read the practice calendar: %w", err)
+		}
+		days = append(days, day)
+	}
+	if err := rows.Err(); err != nil {
+		return 0, fmt.Errorf("failed to read the practice calendar: %w", err)
+	}
+
+	return streakFrom(days, time.Now().In(s.loc)), nil
+}
+
+// streakFrom walks practised days, which must be sorted newest first.
+func streakFrom(days []time.Time, now time.Time) int {
+	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+
+	streak := 0
+	expected := today
+	var last time.Time
+	for _, day := range days {
+		day = time.Date(day.Year(), day.Month(), day.Day(), 0, 0, 0, 0, now.Location())
+
+		// Several answers on one day are still one practised day.
+		if streak > 0 && day.Equal(last) {
+			continue
+		}
+
+		// The first entry may be yesterday: today is simply still ahead of the user.
+		if streak == 0 && day.Equal(today.AddDate(0, 0, -1)) {
+			expected = today.AddDate(0, 0, -1)
+		}
+		if !day.Equal(expected) {
+			break
+		}
+
+		streak++
+		last = day
+		expected = expected.AddDate(0, 0, -1)
+	}
+
+	return streak
+}
+
+// achievementSpecs are the milestones, in display order. Each one is a single
+// cumulative counter, so the list can be evaluated without storing unlock state.
+var achievementSpecs = []struct {
+	id     string
+	target int
+}{
+	{id: "firstSteps", target: 1},
+	{id: "warmUp", target: 20},
+	{id: "century", target: 100},
+	{id: "marathon", target: 500},
+}
+
+// StreakAchievementTarget is the streak milestone, kept apart because its
+// counter comes from the practice calendar rather than from the answer totals.
+const StreakAchievementTarget = 7
+
+// achievements evaluates the milestone list from the cumulative counters.
+func achievements(solved, streak int) []models.Achievement {
+	list := make([]models.Achievement, 0, len(achievementSpecs)+1)
+	for _, spec := range achievementSpecs {
+		list = append(list, models.Achievement{ID: spec.id, Progress: solved, Target: spec.target})
+	}
+
+	return append(list, models.Achievement{
+		ID:       "streakWeek",
+		Progress: streak,
+		Target:   StreakAchievementTarget,
+	})
 }
 
 // fillTrend returns one entry per day for the last days days, oldest first.

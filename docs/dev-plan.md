@@ -171,15 +171,24 @@
 
 ### 10.1 Daily streak tracking
 
-- **status**: 🔴 todo
-- **description**: Track consecutive practice days.
+- **status**: 🟢 done
+- **description**: Derived from `practice_records`, no extra table: a day counts once it has one answered question, and the streak walks back from today (or yesterday, so it does not read as broken before the day's first practice) through consecutive practised local days. Exposed as `streak` on `GET /me/stats`; the walk is unit-tested (`TestStreakFrom`).
 - **depends on**: 7.3
 
 ### 10.2 Achievement badges
 
-- **status**: 🔴 todo
-- **description**: Unlock badges based on milestones.
+- **status**: 🟢 done
+- **description**: Five milestones (1 / 20 / 100 / 500 questions and a 7-day streak) evaluated on read from the same counters — no unlock table, because every criterion is monotonic. `GET /me/stats` returns `id` / `progress` / `target` / `achieved` and the wording lives in the locales (`achievements.<id>`), so the API stays language-free. Accuracy-based badges need a compound rule ("at least N questions at X%") and stay in the backlog.
 - **depends on**: 10.1
+
+---
+
+## M10b Backlog
+
+### 10b.1 Accuracy-based achievements
+
+- **status**: ⚪ backlog
+- **description**: Badges such as "100 answers at 90% accuracy" need a compound rule (a minimum count plus a rate), unlike the current single-counter milestones. Add when the existing five stop being enough.
 
 ---
 
