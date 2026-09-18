@@ -53,7 +53,7 @@
     "keyFilter": "Notes"
   },
   "intervals": {
-    "1P": "Perfect unison",
+    "1P": "Unison",
     "2m": "Minor 2nd",
     "2M": "Major 2nd",
     "3m": "Minor 3rd",
@@ -64,7 +64,7 @@
     "6M": "Major 6th",
     "7m": "Minor 7th",
     "7M": "Major 7th",
-    "8P": "Perfect octave"
+    "8P": "Octave"
   },
   "chords": {
     "major": "Major",
@@ -124,7 +124,7 @@
     "trendLabel": "Questions per day: {{from}} to {{to}}, {{solved}} in total",
     "dayTitle": "{{date}}: {{solved}} questions",
     "byExercise": "By module",
-    "moduleDetail": "{{solved}} · {{percent}}%",
+    "moduleDetail": "{{solved}} solved, {{percent}}%",
     "achievements": "Achievements"
   },
   "mistakes": {
@@ -174,7 +174,8 @@
     "loginCtaHint": "Study plan, accuracy trend, re-practice, streaks and badges.",
     "loginHeading": "Sign in for progress and the notebook",
     "heroLine1": "Five drills, ready whenever you are, no account needed.",
-    "heroLine2": "Pitch, intervals, chords, melody, rhythm."
+    "heroLine2": "Pitch, intervals, chords, melody, rhythm.",
+    "startCta": "Start with single note"
   },
   "settings": {
     "language": "Language",

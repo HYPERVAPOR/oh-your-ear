@@ -90,18 +90,18 @@ export function AppHeader() {
           </NavSelect>
 
           {user ? (
-            <>
-              {/* Redundant on the account page itself, and it is the control that
-                  pushes the nav onto a second row on a 390px screen. */}
-              {location.pathname !== '/me' && (
+            /* The account page shows its own header actions: repeating them here is
+               noise, and they are what pushes the nav onto a second row at 390px. */
+            location.pathname !== '/me' && (
+              <>
                 <Link to="/me" className={`${pillControl} no-underline`}>
                   {t('auth.account')}
                 </Link>
-              )}
-              <Button variant="ghost" size="sm" onClick={handleLogout}>
-                {t('actions.logout')}
-              </Button>
-            </>
+                <Button variant="ghost" size="sm" onClick={handleLogout}>
+                  {t('actions.logout')}
+                </Button>
+              </>
+            )
           ) : (
             <Button size="sm" onClick={() => navigate('/login')}>
               {t('actions.login')}

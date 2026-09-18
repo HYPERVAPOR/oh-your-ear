@@ -2,46 +2,6 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Self-hosted variable fonts. See public/fonts/LICENSES.md (SIL OFL 1.1). */
-@font-face {
-  font-family: 'Inter';
-  src: url('/fonts/inter-latin.woff2') format('woff2-variations');
-  font-weight: 100 900;
-  font-display: swap;
-  unicode-range:
-    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
-    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-@font-face {
-  font-family: 'Inter';
-  src: url('/fonts/inter-latin-ext.woff2') format('woff2-variations');
-  font-weight: 100 900;
-  font-display: swap;
-  unicode-range:
-    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
-    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F,
-    U+A720-A7FF;
-}
-@font-face {
-  font-family: 'Newsreader';
-  src: url('/fonts/newsreader-latin.woff2') format('woff2-variations');
-  font-weight: 200 800;
-  font-display: swap;
-  unicode-range:
-    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
-    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-@font-face {
-  font-family: 'Newsreader';
-  src: url('/fonts/newsreader-latin-ext.woff2') format('woff2-variations');
-  font-weight: 200 800;
-  font-display: swap;
-  unicode-range:
-    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
-    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F,
-    U+A720-A7FF;
-}
-
 @theme inline {
   /* Vocabulary of DESIGN.md. New code uses these names and nothing else. */
   --color-canvas: var(--canvas);
@@ -86,10 +46,12 @@
   --color-success-foreground: var(--on-primary);
   --color-primary-foreground: var(--on-primary);
 
-  --font-display:
-    'Newsreader', 'Songti SC', 'Noto Serif CJK SC', 'Source Han Serif SC', 'SimSun', serif;
+  /* One family for the whole product. A Latin display serif cannot pair with the
+     platform's CJK serif, and shipping a Chinese webfont is several megabytes, so
+     the character comes from scale, weight and tracking instead. */
   --font-sans:
     'Inter', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif;
+  --font-display: var(--font-sans);
 
   --radius-sm: 6px;
   --radius-md: 8px;
@@ -143,17 +105,18 @@
 .dark {
   color-scheme: dark;
 
-  --canvas: #0c0a09;
-  --canvas-soft: #141110;
-  --surface: #1c1917;
-  --surface-strong: #292524;
+  /* Not pure black: the canvas and the cards need three distinguishable steps, and
+     the hairlines have to be visible against both. */
+  --canvas: #12100f;
+  --canvas-soft: #191614;
+  --surface: #211d1b;
+  --surface-strong: #2e2825;
   --ink: #fafaf9;
-  --body: #d6d3d1;
+  --body: #e7e5e4;
   --muted: #a8a29e;
-  --muted-soft: #78716c;
-  /* A touch lighter than surface-strong so cards read as separate planes on near-black. */
-  --hairline: #322c28;
-  --hairline-strong: #4a443f;
+  --muted-soft: #857e79;
+  --hairline: #3b332e;
+  --hairline-strong: #554b45;
   --primary: #fafaf9;
   --on-primary: #0c0a09;
 

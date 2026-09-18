@@ -26,26 +26,32 @@ export function Home() {
       <AppHeader />
 
       <main className="flex-1">
-        {/* Hero: the first thing a visitor meets is the sound itself. */}
-        <section className="relative overflow-hidden px-6 pb-16 pt-20 sm:pb-24 sm:pt-28">
-          <Orb kind="ambient" size="lg" className="-top-24 left-1/2 -translate-x-1/2" />
+        {/* Hero: the first thing a visitor meets is the sound itself, and the one
+            action we want them to take. */}
+        <section className="relative overflow-hidden px-6 pb-20 pt-24 sm:pb-28 sm:pt-32">
+          <Orb kind="ambient" size="lg" className="-top-28 left-1/2 -translate-x-1/2" />
           <div className="relative mx-auto flex max-w-[720px] flex-col items-center text-center">
-            <h1 className="font-display text-[34px] font-light leading-[1.1] tracking-[-0.02em] sm:text-[48px]">
+            <h1 className="max-w-[24ch] text-balance text-[40px] font-light leading-[1.08] tracking-[-0.03em] sm:text-[60px]">
               {t('tagline')}
             </h1>
-            <p className="mt-5 text-[16px] leading-[1.75] text-body">
+            <p className="mt-6 text-[17px] leading-[1.7] text-body">
               <span className="block">{t('home.heroLine1')}</span>
               <span className="block">{t('home.heroLine2')}</span>
             </p>
 
-            <div className="mt-9 flex items-center gap-3">
-              <PlayButton note="C4" className="h-[52px] w-[52px]" />
-              <span className="text-[15px] text-muted">
-                {t('actions.playNote', { note: 'C4' })}
-              </span>
+            <Link
+              to="/exercise/single-note"
+              className={`${buttonVariants({ size: 'hero' })} mt-10`}
+            >
+              {t('home.startCta')}
+            </Link>
+
+            <div className="mt-9 flex items-center gap-3 text-muted">
+              <PlayButton note="C4" className="h-11 w-11" />
+              <span className="text-[15px]">{t('actions.playNote', { note: 'C4' })}</span>
             </div>
 
-            {!user && <p className="mt-8 text-[14px] text-muted">{t('home.guestNote')}</p>}
+            {!user && <p className="mt-6 text-[14px] text-muted">{t('home.guestNote')}</p>}
           </div>
         </section>
 
@@ -64,9 +70,15 @@ export function Home() {
               {t('home.modulesHeading')}
             </h2>
 
-            <div className="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {/* Five modules in rows of three: the second row is centred, so there is
+                no hole where a sixth card would have been. */}
+            <div className="mt-8 flex flex-wrap justify-center gap-5">
               {modules.map(({ key, route }) => (
-                <Link key={key} to={route} className="group block">
+                <Link
+                  key={key}
+                  to={route}
+                  className="group block w-full sm:w-[calc(50%-10px)] lg:w-[calc(33.333%-14px)]"
+                >
                   <Card
                     interactive
                     className="relative h-full min-h-[132px] overflow-hidden p-5 transition-colors group-hover:border-hairline-strong"
