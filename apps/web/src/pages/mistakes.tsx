@@ -79,6 +79,8 @@ export function Mistakes() {
         return `${prompt.root} → ${prompt.second}`
       case 'chord':
         return Array.isArray(prompt.notes) ? prompt.notes.join(' ') : String(prompt.type ?? '')
+      case 'melody':
+        return Array.isArray(prompt.notes) ? prompt.notes.join(' ') : ''
       case 'rhythm':
         return t('mistakes.rhythmPattern', {
           count: Array.isArray(prompt.pattern) ? prompt.pattern.length : 0,

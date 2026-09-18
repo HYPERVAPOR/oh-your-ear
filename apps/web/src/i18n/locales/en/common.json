@@ -120,7 +120,7 @@
     "empty": "No records yet. Solve a few questions and this fills in.",
     "solved": "Questions solved",
     "accuracy": "Accuracy",
-    "activeDays": "Active days",
+    "activeDays": "Active (14d)",
     "streak": "Day streak",
     "trend": "Questions per day",
     "trendLabel": "Questions per day: {{from}} to {{to}}, {{solved}} in total",

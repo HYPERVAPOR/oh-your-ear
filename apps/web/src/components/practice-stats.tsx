@@ -59,7 +59,7 @@ export function PracticeStats() {
 
       <h3 className="mt-6 text-sm font-medium">{t('stats.trend')}</h3>
       <div
-        className="mt-2 flex h-20 items-end gap-1"
+        className="mt-2 flex h-20 max-w-md items-end gap-1.5"
         role="img"
         aria-label={t('stats.trendLabel', {
           from: data.daily[0]?.date ?? '',
@@ -71,11 +71,15 @@ export function PracticeStats() {
           <div
             key={day.date}
             title={t('stats.dayTitle', { date: day.date, solved: day.solved })}
-            className={`flex-1 rounded-sm ${day.solved > 0 ? 'bg-primary' : 'bg-muted'}`}
-            style={{
-              height: day.solved > 0 ? `${Math.max(8, (day.solved / peak) * 100)}%` : '2px',
-            }}
-          />
+            className="flex h-full flex-1 flex-col justify-end overflow-hidden rounded-sm bg-muted"
+          >
+            <div
+              className={day.solved > 0 ? 'rounded-sm bg-primary' : ''}
+              style={{
+                height: day.solved > 0 ? `${Math.max(10, (day.solved / peak) * 100)}%` : '0',
+              }}
+            />
+          </div>
         ))}
       </div>
       <div className="mt-1 flex justify-between text-xs text-muted-foreground">
