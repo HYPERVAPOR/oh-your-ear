@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
 
+import { PracticeStats } from '@/components/practice-stats'
 import { StudyPlanForm } from '@/components/study-plan-form'
 import { Button } from '@/components/ui/button'
 import { useAuthStore } from '@/stores/auth-store'
@@ -43,6 +44,8 @@ export function Me() {
         </dl>
 
         <StudyPlanForm />
+
+        <PracticeStats />
 
         <Button variant="outline" onClick={handleLogout}>
           {t('actions.logout')}

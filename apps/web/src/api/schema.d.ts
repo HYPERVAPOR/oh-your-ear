@@ -145,6 +145,23 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/me/stats': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Practice totals, per-exercise accuracy, and a daily trend */
+    get: operations['getPracticeStats']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
 }
 export type webhooks = Record<string, never>
 export interface components {
@@ -208,6 +225,27 @@ export interface components {
       correct: boolean
       chosen?: string | null
       expected?: string | null
+    }
+    ExerciseStats: {
+      solved: number
+      correct: number
+      /**
+       * Format: double
+       * @description Fraction between 0 and 1; 0 when nothing was solved.
+       */
+      accuracy: number
+    }
+    PracticeStats: {
+      solved: number
+      correct: number
+      /** Format: double */
+      accuracy: number
+      /** @description Keyed by exercise kind; kinds never practised are absent. */
+      byExercise: {
+        [key: string]: components['schemas']['ExerciseStats']
+      }
+      /** @description One entry per calendar day, oldest first, gaps filled with zeros. */
+      daily: components['schemas']['DailyProgress'][]
     }
     UserResponse: {
       /** Format: uuid */
@@ -466,6 +504,27 @@ export interface operations {
         content?: never
       }
       400: components['responses']['BadRequest']
+      401: components['responses']['Unauthorized']
+    }
+  }
+  getPracticeStats: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Aggregated practice statistics */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['PracticeStats']
+        }
+      }
       401: components['responses']['Unauthorized']
     }
   }

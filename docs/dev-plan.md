@@ -145,8 +145,8 @@
 
 ### 8.2 Progress statistics dashboard
 
-- **status**: 🔴 todo
-- **description**: Visualize accuracy, exercise distribution, trends.
+- **status**: 🟢 done
+- **description**: `GET /me/stats` returns all-time totals, accuracy, a per-module breakdown, and a 14-day daily trend (`TREND_DAYS` in `services/practice.go`) with empty days zero-filled. The trend covers the last 14 local days while the totals stay all-time. The `/me` page renders three figures (solved, accuracy, active days), a bar-per-day trend with a dated range under it, and share bars per module — plain divs, no chart library.
 - **depends on**: 8.1
 
 ---

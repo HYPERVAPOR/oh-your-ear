@@ -20,3 +20,9 @@ type DailyProgress struct {
 	Correct    int
 	ByExercise map[string]int
 }
+
+// ExerciseStats is the per-module slice of the progress dashboard.
+type ExerciseStats struct {
+	Solved  int
+	Correct int
+}

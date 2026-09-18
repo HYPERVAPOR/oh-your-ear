@@ -110,5 +110,17 @@
     "focus": "重点模块",
     "save": "保存计划",
     "saved": "已保存"
+  },
+  "stats": {
+    "title": "练习统计",
+    "empty": "还没有练习记录。去练几道题，这里就会出现数据。",
+    "solved": "累计题数",
+    "accuracy": "正确率",
+    "activeDays": "练习天数",
+    "trend": "每日题数",
+    "trendLabel": "每日题数：{{from}} 至 {{to}}，共 {{solved}} 题",
+    "dayTitle": "{{date}}：{{solved}} 题",
+    "byExercise": "模块分布",
+    "moduleDetail": "{{solved}} 题 · {{percent}}%"
   }
 }
