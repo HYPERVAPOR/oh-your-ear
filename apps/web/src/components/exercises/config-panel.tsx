@@ -1,43 +1,50 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Settings, RotateCcw } from 'lucide-react'
+import { ChevronDown, RotateCcw, Settings } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import { Select } from '@/components/ui/field'
+import { cn } from '@/lib/utils'
 
-interface ConfigPanelProps {
+/** Collapsed settings: a quiet control that opens into hairline-separated rows. */
+export function ConfigPanel({
+  title,
+  onReset,
+  children,
+}: {
   title: string
   onReset?: () => void
   children: React.ReactNode
-}
-
-export function ConfigPanel({ title, onReset, children }: ConfigPanelProps) {
+}) {
   const { t } = useTranslation('common')
   const [open, setOpen] = useState(false)
 
   return (
-    <div className="w-full rounded-md border border-border bg-background">
+    <div className="w-full rounded-xl border border-hairline bg-surface">
       <button
         type="button"
         onClick={() => setOpen((prev) => !prev)}
-        className="flex w-full items-center justify-between px-4 py-3 text-left text-sm font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         aria-expanded={open}
+        className="flex w-full items-center justify-between gap-3 px-5 py-3.5 text-left text-[15px] font-medium text-body transition-colors hover:text-ink"
       >
         <span className="flex items-center gap-2">
           <Settings className="h-4 w-4" />
           {title}
         </span>
-        <span className="text-muted-foreground">{open ? '▲' : '▼'}</span>
+        <ChevronDown
+          className={cn('h-4 w-4 text-muted transition-transform', open && 'rotate-180')}
+        />
       </button>
 
       {open && (
-        <div className="border-t border-border px-4 py-4">
-          {children}
+        <div className="border-t border-hairline px-5 py-5">
+          <div className="space-y-5">{children}</div>
           {onReset && (
             <Button
               type="button"
               variant="ghost"
               size="sm"
-              className="mt-4 gap-1"
+              className="mt-5 gap-1.5"
               onClick={onReset}
             >
               <RotateCcw className="h-3.5 w-3.5" />
@@ -50,116 +57,168 @@ export function ConfigPanel({ title, onReset, children }: ConfigPanelProps) {
   )
 }
 
-interface CheckboxOption {
-  value: string
-  label: string
+/** Label on the left, control on the right, wrapping on narrow screens. */
+export function ConfigRow({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <span className="text-[15px] font-medium">{label}</span>
+      <div className="flex items-center gap-2">{children}</div>
+    </div>
+  )
 }
 
-interface CheckboxGroupProps {
+/** Multi-select as pills: an ink pill means included. */
+export function ToggleGroup({
+  label,
+  options,
+  selected,
+  onChange,
+}: {
   label: string
-  options: CheckboxOption[]
+  options: { value: string; label: string }[]
   selected: string[]
   onChange: (selected: string[]) => void
-}
-
-export function CheckboxGroup({ label, options, selected, onChange }: CheckboxGroupProps) {
+}) {
   const { t } = useTranslation('common')
   const selectedSet = new Set(selected)
+  const allSelected = selectedSet.size === options.length
 
   function toggle(value: string) {
     const next = new Set(selectedSet)
-    if (next.has(value)) {
-      next.delete(value)
-    } else {
-      next.add(value)
-    }
+    if (next.has(value)) next.delete(value)
+    else next.add(value)
     onChange(Array.from(next))
   }
 
-  function toggleAll() {
-    if (selectedSet.size === options.length) {
-      onChange([])
-    } else {
-      onChange(options.map((o) => o.value))
-    }
-  }
-
   return (
-    <fieldset className="space-y-2">
-      <legend className="mb-2 text-sm font-medium">{label}</legend>
+    <fieldset className="space-y-3">
+      <div className="flex items-center justify-between gap-3">
+        <legend className="text-[15px] font-medium">{label}</legend>
+        <button
+          type="button"
+          onClick={() => onChange(allSelected ? [] : options.map((o) => o.value))}
+          className="text-[13px] text-muted underline underline-offset-4 transition-colors hover:text-ink"
+        >
+          {allSelected ? t('exerciseConfig.clearAll') : t('exerciseConfig.selectAll')}
+        </button>
+      </div>
+
       <div className="flex flex-wrap gap-2">
-        <label className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-border px-3 py-2 text-sm hover:bg-muted">
-          <input
-            type="checkbox"
-            className="h-4 w-4 rounded border-border"
-            checked={selectedSet.size === options.length}
-            onChange={toggleAll}
-          />
-          {t('exerciseConfig.selectAll')}
-        </label>
-        {options.map(({ value, label: optLabel }) => (
-          <label
-            key={value}
-            className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-border px-3 py-2 text-sm hover:bg-muted"
-          >
-            <input
-              type="checkbox"
-              className="h-4 w-4 rounded border-border"
-              value={value}
-              checked={selectedSet.has(value)}
-              onChange={() => toggle(value)}
-            />
-            {optLabel}
-          </label>
-        ))}
+        {options.map(({ value, label: optionLabel }) => {
+          const active = selectedSet.has(value)
+          return (
+            <button
+              key={value}
+              type="button"
+              aria-pressed={active}
+              onClick={() => toggle(value)}
+              className={cn(
+                'rounded-full border px-3.5 py-1.5 text-[14px] transition-colors',
+                // Twelve ink pills would be a wall of black: a multi-select uses the
+                // quiet fill for "on" and lets ink stay for the primary action.
+                active
+                  ? 'border-transparent bg-surface-strong text-ink'
+                  : 'border-hairline text-muted-soft hover:border-hairline-strong hover:text-ink',
+              )}
+            >
+              {optionLabel}
+            </button>
+          )
+        })}
       </div>
     </fieldset>
   )
 }
 
-interface SliderFieldProps {
+/** Single on/off pill. */
+export function Toggle({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string
+  checked: boolean
+  onChange: (checked: boolean) => void
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={checked}
+      onClick={() => onChange(!checked)}
+      className={cn(
+        'rounded-full border px-3.5 py-1.5 text-[14px] transition-colors',
+        checked
+          ? 'border-transparent bg-surface-strong text-ink'
+          : 'border-hairline text-muted-soft hover:border-hairline-strong hover:text-ink',
+      )}
+    >
+      {label}
+    </button>
+  )
+}
+
+export function NumberField({
+  label,
+  value,
+  min,
+  max,
+  suffix,
+  onChange,
+}: {
   label: string
   value: number
   min: number
   max: number
+  suffix?: string
   onChange: (value: number) => void
-}
-
-export function SliderField({ label, value, min, max, onChange }: SliderFieldProps) {
+}) {
   return (
-    <div className="space-y-2">
-      <label className="text-sm font-medium">
-        {label}: {value}
-      </label>
-      <input
-        type="range"
-        min={min}
-        max={max}
-        step={1}
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full"
-      />
-    </div>
+    <ConfigRow label={label}>
+      <div className="flex items-center gap-3">
+        <input
+          type="range"
+          min={min}
+          max={max}
+          step={1}
+          value={value}
+          onChange={(event) => onChange(Number(event.target.value))}
+          className="w-40 accent-[var(--ink)]"
+          aria-label={label}
+        />
+        <span className="tabular w-8 text-right text-[15px] text-body">
+          {value}
+          {suffix}
+        </span>
+      </div>
+    </ConfigRow>
   )
 }
 
-interface BooleanToggleProps {
+export function SelectField({
+  label,
+  value,
+  options,
+  onChange,
+}: {
   label: string
-  checked: boolean
-  onChange: (checked: boolean) => void
-}
-
-export function BooleanToggle({ label, checked, onChange }: BooleanToggleProps) {
+  value: string
+  options: { value: string; label: string }[]
+  onChange: (value: string) => void
+}) {
   return (
-    <label className="inline-flex cursor-pointer items-center gap-2 text-sm">
-      <input
-        type="checkbox"
-        className="h-4 w-4 rounded border-border"
-        checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
-      />
-      {label}
-    </label>
+    <ConfigRow label={label}>
+      <Select
+        value={value}
+        aria-label={label}
+        onChange={(event) => onChange(event.target.value)}
+        className="w-48"
+      >
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </Select>
+    </ConfigRow>
   )
 }

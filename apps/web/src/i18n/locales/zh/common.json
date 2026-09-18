@@ -24,7 +24,9 @@
   "score": "得分：{{correct}}/{{total}}",
   "exercises": {
     "randomTest": "随机测试",
-    "tapHint": "按空格键或点击按钮敲击。"
+    "tapHint": "按空格键，或点下面的圆盘敲击。",
+    "rhythmIdle": "点播放，先听一遍这条节奏。",
+    "tapArmed": "跟着刚才的节奏敲。"
   },
   "exerciseConfig": {
     "title": "练习设置",
@@ -46,7 +48,9 @@
     "range": "音域",
     "rangeNarrow": "一个八度内（C4–B4）",
     "rangeMedium": "C4–C5",
-    "rangeWide": "C3–C5"
+    "rangeWide": "C3–C5",
+    "clearAll": "清空",
+    "keyFilter": "可用音"
   },
   "intervals": {
     "1P": "纯一度",
@@ -90,8 +94,8 @@
     "loginMock": "模拟登录（仅开发环境）"
   },
   "feedback": {
-    "correct": "答对了！",
-    "wrong": "错了！正确答案是 {{answer}}。"
+    "correct": "答对了。",
+    "wrong": "正确答案是 {{answer}}。"
   },
   "notFound": "页面不存在。",
   "theme": {

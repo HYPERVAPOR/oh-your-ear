@@ -24,7 +24,9 @@
   "score": "Score: {{correct}}/{{total}}",
   "exercises": {
     "randomTest": "Random Test",
-    "tapHint": "Press Space or click the button to tap."
+    "tapHint": "Use the space bar, or tap the circle below.",
+    "rhythmIdle": "Press play and listen to the pattern first.",
+    "tapArmed": "Now tap it back."
   },
   "exerciseConfig": {
     "title": "Exercise Settings",
@@ -46,7 +48,9 @@
     "range": "Range",
     "rangeNarrow": "One octave (C4–B4)",
     "rangeMedium": "C4–C5",
-    "rangeWide": "C3–C5"
+    "rangeWide": "C3–C5",
+    "clearAll": "Clear all",
+    "keyFilter": "Notes"
   },
   "intervals": {
     "1P": "Perfect unison",
@@ -90,8 +94,8 @@
     "loginMock": "Mock login (dev only)"
   },
   "feedback": {
-    "correct": "Correct!",
-    "wrong": "Wrong! It was {{answer}}."
+    "correct": "Correct.",
+    "wrong": "The answer was {{answer}}."
   },
   "notFound": "Page not found.",
   "theme": {
