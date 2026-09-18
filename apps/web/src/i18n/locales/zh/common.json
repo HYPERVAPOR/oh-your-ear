@@ -10,6 +10,7 @@
   },
   "actions": {
     "play": "播放",
+    "playNote": "播放 {{note}}",
     "playing": "播放中...",
     "replay": "重放",
     "next": "下一题",
@@ -20,7 +21,6 @@
     "hideNotes": "隐藏音符",
     "newMelody": "新旋律",
     "newRhythm": "新节奏",
-    "settings": "设置",
     "login": "登录",
     "logout": "退出"
   },
@@ -37,6 +37,8 @@
   },
   "exerciseConfig": {
     "title": "练习设置",
+    "reset": "恢复默认",
+    "selectAll": "全选",
     "whiteKeys": "白键",
     "blackKeys": "黑键",
     "intervals": "允许音程",
@@ -46,6 +48,29 @@
     "durations": "允许时值",
     "quarterNote": "四分音符",
     "eighthNote": "八分音符"
+  },
+  "intervals": {
+    "1P": "纯一度",
+    "2m": "小二度",
+    "2M": "大二度",
+    "3m": "小三度",
+    "3M": "大三度",
+    "4P": "纯四度",
+    "5P": "纯五度",
+    "6m": "小六度",
+    "6M": "大六度",
+    "7m": "小七度",
+    "7M": "大七度",
+    "8P": "纯八度"
+  },
+  "chords": {
+    "major": "大三和弦",
+    "minor": "小三和弦",
+    "diminished": "减三和弦",
+    "augmented": "增三和弦",
+    "maj7": "大七和弦",
+    "min7": "小七和弦",
+    "7": "属七和弦"
   },
   "auth": {
     "title": "登录 / 注册",
@@ -63,8 +88,7 @@
     "invalidCode": "验证码错误或已过期。",
     "tooManyRequests": "操作过于频繁，请稍后再试。",
     "loginWithGoogle": "Google 登录",
-    "loginMock": "模拟登录（仅开发环境）",
-    "loggedInAs": "已登录：{{email}}"
+    "loginMock": "模拟登录（仅开发环境）"
   },
   "feedback": {
     "correct": "答对了！",

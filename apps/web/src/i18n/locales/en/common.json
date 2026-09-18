@@ -10,6 +10,7 @@
   },
   "actions": {
     "play": "Play",
+    "playNote": "Play {{note}}",
     "playing": "Playing...",
     "replay": "Replay",
     "next": "Next",
@@ -20,7 +21,6 @@
     "hideNotes": "Hide notes",
     "newMelody": "New melody",
     "newRhythm": "New rhythm",
-    "settings": "Settings",
     "login": "Log in",
     "logout": "Log out"
   },
@@ -37,6 +37,8 @@
   },
   "exerciseConfig": {
     "title": "Exercise Settings",
+    "reset": "Reset to defaults",
+    "selectAll": "Select all",
     "whiteKeys": "White keys",
     "blackKeys": "Black keys",
     "intervals": "Allowed intervals",
@@ -46,6 +48,29 @@
     "durations": "Allowed durations",
     "quarterNote": "Quarter note",
     "eighthNote": "Eighth note"
+  },
+  "intervals": {
+    "1P": "Perfect unison",
+    "2m": "Minor 2nd",
+    "2M": "Major 2nd",
+    "3m": "Minor 3rd",
+    "3M": "Major 3rd",
+    "4P": "Perfect 4th",
+    "5P": "Perfect 5th",
+    "6m": "Minor 6th",
+    "6M": "Major 6th",
+    "7m": "Minor 7th",
+    "7M": "Major 7th",
+    "8P": "Perfect octave"
+  },
+  "chords": {
+    "major": "Major",
+    "minor": "Minor",
+    "diminished": "Diminished",
+    "augmented": "Augmented",
+    "maj7": "Major 7th",
+    "min7": "Minor 7th",
+    "7": "Dominant 7th"
   },
   "auth": {
     "title": "Log in / Sign up",
@@ -63,8 +88,7 @@
     "invalidCode": "Wrong or expired code.",
     "tooManyRequests": "Too many requests, try again later.",
     "loginWithGoogle": "Google login",
-    "loginMock": "Mock login (dev only)",
-    "loggedInAs": "Logged in as {{email}}"
+    "loginMock": "Mock login (dev only)"
   },
   "feedback": {
     "correct": "Correct!",

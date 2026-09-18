@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Settings, RotateCcw } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
@@ -10,6 +11,7 @@ interface ConfigPanelProps {
 }
 
 export function ConfigPanel({ title, onReset, children }: ConfigPanelProps) {
+  const { t } = useTranslation('common')
   const [open, setOpen] = useState(false)
 
   return (
@@ -39,7 +41,7 @@ export function ConfigPanel({ title, onReset, children }: ConfigPanelProps) {
               onClick={onReset}
             >
               <RotateCcw className="h-3.5 w-3.5" />
-              恢复默认
+              {t('exerciseConfig.reset')}
             </Button>
           )}
         </div>
@@ -61,6 +63,7 @@ interface CheckboxGroupProps {
 }
 
 export function CheckboxGroup({ label, options, selected, onChange }: CheckboxGroupProps) {
+  const { t } = useTranslation('common')
   const selectedSet = new Set(selected)
 
   function toggle(value: string) {
@@ -92,7 +95,7 @@ export function CheckboxGroup({ label, options, selected, onChange }: CheckboxGr
             checked={selectedSet.size === options.length}
             onChange={toggleAll}
           />
-          全选
+          {t('exerciseConfig.selectAll')}
         </label>
         {options.map(({ value, label: optLabel }) => (
           <label

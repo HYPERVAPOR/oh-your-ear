@@ -5,6 +5,11 @@ import LanguageDetector from 'i18next-browser-languagedetector'
 import en from './locales/en/common.json'
 import zh from './locales/zh/common.json'
 
+// Keep <html lang> in sync for screen readers, search engines, and hyphenation.
+i18n.on('languageChanged', (language) => {
+  document.documentElement.lang = language
+})
+
 i18n
   .use(LanguageDetector)
   .use(initReactI18next)
