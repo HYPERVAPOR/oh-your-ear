@@ -107,6 +107,54 @@ func (s *Server) CreatePracticeRecord(c *gin.Context) {
 	c.Status(http.StatusCreated)
 }
 
+// GetPracticeStats handles GET /me/stats.
+func (s *Server) GetPracticeStats(c *gin.Context) {
+	userID, ok := s.requireUser(c)
+	if !ok {
+		return
+	}
+
+	stats, err := s.practice.StatsForUser(c.Request.Context(), userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "failed to load statistics"})
+		return
+	}
+
+	byExercise := make(map[string]ExerciseStats, len(stats.ByExercise))
+	for exercise, entry := range stats.ByExercise {
+		byExercise[exercise] = ExerciseStats{
+			Solved:   entry.Solved,
+			Correct:  entry.Correct,
+			Accuracy: accuracy(entry.Solved, entry.Correct),
+		}
+	}
+
+	daily := make([]DailyProgress, 0, len(stats.Daily))
+	for _, entry := range stats.Daily {
+		daily = append(daily, DailyProgress{
+			Date:    openapi_types.Date{Time: entry.Date},
+			Solved:  entry.Solved,
+			Correct: entry.Correct,
+		})
+	}
+
+	c.JSON(http.StatusOK, PracticeStats{
+		Solved:     stats.Solved,
+		Correct:    stats.Correct,
+		Accuracy:   accuracy(stats.Solved, stats.Correct),
+		ByExercise: byExercise,
+		Daily:      daily,
+	})
+}
+
+// accuracy returns a 0..1 fraction, or 0 when nothing was solved yet.
+func accuracy(solved, correct int) float64 {
+	if solved == 0 {
+		return 0
+	}
+	return float64(correct) / float64(solved)
+}
+
 // requireUser runs the access-token guard and returns the caller's user ID.
 func (s *Server) requireUser(c *gin.Context) (uuid.UUID, bool) {
 	if !middleware.Auth(c, s.cfg.JWTSecret) {

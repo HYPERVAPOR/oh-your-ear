@@ -77,6 +77,99 @@ func (s *PracticeService) UpdatePlan(ctx context.Context, userID uuid.UUID, dail
 	return nil
 }
 
+// TrendDays is how many days the stats trend covers (see dev-plan 8.2).
+const TrendDays = 14
+
+// Stats aggregates the numbers behind the progress dashboard.
+type Stats struct {
+	Solved     int
+	Correct    int
+	ByExercise map[string]models.ExerciseStats
+	Daily      []models.DailyProgress
+}
+
+// StatsForUser aggregates totals, a per-exercise breakdown, and a daily trend
+// covering the last TrendDays local days, zero-filled so gaps stay visible.
+func (s *PracticeService) StatsForUser(ctx context.Context, userID uuid.UUID) (*Stats, error) {
+	stats := &Stats{ByExercise: map[string]models.ExerciseStats{}}
+
+	byExercise, err := s.pool.Query(ctx, `
+		SELECT exercise, COUNT(*)::int, COUNT(*) FILTER (WHERE correct)::int
+		FROM practice_records
+		WHERE user_id = $1
+		GROUP BY exercise
+	`, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to aggregate practice records: %w", err)
+	}
+	defer byExercise.Close()
+
+	for byExercise.Next() {
+		var exercise string
+		var solved, correct int
+		if err := byExercise.Scan(&exercise, &solved, &correct); err != nil {
+			return nil, fmt.Errorf("failed to read practice records: %w", err)
+		}
+		stats.ByExercise[exercise] = models.ExerciseStats{Solved: solved, Correct: correct}
+		stats.Solved += solved
+		stats.Correct += correct
+	}
+	if err := byExercise.Err(); err != nil {
+		return nil, fmt.Errorf("failed to aggregate practice records: %w", err)
+	}
+
+	daily, err := s.pool.Query(ctx, `
+		SELECT day, solved, correct
+		FROM (
+			SELECT date_trunc('day', created_at AT TIME ZONE $2)::date AS day,
+			       COUNT(*)::int AS solved,
+			       COUNT(*) FILTER (WHERE correct)::int AS correct
+			FROM practice_records
+			WHERE user_id = $1
+			  AND created_at >= date_trunc('day', NOW() AT TIME ZONE $2) AT TIME ZONE $2 - ($3::int - 1) * INTERVAL '1 day'
+			GROUP BY 1
+		) AS per_day
+		ORDER BY day
+	`, userID, s.loc.String(), TrendDays)
+	if err != nil {
+		return nil, fmt.Errorf("failed to aggregate the daily trend: %w", err)
+	}
+	defer daily.Close()
+
+	counts := map[string]models.DailyProgress{}
+	for daily.Next() {
+		var entry models.DailyProgress
+		if err := daily.Scan(&entry.Date, &entry.Solved, &entry.Correct); err != nil {
+			return nil, fmt.Errorf("failed to read the daily trend: %w", err)
+		}
+		counts[entry.Date.Format("2006-01-02")] = entry
+	}
+	if err := daily.Err(); err != nil {
+		return nil, fmt.Errorf("failed to aggregate the daily trend: %w", err)
+	}
+
+	stats.Daily = fillTrend(counts, s.loc, TrendDays)
+	return stats, nil
+}
+
+// fillTrend returns one entry per day for the last days days, oldest first.
+func fillTrend(counts map[string]models.DailyProgress, loc *time.Location, days int) []models.DailyProgress {
+	now := time.Now().In(loc)
+	trend := make([]models.DailyProgress, 0, days)
+	for offset := days - 1; offset >= 0; offset-- {
+		day := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, loc).AddDate(0, 0, -offset)
+		entry, ok := counts[day.Format("2006-01-02")]
+		if !ok {
+			entry = models.DailyProgress{Date: day}
+		}
+		if entry.ByExercise == nil {
+			entry.ByExercise = map[string]int{}
+		}
+		trend = append(trend, entry)
+	}
+	return trend
+}
+
 // TodayProgress aggregates the current local day for a user.
 func (s *PracticeService) TodayProgress(ctx context.Context, userID uuid.UUID) (*models.DailyProgress, error) {
 	// The day boundary is the user-facing calendar day in the configured zone,

@@ -172,6 +172,22 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
+  /me/stats:
+    get:
+      operationId: getPracticeStats
+      summary: Practice totals, per-exercise accuracy, and a daily trend
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Aggregated practice statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PracticeStats'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
 components:
   securitySchemes:
     bearerAuth:
@@ -312,6 +328,49 @@ components:
         expected:
           type: string
           nullable: true
+
+    ExerciseStats:
+      type: object
+      required:
+        - solved
+        - correct
+        - accuracy
+      properties:
+        solved:
+          type: integer
+        correct:
+          type: integer
+        accuracy:
+          type: number
+          format: double
+          description: Fraction between 0 and 1; 0 when nothing was solved.
+
+    PracticeStats:
+      type: object
+      required:
+        - solved
+        - correct
+        - accuracy
+        - byExercise
+        - daily
+      properties:
+        solved:
+          type: integer
+        correct:
+          type: integer
+        accuracy:
+          type: number
+          format: double
+        byExercise:
+          type: object
+          description: Keyed by exercise kind; kinds never practised are absent.
+          additionalProperties:
+            $ref: '#/components/schemas/ExerciseStats'
+        daily:
+          type: array
+          description: One entry per calendar day, oldest first, gaps filled with zeros.
+          items:
+            $ref: '#/components/schemas/DailyProgress'
 
     UserResponse:
       type: object

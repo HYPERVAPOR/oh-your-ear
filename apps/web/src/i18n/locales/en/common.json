@@ -110,5 +110,17 @@
     "focus": "Focus modules",
     "save": "Save plan",
     "saved": "Saved"
+  },
+  "stats": {
+    "title": "Practice stats",
+    "empty": "No records yet. Solve a few questions and this fills in.",
+    "solved": "Questions solved",
+    "accuracy": "Accuracy",
+    "activeDays": "Active days",
+    "trend": "Questions per day",
+    "trendLabel": "Questions per day: {{from}} to {{to}}, {{solved}} in total",
+    "dayTitle": "{{date}}: {{solved}} questions",
+    "byExercise": "By module",
+    "moduleDetail": "{{solved}} · {{percent}}%"
   }
 }
