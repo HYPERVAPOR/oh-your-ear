@@ -104,7 +104,9 @@ export function ChordExercise({ onBack }: ChordExerciseProps) {
                 : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100',
             )}
           >
-            {isCorrect ? t('feedback.correct') : t('feedback.wrong', { answer: type })}
+            {isCorrect
+              ? t('feedback.correct')
+              : t('feedback.wrong', { answer: t(`chords.${type}`) })}
           </div>
         )}
 
@@ -116,7 +118,7 @@ export function ChordExercise({ onBack }: ChordExerciseProps) {
               disabled={!!selected}
               onClick={() => handleGuess(chordType)}
               className={cn(
-                'h-14 text-lg',
+                'h-14 text-base leading-tight',
                 selected &&
                   chordType === type &&
                   'border-green-500 bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-200',
@@ -125,7 +127,7 @@ export function ChordExercise({ onBack }: ChordExerciseProps) {
                   'border-red-500 bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-200',
               )}
             >
-              {chordType}
+              {t(`chords.${chordType}`)}
             </Button>
           ))}
         </div>
@@ -134,7 +136,10 @@ export function ChordExercise({ onBack }: ChordExerciseProps) {
           <ConfigPanel title={t('exerciseConfig.title')} onReset={resetConfig}>
             <CheckboxGroup
               label={t('exerciseConfig.chordTypes')}
-              options={CHORD_TYPES.map((chordType) => ({ value: chordType, label: chordType }))}
+              options={CHORD_TYPES.map((chordType) => ({
+                value: chordType,
+                label: t(`chords.${chordType}`),
+              }))}
               selected={config.types}
               onChange={(types) => updateConfig({ types })}
             />

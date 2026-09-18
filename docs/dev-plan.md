@@ -187,8 +187,8 @@
 
 ### 11.1 Full Chinese / English coverage
 
-- **status**: 🔴 todo
-- **description**: All user-facing strings extracted to i18n files.
+- **status**: 🟢 done
+- **description**: All user-facing strings live in `src/i18n/locales/*/common.json`, including interval and chord option labels (ids like `5P` / `major` are no longer rendered raw) and the play button's `aria-label` / `title`. `pnpm --filter @oh-your-ear/web check:i18n` enforces locale key parity and that every referenced key exists; it runs in CI. `<html lang>` follows the active language.
 - **depends on**: none
 
 ### 11.2 Light / dark theme refinement

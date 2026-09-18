@@ -119,7 +119,9 @@ export function IntervalExercise({ onBack }: IntervalExerciseProps) {
                 : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100',
             )}
           >
-            {isCorrect ? t('feedback.correct') : t('feedback.wrong', { answer: correctInterval })}
+            {isCorrect
+              ? t('feedback.correct')
+              : t('feedback.wrong', { answer: t(`intervals.${correctInterval}`) })}
           </div>
         )}
 
@@ -131,7 +133,7 @@ export function IntervalExercise({ onBack }: IntervalExerciseProps) {
               disabled={!!selected}
               onClick={() => handleGuess(ivl)}
               className={cn(
-                'h-14 text-lg',
+                'h-14 text-base leading-tight',
                 selected &&
                   ivl === correctInterval &&
                   'border-green-500 bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-200',
@@ -140,7 +142,7 @@ export function IntervalExercise({ onBack }: IntervalExerciseProps) {
                   'border-red-500 bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-200',
               )}
             >
-              {ivl}
+              {t(`intervals.${ivl}`)}
             </Button>
           ))}
         </div>
@@ -149,7 +151,10 @@ export function IntervalExercise({ onBack }: IntervalExerciseProps) {
           <ConfigPanel title={t('exerciseConfig.title')} onReset={resetConfig}>
             <CheckboxGroup
               label={t('exerciseConfig.intervals')}
-              options={INTERVAL_OPTIONS.map((ivl) => ({ value: ivl, label: ivl }))}
+              options={INTERVAL_OPTIONS.map((ivl) => ({
+                value: ivl,
+                label: t(`intervals.${ivl}`),
+              }))}
               selected={config.intervals}
               onChange={(intervals) => updateConfig({ intervals })}
             />

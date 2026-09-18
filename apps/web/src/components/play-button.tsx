@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import * as Tone from 'tone'
 import { Volume2 } from 'lucide-react'
 
@@ -14,6 +15,7 @@ export interface PlayButtonProps {
 }
 
 export function PlayButton({ note, className, duration = '8n', label }: PlayButtonProps) {
+  const { t } = useTranslation('common')
   const [busy, setBusy] = useState(false)
 
   async function handleClick() {
@@ -34,8 +36,8 @@ export function PlayButton({ note, className, duration = '8n', label }: PlayButt
       className={cn(className)}
       onClick={handleClick}
       disabled={busy}
-      aria-label={`Play ${note}`}
-      title={`Play ${note}`}
+      aria-label={t('actions.playNote', { note })}
+      title={t('actions.playNote', { note })}
     >
       <Volume2 className={cn('h-5 w-5', label && 'h-4 w-4')} />
       {label}

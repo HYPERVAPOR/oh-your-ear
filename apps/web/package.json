@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint . -D correctness -D suspicious -D perf --allow react/react-in-jsx-scope --allow no-unassigned-import --allow no-named-as-default-member",
+    "check:i18n": "node scripts/check-i18n.mjs",
     "generate": "openapi-typescript ../../openapi.yaml -o src/api/schema.d.ts && prettier --write src/api/schema.d.ts",
     "format:check": "prettier --check .",
     "format:write": "prettier --write .",
