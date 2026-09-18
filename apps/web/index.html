@@ -5,6 +5,20 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Oh Your Ear</title>
+    <script>
+      // Apply the stored theme before first paint, otherwise dark-mode users get a
+      // white flash while the React tree mounts. Keep in step with theme-provider.tsx.
+      try {
+        const stored = JSON.parse(localStorage.getItem('oye-app-storage') || '{}')
+        const theme = stored.state && stored.state.theme ? stored.state.theme : 'system'
+        const dark =
+          theme === 'dark' ||
+          (theme === 'system' && matchMedia('(prefers-color-scheme: dark)').matches)
+        document.documentElement.classList.add(dark ? 'dark' : 'light')
+      } catch {
+        // Unreadable storage: fall through to the light default.
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

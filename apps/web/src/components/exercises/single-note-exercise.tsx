@@ -6,7 +6,7 @@ import { Note } from 'tonal'
 import { Button } from '@/components/ui/button'
 import { PlayButton } from '@/components/play-button'
 import { BooleanToggle, ConfigPanel } from '@/components/exercises/config-panel'
-import { cn } from '@/lib/utils'
+import { cn, feedbackPill, optionHighlight } from '@/lib/utils'
 import { buildSingleNotePool, useExerciseConfig } from '@/lib/exercise-config'
 
 function shuffle<T>(array: T[]): T[] {
@@ -84,9 +84,7 @@ export function SingleNoteExercise({ onBack }: SingleNoteExerciseProps) {
           <div
             className={cn(
               'mb-6 rounded-md px-4 py-2 text-center text-sm font-medium',
-              isCorrect
-                ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100'
-                : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100',
+              feedbackPill(isCorrect),
             )}
           >
             {isCorrect ? t('feedback.correct') : t('feedback.wrong', { answer: target })}
@@ -102,12 +100,8 @@ export function SingleNoteExercise({ onBack }: SingleNoteExerciseProps) {
               onClick={() => handleGuess(note)}
               className={cn(
                 'h-14 text-lg',
-                selected &&
-                  Note.midi(note) === Note.midi(target) &&
-                  'border-green-500 bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-200',
-                selected === note &&
-                  !isCorrect &&
-                  'border-red-500 bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-200',
+                selected && Note.midi(note) === Note.midi(target) && optionHighlight('correct'),
+                selected === note && !isCorrect && optionHighlight('wrong'),
               )}
             >
               {note}
