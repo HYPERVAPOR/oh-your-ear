@@ -17,9 +17,6 @@
     "back": "Back",
     "tap": "Tap",
     "finish": "Finish",
-    "showNotes": "Show notes",
-    "hideNotes": "Hide notes",
-    "newMelody": "New melody",
     "newRhythm": "New rhythm",
     "login": "Log in",
     "logout": "Log out"
@@ -30,10 +27,9 @@
     "instruction": "Listen to the note and pick the right one.",
     "instructionInterval": "Listen to both notes and pick the interval.",
     "instructionChord": "Listen to the chord and pick the chord type.",
-    "instructionMelody": "Listen to the melody, replay as needed, and reveal the notes.",
+    "instructionMelody": "Listen and pick the melody you heard.",
     "instructionRhythm": "Listen to the rhythm, then tap it back.",
-    "tapHint": "Press Space or click the button to tap.",
-    "hiddenNotation": "Notation hidden"
+    "tapHint": "Press Space or click the button to tap."
   },
   "exerciseConfig": {
     "title": "Exercise Settings",
@@ -47,7 +43,15 @@
     "patternLength": "Pattern length",
     "durations": "Allowed durations",
     "quarterNote": "Quarter note",
-    "eighthNote": "Eighth note"
+    "eighthNote": "Eighth note",
+    "speed": "Playback speed",
+    "speedSlow": "Slow",
+    "speedNormal": "Normal",
+    "speedFast": "Fast",
+    "range": "Range",
+    "rangeNarrow": "One octave (C4–B4)",
+    "rangeMedium": "C4–C5",
+    "rangeWide": "C3–C5"
   },
   "intervals": {
     "1P": "Perfect unison",

@@ -48,6 +48,10 @@ export interface MelodyConfig {
   length: number
   whiteKeys: boolean
   blackKeys: boolean
+  /** Playback speed preset (see MELODY_SPEEDS). */
+  speed: string
+  /** Pitch range preset: narrow / medium / wide. */
+  range: string
 }
 
 export interface RhythmConfig {
@@ -67,7 +71,7 @@ export const defaultConfigs: ExerciseConfigMap = {
   singleNote: { whiteKeys: true, blackKeys: true },
   interval: { intervals: [...INTERVAL_OPTIONS] },
   chord: { types: [...CHORD_TYPES] },
-  melody: { length: 5, whiteKeys: true, blackKeys: true },
+  melody: { length: 5, whiteKeys: true, blackKeys: true, speed: 'normal', range: 'medium' },
   rhythm: { patternLength: 4, durations: [1, 0.5] },
 }
 
@@ -120,13 +124,6 @@ export function useExerciseConfig<T extends ExerciseType>(type: T) {
 }
 
 export function buildSingleNotePool(config: SingleNoteConfig): string[] {
-  const pool: string[] = []
-  if (config.whiteKeys) pool.push(...SINGLE_NOTE_WHITE_KEYS)
-  if (config.blackKeys) pool.push(...SINGLE_NOTE_BLACK_KEYS)
-  return pool.length > 0 ? pool : [...SINGLE_NOTE_WHITE_KEYS]
-}
-
-export function buildMelodyNotePool(config: MelodyConfig): string[] {
   const pool: string[] = []
   if (config.whiteKeys) pool.push(...SINGLE_NOTE_WHITE_KEYS)
   if (config.blackKeys) pool.push(...SINGLE_NOTE_BLACK_KEYS)

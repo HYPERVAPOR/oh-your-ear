@@ -86,13 +86,13 @@
 ### 5.1 Melody playback
 
 - **status**: 🟢 done
-- **description**: Play short random melodies.
+- **description**: Plays a 3–8 note melody from the configured range and key set, at a configurable playback speed.
 - **depends on**: 1.2
 
-### 5.2 Melody replay / notation
+### 5.2 Melody answering / re-practice
 
 - **status**: 🟢 done
-- **description**: Allow replay; optionally show simple notation.
+- **description**: A real question: four candidate melodies are offered, the three distractors each differing from the correct one by one or two notes. Each option shows a mini piano roll plus its note names; choosing one gives the usual feedback, is scored, and is reported to the statistics and the mistake notebook with the melody as its prompt. Notebook entries re-enter the module seeded with the exact melody (`?melody=`), and answering it correctly clears the entry. The old reveal-notation buttons are gone: the notation is what you choose between now.
 - **depends on**: 5.1
 
 ---
@@ -140,7 +140,7 @@
 ### 8.1 Study plan model and API
 
 - **status**: 🟢 done
-- **description**: `study_plans` (daily question goal + focus modules) and `practice_records` (one row per answered question, with chosen/expected for the mistake notebook later). Endpoints: `GET /me/plan`, `PUT /me/plan`, `POST /me/practice-records`. Single note, interval, chord and rhythm report from the web client; guests never report, and a failed report is swallowed so practice is unaffected. Rhythm is judged per round, melody is self-assessed and therefore not recorded at all (it stays out of the accuracy numbers until it gets a scoring mode). "Today" is the calendar day in `APP_TIMEZONE` (default Asia/Shanghai), not UTC. Home shows today's progress, `/me` edits the plan.
+- **description**: `study_plans` (daily question goal + focus modules) and `practice_records` (one row per answered question, with chosen/expected for the mistake notebook later). Endpoints: `GET /me/plan`, `PUT /me/plan`, `POST /me/practice-records`. All five modules report from the web client; guests never report, and a failed report is swallowed so practice is unaffected. Rhythm is judged per round rather than per answer. "Today" is the calendar day in `APP_TIMEZONE` (default Asia/Shanghai), not UTC. Home shows today's progress, `/me` edits the plan.
 - **depends on**: 7.3
 
 ### 8.2 Progress statistics dashboard
