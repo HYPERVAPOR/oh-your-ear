@@ -24,12 +24,19 @@ type TokenClaims struct {
 	jwt.RegisteredClaims
 }
 
+// NewTokenID returns the jti for a freshly issued token. Refresh tokens are
+// revoked by id, which is what makes logging out actually end a session.
+func NewTokenID() string {
+	return uuid.NewString()
+}
+
 func generateToken(userID, email, tokenType, secret string, ttl time.Duration) (string, error) {
 	claims := TokenClaims{
 		UserID: userID,
 		Email:  email,
 		Type:   tokenType,
 		RegisteredClaims: jwt.RegisteredClaims{
+			ID:        NewTokenID(),
 			ExpiresAt: jwt.NewNumericDate(time.Now().UTC().Add(ttl)),
 			IssuedAt:  jwt.NewNumericDate(time.Now().UTC()),
 		},

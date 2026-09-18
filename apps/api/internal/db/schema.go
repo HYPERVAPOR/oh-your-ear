@@ -44,6 +44,13 @@ created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 
 CREATE INDEX IF NOT EXISTS idx_practice_records_user_time ON practice_records(user_id, created_at DESC);
 
+-- Revoked refresh tokens, by jti. Rows are short-lived: they are deleted once
+-- the token they block would have expired anyway.
+CREATE TABLE IF NOT EXISTS revoked_tokens (
+jti TEXT PRIMARY KEY,
+expires_at TIMESTAMPTZ NOT NULL
+);
+
 -- The mistake notebook. One row per distinct wrong question, kept until the
 -- user answers that same question correctly (or removes it by hand).
 CREATE TABLE IF NOT EXISTS mistakes (

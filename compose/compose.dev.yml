@@ -37,6 +37,14 @@ services:
       GOOGLE_REDIRECT_URL: "http://localhost:8080/api/v1/auth/google/callback"
       MOCK_AUTH_EMAIL: "dev@ohyourear.test"
       MOCK_AUTH_NAME: "Developer"
+      # MAIL_DRIVER=smtp + SMTP_HOST/SMTP_PORT to try real delivery locally,
+      # e.g. against a throwaway relay on the host.
+      MAIL_DRIVER: ${MAIL_DRIVER:-log}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      SMTP_FROM: ${SMTP_FROM:-no-reply@localhost}
     command:
       - sh
       - -c

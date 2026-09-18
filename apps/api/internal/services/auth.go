@@ -72,6 +72,35 @@ func (s *AuthService) UpsertMockUser(ctx context.Context, email, name string) (*
 	return s.scanUser(ctx, query, email, name)
 }
 
+// RevokeToken blocks a refresh token until it would have expired anyway, and
+// drops rows whose tokens are already dead.
+func (s *AuthService) RevokeToken(ctx context.Context, jti string, expiresAt time.Time) error {
+	_, err := s.pool.Exec(ctx,
+		`INSERT INTO revoked_tokens (jti, expires_at) VALUES ($1, $2) ON CONFLICT (jti) DO NOTHING`,
+		jti, expiresAt,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to revoke token: %w", err)
+	}
+
+	if _, err := s.pool.Exec(ctx, `DELETE FROM revoked_tokens WHERE expires_at < NOW()`); err != nil {
+		return fmt.Errorf("failed to prune revoked tokens: %w", err)
+	}
+	return nil
+}
+
+// IsTokenRevoked reports whether a refresh token was revoked by a logout.
+func (s *AuthService) IsTokenRevoked(ctx context.Context, jti string) (bool, error) {
+	var revoked bool
+	err := s.pool.QueryRow(ctx,
+		`SELECT EXISTS (SELECT 1 FROM revoked_tokens WHERE jti = $1 AND expires_at > NOW())`, jti,
+	).Scan(&revoked)
+	if err != nil {
+		return false, fmt.Errorf("failed to check token revocation: %w", err)
+	}
+	return revoked, nil
+}
+
 // RequestEmailCode stores a fresh code for the address and returns it so the caller can deliver it.
 func (s *AuthService) RequestEmailCode(ctx context.Context, email string) (string, error) {
 	code, err := newEmailCode()
