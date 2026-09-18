@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ArrowLeft, ChevronRight } from 'lucide-react'
 import { Interval, Note } from 'tonal'
@@ -44,13 +45,22 @@ export function IntervalExercise({ onBack }: IntervalExerciseProps) {
     () => config.intervals.filter((ivl) => config.intervals.includes(ivl)),
     [config.intervals],
   )
-  const [root, setRoot] = useState(pickRoot)
-  const [semitones, setSemitones] = useState(() => pickSemitones(allowedSemitones))
+  // A notebook entry seeds the exact question it wants re-practised.
+  const seed = readSeed(useSearchParams()[0])
+  const [root, setRoot] = useState(() => seed?.root ?? pickRoot())
+  const [semitones, setSemitones] = useState(
+    () => seed?.semitones ?? pickSemitones(allowedSemitones),
+  )
   const [second, setSecond] = useState(() =>
-    computeSecond(pickRoot(), pickSemitones(allowedSemitones)),
+    seed
+      ? computeSecond(seed.root, seed.semitones)
+      : computeSecond(pickRoot(), pickSemitones(allowedSemitones)),
   )
   const [options, setOptions] = useState(() =>
-    pickOptions(Interval.fromSemitones(pickSemitones(allowedSemitones)), allowedIntervals),
+    pickOptions(
+      Interval.fromSemitones(seed?.semitones ?? pickSemitones(allowedSemitones)),
+      allowedIntervals,
+    ),
   )
   const [selected, setSelected] = useState<string | null>(null)
   const [score, setScore] = useState(0)
@@ -87,6 +97,7 @@ export function IntervalExercise({ onBack }: IntervalExerciseProps) {
       correct: isRight,
       chosen: guess,
       expected: correctInterval,
+      prompt: { root, second, interval: correctInterval },
     })
   }
 
@@ -172,6 +183,15 @@ export function IntervalExercise({ onBack }: IntervalExerciseProps) {
       </main>
     </div>
   )
+}
+
+function readSeed(params: URLSearchParams): { root: string; semitones: number } | null {
+  const root = params.get('root')
+  const interval = params.get('interval')
+  if (!root || !interval) return null
+  const semitones = Interval.get(interval)?.semitones
+  if (semitones === undefined) return null
+  return { root, semitones }
 }
 
 function pickRoot(): string {

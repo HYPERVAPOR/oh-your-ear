@@ -26,16 +26,106 @@ func NewPracticeService(pool *pgxpool.Pool, loc *time.Location) *PracticeService
 	return &PracticeService{pool: pool, loc: loc}
 }
 
-// RecordAnswer stores the outcome of a single answered question.
-func (s *PracticeService) RecordAnswer(ctx context.Context, userID uuid.UUID, exercise string, correct bool, chosen, expected *string) error {
+// Answer is one reported question result.
+type Answer struct {
+	Exercise string
+	Correct  bool
+	Chosen   *string
+	Expected *string
+	// Prompt is the question payload, when the client knows it. It is what makes
+	// the mistake notebook able to replay the same question later.
+	Prompt []byte
+}
+
+// RecordAnswer stores the outcome of a single answered question and keeps the
+// mistake notebook in step: a wrong answer with a prompt records a mistake, and
+// a later correct answer for the same prompt clears it.
+func (s *PracticeService) RecordAnswer(ctx context.Context, userID uuid.UUID, answer Answer) error {
 	_, err := s.pool.Exec(ctx,
 		`INSERT INTO practice_records (user_id, exercise, correct, chosen, expected) VALUES ($1, $2, $3, $4, $5)`,
-		userID, exercise, correct, chosen, expected,
+		userID, answer.Exercise, answer.Correct, answer.Chosen, answer.Expected,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to record answer: %w", err)
 	}
+
+	if len(answer.Prompt) == 0 {
+		return nil
+	}
+
+	if answer.Correct {
+		return s.clearMistake(ctx, userID, answer)
+	}
+	return s.recordMistake(ctx, userID, answer)
+}
+
+// recordMistake upserts the notebook entry for a wrong answer. The fingerprint is
+// md5 of the canonical jsonb text, which Postgres renders deterministically, so
+// equal questions collapse into one entry with a growing wrong count.
+func (s *PracticeService) recordMistake(ctx context.Context, userID uuid.UUID, answer Answer) error {
+	_, err := s.pool.Exec(ctx, `
+		INSERT INTO mistakes (user_id, exercise, fingerprint, prompt, answer)
+		VALUES ($1, $2, md5($3::jsonb::text), $3, $4)
+		ON CONFLICT (user_id, exercise, fingerprint) DO UPDATE SET
+			wrong_count = mistakes.wrong_count + 1,
+			last_wrong_at = NOW(),
+			resolved_at = NULL
+	`, userID, answer.Exercise, answer.Prompt, answer.Expected)
+	if err != nil {
+		return fmt.Errorf("failed to record mistake: %w", err)
+	}
 	return nil
+}
+
+func (s *PracticeService) clearMistake(ctx context.Context, userID uuid.UUID, answer Answer) error {
+	_, err := s.pool.Exec(ctx, `
+		UPDATE mistakes SET resolved_at = NOW()
+		WHERE user_id = $1 AND exercise = $2 AND fingerprint = md5($3::jsonb::text) AND resolved_at IS NULL
+	`, userID, answer.Exercise, answer.Prompt)
+	if err != nil {
+		return fmt.Errorf("failed to clear mistake: %w", err)
+	}
+	return nil
+}
+
+// ListMistakes returns the open notebook entries, newest miss first.
+func (s *PracticeService) ListMistakes(ctx context.Context, userID uuid.UUID, exercise string) ([]models.Mistake, error) {
+	rows, err := s.pool.Query(ctx, `
+		SELECT id, exercise, prompt, answer, wrong_count, last_wrong_at
+		FROM mistakes
+		WHERE user_id = $1 AND resolved_at IS NULL AND ($2 = '' OR exercise = $2)
+		ORDER BY last_wrong_at DESC
+	`, userID, exercise)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list mistakes: %w", err)
+	}
+	defer rows.Close()
+
+	mistakes := []models.Mistake{}
+	for rows.Next() {
+		var entry models.Mistake
+		if err := rows.Scan(&entry.ID, &entry.Exercise, &entry.Prompt, &entry.Answer, &entry.WrongCount, &entry.LastWrongAt); err != nil {
+			return nil, fmt.Errorf("failed to read mistakes: %w", err)
+		}
+		mistakes = append(mistakes, entry)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("failed to list mistakes: %w", err)
+	}
+
+	return mistakes, nil
+}
+
+// ResolveMistake removes a notebook entry by hand and reports whether it existed.
+func (s *PracticeService) ResolveMistake(ctx context.Context, userID, id uuid.UUID) (bool, error) {
+	tag, err := s.pool.Exec(ctx,
+		`UPDATE mistakes SET resolved_at = NOW() WHERE id = $1 AND user_id = $2 AND resolved_at IS NULL`,
+		id, userID,
+	)
+	if err != nil {
+		return false, fmt.Errorf("failed to resolve mistake: %w", err)
+	}
+	return tag.RowsAffected() > 0, nil
 }
 
 // GetPlan returns the stored plan, or the default one when the user never saved any.

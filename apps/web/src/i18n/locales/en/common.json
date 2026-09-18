@@ -122,5 +122,16 @@
     "dayTitle": "{{date}}: {{solved}} questions",
     "byExercise": "By module",
     "moduleDetail": "{{solved}} · {{percent}}%"
+  },
+  "mistakes": {
+    "title": "Mistake notebook",
+    "empty": "No mistakes yet. Wrong answers land here automatically and leave as soon as you get them right.",
+    "filterAll": "All",
+    "answer": "Answer: {{answer}}",
+    "wrongCount": "missed {{count}}×",
+    "practice": "Re-practice",
+    "remove": "Remove",
+    "open": "Open the notebook",
+    "rhythmPattern": "{{count}} taps · {{bpm}} BPM"
   }
 }

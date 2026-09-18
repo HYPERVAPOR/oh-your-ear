@@ -47,6 +47,13 @@ export function Me() {
 
         <PracticeStats />
 
+        <Link
+          to="/mistakes"
+          className="inline-flex h-10 items-center rounded-md border border-border px-4 text-sm font-medium transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        >
+          {t('mistakes.open')}
+        </Link>
+
         <Button variant="outline" onClick={handleLogout}>
           {t('actions.logout')}
         </Button>

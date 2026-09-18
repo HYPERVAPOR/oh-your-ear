@@ -1,11 +1,13 @@
 package api
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/HYPERVAPOR/oh-your-ear/apps/api/internal/auth"
 	"github.com/HYPERVAPOR/oh-your-ear/apps/api/internal/middleware"
 	"github.com/HYPERVAPOR/oh-your-ear/apps/api/internal/models"
+	"github.com/HYPERVAPOR/oh-your-ear/apps/api/internal/services"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	openapi_types "github.com/oapi-codegen/runtime/types"
@@ -98,13 +100,92 @@ func (s *Server) CreatePracticeRecord(c *gin.Context) {
 		return
 	}
 
-	err := s.practice.RecordAnswer(c.Request.Context(), userID, string(body.Exercise), body.Correct, body.Chosen, body.Expected)
-	if err != nil {
+	answer := services.Answer{
+		Exercise: string(body.Exercise),
+		Correct:  body.Correct,
+		Chosen:   body.Chosen,
+		Expected: body.Expected,
+	}
+	if body.Prompt != nil {
+		prompt, err := json.Marshal(*body.Prompt)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, ErrorResponse{Error: "invalid prompt"})
+			return
+		}
+		answer.Prompt = prompt
+	}
+
+	if err := s.practice.RecordAnswer(c.Request.Context(), userID, answer); err != nil {
 		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "failed to record answer"})
 		return
 	}
 
 	c.Status(http.StatusCreated)
+}
+
+// ListMistakes handles GET /me/mistakes.
+func (s *Server) ListMistakes(c *gin.Context, params ListMistakesParams) {
+	userID, ok := s.requireUser(c)
+	if !ok {
+		return
+	}
+
+	exercise := ""
+	if params.Exercise != nil {
+		exercise = string(*params.Exercise)
+		if !params.Exercise.Valid() {
+			c.JSON(http.StatusBadRequest, ErrorResponse{Error: "unknown exercise kind"})
+			return
+		}
+	}
+
+	mistakes, err := s.practice.ListMistakes(c.Request.Context(), userID, exercise)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "failed to load mistakes"})
+		return
+	}
+
+	items := make([]Mistake, 0, len(mistakes))
+	for _, entry := range mistakes {
+		var prompt *map[string]interface{}
+		if len(entry.Prompt) > 0 {
+			decoded := map[string]interface{}{}
+			if err := json.Unmarshal(entry.Prompt, &decoded); err == nil {
+				prompt = &decoded
+			}
+		}
+
+		items = append(items, Mistake{
+			Id:          entry.ID,
+			Exercise:    ExerciseKind(entry.Exercise),
+			Prompt:      prompt,
+			Answer:      entry.Answer,
+			WrongCount:  entry.WrongCount,
+			LastWrongAt: entry.LastWrongAt.UTC(),
+		})
+	}
+
+	c.JSON(http.StatusOK, items)
+}
+
+// ResolveMistake handles DELETE /me/mistakes/{id}.
+func (s *Server) ResolveMistake(c *gin.Context, id openapi_types.UUID) {
+	userID, ok := s.requireUser(c)
+	if !ok {
+		return
+	}
+
+	removed, err := s.practice.ResolveMistake(c.Request.Context(), userID, uuid.UUID(id))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "failed to remove mistake"})
+		return
+	}
+	if !removed {
+		c.JSON(http.StatusNotFound, ErrorResponse{Error: "mistake not found"})
+		return
+	}
+
+	c.Status(http.StatusNoContent)
 }
 
 // GetPracticeStats handles GET /me/stats.
