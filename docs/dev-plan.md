@@ -193,8 +193,8 @@
 
 ### 11.2 Light / dark theme refinement
 
-- **status**: 🔴 todo
-- **description**: Consistent color tokens, system preference sync.
+- **status**: 🟢 done
+- **description**: Answer feedback and option highlighting go through the `--success` / `--destructive` tokens (`feedbackPill` / `optionHighlight` in `src/lib/utils.ts`) instead of hand-picked Tailwind hues; both tokens are tuned per theme for AA contrast as text and as 10% pills. `color-scheme` follows the active theme, and an inline script in `index.html` applies the stored theme before first paint so dark users no longer see a white flash.
 - **depends on**: none
 
 ### 11.3 Client-side routing

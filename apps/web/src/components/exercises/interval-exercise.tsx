@@ -6,7 +6,7 @@ import { Interval, Note } from 'tonal'
 import { Button } from '@/components/ui/button'
 import { playSequence } from '@/lib/audio'
 import { CheckboxGroup, ConfigPanel } from '@/components/exercises/config-panel'
-import { cn } from '@/lib/utils'
+import { cn, feedbackPill, optionHighlight } from '@/lib/utils'
 import {
   INTERVAL_OPTIONS,
   pickAllowedIntervalSemitones,
@@ -114,9 +114,7 @@ export function IntervalExercise({ onBack }: IntervalExerciseProps) {
           <div
             className={cn(
               'mb-6 rounded-md px-4 py-2 text-center text-sm font-medium',
-              isCorrect
-                ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100'
-                : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100',
+              feedbackPill(isCorrect),
             )}
           >
             {isCorrect
@@ -134,12 +132,8 @@ export function IntervalExercise({ onBack }: IntervalExerciseProps) {
               onClick={() => handleGuess(ivl)}
               className={cn(
                 'h-14 text-base leading-tight',
-                selected &&
-                  ivl === correctInterval &&
-                  'border-green-500 bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-200',
-                selected === ivl &&
-                  !isCorrect &&
-                  'border-red-500 bg-red-50 text-red-700 dark:bg-red-950 dark:text-red-200',
+                selected && ivl === correctInterval && optionHighlight('correct'),
+                selected === ivl && !isCorrect && optionHighlight('wrong'),
               )}
             >
               {t(`intervals.${ivl}`)}
