@@ -99,7 +99,7 @@ export function PracticeStats() {
           return (
             <li key={kind} className="flex items-center gap-3 text-[15px]">
               <ModuleSwatch kind={kind} />
-              <span className="w-16 shrink-0">{t(`modules.${kind}`)}</span>
+              <span className="w-20 shrink-0 whitespace-nowrap">{t(`modules.${kind}`)}</span>
               <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-strong">
                 <span
                   className="block h-full rounded-full bg-primary"

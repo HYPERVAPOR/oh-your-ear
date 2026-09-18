@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import i18n from '@/i18n'
 import { Route, Routes, useNavigate } from 'react-router-dom'
 
 import { RequireAuth } from '@/components/require-auth'
@@ -11,6 +12,7 @@ import { RhythmExercise } from '@/components/exercises/rhythm-exercise'
 import { SingleNoteExercise } from '@/components/exercises/single-note-exercise'
 import { getPiano } from '@/lib/audio'
 import { restoreSession } from '@/lib/auth'
+import { useAppStore } from '@/stores/app-store'
 import { Home } from '@/pages/home'
 import { Login } from '@/pages/login'
 import { Me } from '@/pages/me'
@@ -33,6 +35,13 @@ function NotFound() {
 
 export default function App() {
   const navigate = useNavigate()
+  const language = useAppStore((s) => s.language)
+
+  // The store is the source of truth for the language: i18next's detector keeps its
+  // own copy, and without this the header could say English while the page is Chinese.
+  useEffect(() => {
+    if (i18n.language !== language) i18n.changeLanguage(language)
+  }, [language])
 
   // Prefetch piano samples and restore any existing session on mount.
   useEffect(() => {

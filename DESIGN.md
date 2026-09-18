@@ -62,7 +62,8 @@ typography:
   numeral: { family: ui, weight: 500, feature: "tabular-nums" }
 
 fonts:
-  display: "'Newsreader', 'Songti SC', 'Noto Serif CJK SC', 'Source Han Serif SC', 'SimSun', serif"
+  # One family for the whole product, deliberate revision — see "Why there is no display face".
+  display: "'Inter', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif"
   ui: "'Inter', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif"
 
 rounded: { xs: 4px, sm: 6px, md: 8px, lg: 12px, xl: 16px, xxl: 24px, pill: 9999px }
@@ -85,7 +86,7 @@ minutes a day while listening, where a loud interface would compete with the thi
 
 | Source | Here | Reason |
 | --- | --- | --- |
-| Waldenburg Light (licensed) | **Newsreader** 300 (OFL, self-hosted) | Source suggests EB Garamond 300, but that family has no 300 weight; Newsreader has a real 200–800 axis and keeps the light editorial voice. |
+| Waldenburg Light (licensed) | **no display face at all** | First pass used Newsreader 300 (EB Garamond, the doc's own suggestion, has no 300 weight). Reviewers read the result as two voices: a Latin serif over the platform's CJK serif, alternating line by line with sans body copy. A Latin serif cannot pair with a CJK serif convincingly, and shipping a Chinese webfont is megabytes, so the display voice now comes from *scale, weight 300 and tight tracking* in the same family as everything else. |
 | Inter (body) | Inter, self-hosted variable | Same family, no third-party runtime request, works offline. |
 | CJK | falls back to the OS | A Chinese webfont is megabytes; Songti/PingFang/YaHei are already on every device. |
 | Five orbs as brand atmosphere | Five orbs as **module identity** | The product has exactly five modules. Colour now carries information instead of mood. |
@@ -103,6 +104,10 @@ minutes a day while listening, where a loud interface would compete with the thi
 
 ## Typography
 
+- **One family, everywhere.** Display text is the same Inter stack as the body: the hierarchy is
+  carried by size, weight (300 display / 400–500 interface) and negative tracking, never by switching
+  typeface. CJK falls back to the platform's sans. See the note in the substitution table for why the
+  serif pass was reverted.
 - Display is **always weight 300**, never bold. Negative tracking scales with size (-0.32px to -0.96px).
   Bolding display copy is the fastest way to make this look like consumer marketing instead of a workbook.
 - Interface text is Inter at 400/500 with +0.15–0.18px tracking — slightly loose, editorial.
@@ -115,6 +120,8 @@ minutes a day while listening, where a loud interface would compete with the thi
 
 - 64px nav, content capped at 1200px, bands separated by 96px (48px on mobile).
 - Editorial rhythm: a page is a stack of bands; cards inside a band sit 20px apart.
+- Grids of five (the module cards) wrap in rows of three **centred**, so a short final row sits in the
+  middle rather than leaving a hole at the bottom right.
 - Exercise screens are the exception and are **centred**, because the object of attention is a single
   centred control — the listen button — with options below it.
 - Max line length ~72 characters.
@@ -132,6 +139,9 @@ Sharp corners are not part of this system.
 - **module-card**: surface card, 16px radius, hairline border, orb bloom behind the label, module name in
   display-sm, one line of description in body-sm.
 - **listen-button**: the hero of every exercise screen — the largest ink pill on the page.
+- **hero CTA**: the home page's one action ("Start with single note") is the largest, highest-contrast
+  element on the page: ink pill on paper, paper pill on ink. The C4 demo next to it is deliberately
+  quiet — one primary action per band.
 - **option-tile**: hairline-tinted surface tile, 16px radius, pill-shaped once correct/incorrect.
 - **feedback-note**: a tinted pill in the margin note voice, sentence case, no exclamation marks.
 - **config-panel**: hairline-separated rows inside a surface card; label left, control right.

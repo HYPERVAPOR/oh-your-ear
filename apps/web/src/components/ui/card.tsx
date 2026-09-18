@@ -15,7 +15,8 @@ export function Card({
     <div
       className={cn(
         'rounded-xl border border-hairline bg-surface',
-        interactive && 'transition-shadow hover:shadow-soft',
+        interactive &&
+          'transition-colors hover:border-hairline-strong hover:bg-canvas-soft hover:shadow-soft dark:hover:bg-surface-strong',
         className,
       )}
       {...props}
