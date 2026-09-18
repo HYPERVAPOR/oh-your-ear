@@ -135,13 +135,22 @@ Sharp corners are not part of this system.
 - **option-tile**: hairline-tinted surface tile, 16px radius, pill-shaped once correct/incorrect.
 - **feedback-note**: a tinted pill in the margin note voice, sentence case, no exclamation marks.
 - **config-panel**: hairline-separated rows inside a surface card; label left, control right.
+- **toggle-group / toggle**: a multi-select or switch uses the *quiet fill* for "on", not ink.
+  Twelve ink pills in a settings panel is a wall of black, and ink is reserved for the one
+  primary action on the screen.
+- **module swatch**: the module's colour as a small solid dot in lists, statistics rows and the
+  notebook. The pastel orb is atmosphere and far too faint to identify a row, so lists use a
+  mid-tone stand of the same hue (`--swatch-*`).
 - **stat-figure**: display-md numeral with a caption-uppercase label underneath.
 - **empty-state**: one sentence saying what to do next, never an apology.
 
 ## Do / Don't
 
 **Do** reserve ink for the primary action; keep display at 300; use hairlines before shadows; give every
-module its orb everywhere it appears; keep copy in sentence case and active voice.
+module its orb everywhere it appears, and its swatch wherever a row needs identifying; state an answer's
+verdict with a tint *and* a border *and* a mark, never colour alone; keep copy in sentence case and active
+voice; give answer tiles and the next button a reserved slot so answering never shifts the tiles under the
+pointer.
 
 **Don't** introduce a second action colour; bold display copy; use orbs as fills; use uppercase as page
 decoration; stack shadows; use sharp corners on CTAs.

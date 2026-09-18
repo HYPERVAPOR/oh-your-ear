@@ -63,6 +63,14 @@
   --color-success-text: var(--success-text);
   --color-error-text: var(--error-text);
 
+  /* Mid-tone stands of the module colours: the pastel orbs are atmosphere and are
+     too faint to mark a list row, so lists and bars use these swatches. */
+  --color-swatch-singleNote: var(--swatch-singleNote);
+  --color-swatch-interval: var(--swatch-interval);
+  --color-swatch-chord: var(--swatch-chord);
+  --color-swatch-melody: var(--swatch-melody);
+  --color-swatch-rhythm: var(--swatch-rhythm);
+
   /* Aliases kept while the older screens are migrated; they map onto the same
      values so nothing renders in the previous palette in the meantime. */
   --color-background: var(--canvas);
@@ -124,6 +132,11 @@
   --orb-lavender: #c8b8e0;
   --orb-sky: #a8c8e8;
   --orb-rose: #e8b8c4;
+  --swatch-singleNote: #35a687;
+  --swatch-interval: #d1814a;
+  --swatch-chord: #7f66b8;
+  --swatch-melody: #4a86c4;
+  --swatch-rhythm: #c4697f;
   --orb-strength: 0.75;
 }
 
@@ -146,6 +159,11 @@
 
   --success-text: #4ade80;
   --error-text: #f87171;
+  --swatch-singleNote: #6fd3b4;
+  --swatch-interval: #e6a875;
+  --swatch-chord: #b39ce0;
+  --swatch-melody: #86b8e6;
+  --swatch-rhythm: #e39bad;
   --orb-strength: 0.45;
 }
 

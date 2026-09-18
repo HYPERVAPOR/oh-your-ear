@@ -4,10 +4,14 @@ import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
 import { apiClient } from '@/api/client'
+import { AppHeader } from '@/components/app-header'
 import { Button } from '@/components/ui/button'
+import { Card, EmptyState } from '@/components/ui/card'
+import { ModuleSwatch } from '@/components/ui/orb'
+import type { ExerciseKind } from '@/components/ui/orb'
+import { cn } from '@/lib/utils'
 import type { components } from '@/api/schema'
 
-type ExerciseKind = components['schemas']['ExerciseKind']
 type Mistake = components['schemas']['Mistake']
 
 const FILTERS: (ExerciseKind | 'all')[] = [
@@ -92,28 +96,27 @@ export function Mistakes() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-background text-foreground">
-      <header className="border-b border-border px-6 py-4">
-        <div className="mx-auto flex max-w-3xl items-center justify-between">
-          <h1 className="text-xl font-bold">{t('mistakes.title')}</h1>
-          <Link to="/me" className="text-sm text-muted-foreground hover:text-foreground">
-            {t('auth.account')}
-          </Link>
-        </div>
-      </header>
+    <div className="flex min-h-screen flex-col">
+      <AppHeader />
 
-      <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-12">
-        <div className="flex flex-wrap gap-2">
+      <main className="mx-auto w-full max-w-[900px] flex-1 px-5 py-12 sm:px-6 sm:py-16">
+        <h1 className="font-display text-[30px] font-light leading-tight sm:text-[36px]">
+          {t('mistakes.title')}
+        </h1>
+
+        <div className="mt-7 flex flex-wrap gap-2">
           {FILTERS.map((kind) => (
             <button
               key={kind}
               type="button"
+              aria-pressed={filter === kind}
               onClick={() => setFilter(kind)}
-              className={`rounded-md border px-3 py-1.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary ${
+              className={cn(
+                'rounded-full border px-3.5 py-1.5 text-[14px] transition-colors',
                 filter === kind
-                  ? 'border-primary bg-primary text-primary-foreground'
-                  : 'border-border hover:bg-muted'
-              }`}
+                  ? 'border-transparent bg-surface-strong font-medium text-ink'
+                  : 'border-hairline text-muted-soft hover:border-hairline-strong hover:text-ink',
+              )}
             >
               {kind === 'all' ? t('mistakes.filterAll') : t(`modules.${kind}`)}
             </button>
@@ -121,48 +124,48 @@ export function Mistakes() {
         </div>
 
         {data && data.length === 0 && (
-          <p className="mt-8 text-sm text-muted-foreground">{t('mistakes.empty')}</p>
+          <EmptyState className="mt-10">{t('mistakes.empty')}</EmptyState>
         )}
 
-        <ul className="mt-6 space-y-3">
-          {data?.map((mistake) => (
-            <li
-              key={mistake.id}
-              className="flex flex-wrap items-center justify-between gap-4 rounded-md border border-border px-4 py-3"
-            >
-              <div className="min-w-0">
-                <p className="text-sm font-medium">
-                  {questionLabel(mistake)}
-                  <span className="ml-2 text-xs text-muted-foreground">
-                    {t(`modules.${mistake.exercise}`)}
-                  </span>
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {t('mistakes.answer', { answer: answerLabel(mistake) })}
-                  {' · '}
-                  {t('mistakes.wrongCount', { count: mistake.wrongCount })}
-                </p>
-              </div>
+        {data && data.length > 0 && (
+          <Card className="mt-8 divide-y divide-hairline overflow-hidden">
+            {data.map((mistake) => (
+              <div
+                key={mistake.id}
+                className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 px-5 py-4"
+              >
+                <div className="min-w-0">
+                  <p className="flex items-center gap-2.5 text-[16px] font-medium">
+                    <ModuleSwatch kind={mistake.exercise as ExerciseKind} />
+                    <span className="tabular truncate">{questionLabel(mistake)}</span>
+                  </p>
+                  {/* Indented to the question label, so the swatch reads as a bullet. */}
+                  <p className="mt-1 flex flex-wrap gap-x-3 pl-[20px] text-[14px] text-muted">
+                    <span>{t('mistakes.answer', { answer: answerLabel(mistake) })}</span>
+                    <span>{t('mistakes.wrongCount', { count: mistake.wrongCount })}</span>
+                  </p>
+                </div>
 
-              <div className="flex shrink-0 items-center gap-2">
-                <Link
-                  to={practiceLink(mistake)}
-                  className="inline-flex h-9 items-center rounded-md border border-border px-3 text-sm font-medium transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                >
-                  {t('mistakes.practice')}
-                </Link>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => remove.mutate(mistake.id)}
-                  disabled={remove.isPending}
-                >
-                  {t('mistakes.remove')}
-                </Button>
+                <div className="flex shrink-0 items-center gap-2">
+                  <Link
+                    to={practiceLink(mistake)}
+                    className="text-[15px] font-medium underline underline-offset-4"
+                  >
+                    {t('mistakes.practice')}
+                  </Link>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => remove.mutate(mistake.id)}
+                    disabled={remove.isPending}
+                  >
+                    {t('mistakes.remove')}
+                  </Button>
+                </div>
               </div>
-            </li>
-          ))}
-        </ul>
+            ))}
+          </Card>
+        )}
       </main>
     </div>
   )

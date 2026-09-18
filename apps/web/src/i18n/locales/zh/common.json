@@ -81,7 +81,6 @@
     "account": "我的账号",
     "backHome": "返回首页",
     "email": "邮箱",
-    "name": "昵称",
     "code": "验证码",
     "sendCode": "发送验证码",
     "resendIn": "{{seconds}} 秒后重发",
@@ -137,7 +136,8 @@
     "practice": "重练",
     "remove": "移除",
     "open": "查看错题本",
-    "rhythmPattern": "{{count}} 个音 · {{bpm}} BPM"
+    "rhythmPattern": "{{count}} 个音 · {{bpm}} BPM",
+    "openHint": "答错的题会自动收进这里，答对同题后自动移除。"
   },
   "achievements": {
     "firstSteps": {

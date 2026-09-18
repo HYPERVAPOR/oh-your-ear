@@ -3,7 +3,10 @@ import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 
 import { apiClient } from '@/api/client'
+import { ConfigRow, Toggle } from '@/components/exercises/config-panel'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+import { Input } from '@/components/ui/field'
 import type { components } from '@/api/schema'
 
 type ExerciseKind = components['schemas']['ExerciseKind']
@@ -52,53 +55,52 @@ export function StudyPlanForm() {
     }
   }
 
+  const valid = dailyGoal >= 1 && dailyGoal <= 500
+
   return (
-    <section className="rounded-md border border-border p-6">
-      <h2 className="font-medium">{t('plan.title')}</h2>
-      <p className="mt-1 text-sm text-muted-foreground">{t('plan.description')}</p>
+    <Card className="p-6 sm:p-7">
+      <h2 className="font-display text-[22px] font-light leading-tight">{t('plan.title')}</h2>
+      <p className="mt-2 text-[15px] text-body">{t('plan.description')}</p>
 
-      <label className="mt-5 block text-sm font-medium" htmlFor="daily-goal">
-        {t('plan.dailyGoal')}
-      </label>
-      <input
-        id="daily-goal"
-        type="number"
-        min={1}
-        max={500}
-        value={dailyGoal}
-        onChange={(e) => {
-          setSaved(false)
-          setDraft({ dailyGoal: Number(e.target.value), focus })
-        }}
-        className="mt-2 w-28 rounded-md border border-border bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-      />
+      <div className="mt-6 space-y-5">
+        <ConfigRow label={t('plan.dailyGoal')}>
+          <Input
+            id="daily-goal"
+            type="number"
+            min={1}
+            max={500}
+            value={dailyGoal}
+            onChange={(event) => {
+              setSaved(false)
+              setDraft({ dailyGoal: Number(event.target.value), focus })
+            }}
+            className="tabular w-28"
+            aria-label={t('plan.dailyGoal')}
+          />
+        </ConfigRow>
 
-      <fieldset className="mt-5">
-        <legend className="text-sm font-medium">{t('plan.focus')}</legend>
-        <div className="mt-2 flex flex-wrap gap-2">
-          {EXERCISES.map((kind) => (
-            <label
-              key={kind}
-              className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-border px-3 py-2 text-sm hover:bg-muted"
-            >
-              <input
-                type="checkbox"
-                className="h-4 w-4 rounded border-border"
-                checked={focus.includes(kind)}
-                onChange={() => toggle(kind)}
-              />
-              {t(`modules.${kind}`)}
-            </label>
-          ))}
+        <div>
+          <ConfigRow label={t('plan.focus')}>
+            <div className="flex flex-wrap justify-end gap-2">
+              {EXERCISES.map((kind) => (
+                <Toggle
+                  key={kind}
+                  label={t(`modules.${kind}`)}
+                  checked={focus.includes(kind)}
+                  onChange={() => toggle(kind)}
+                />
+              ))}
+            </div>
+          </ConfigRow>
         </div>
-      </fieldset>
+      </div>
 
-      <div className="mt-5 flex items-center gap-3">
-        <Button onClick={save} disabled={saving || dailyGoal < 1 || dailyGoal > 500}>
+      <div className="mt-6 flex items-center gap-3">
+        <Button onClick={save} disabled={saving || !valid}>
           {t('plan.save')}
         </Button>
-        {saved && <span className="text-sm text-success">{t('plan.saved')}</span>}
+        {saved && <span className="text-[14px] text-success-text">{t('plan.saved')}</span>}
       </div>
-    </section>
+    </Card>
   )
 }
