@@ -21,6 +21,27 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/auth/code': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /**
+     * Send an email verification code
+     * @description Always answers 204 for a valid address so the endpoint cannot be used to
+     *     enumerate accounts. Only one code per address is kept alive at a time.
+     */
+    post: operations['requestEmailCode']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/auth/register': {
     parameters: {
       query?: never
@@ -113,6 +134,13 @@ export interface components {
       accessToken: string
       refreshToken?: string
     }
+    EmailCodeRequest: {
+      /**
+       * Format: email
+       * @example user@example.com
+       */
+      email: string
+    }
     UserResponse: {
       /** Format: uuid */
       id: string
@@ -133,6 +161,15 @@ export interface components {
   responses: {
     /** @description Bad request */
     BadRequest: {
+      headers: {
+        [name: string]: unknown
+      }
+      content: {
+        'application/json': components['schemas']['ErrorResponse']
+      }
+    }
+    /** @description Too many requests */
+    TooManyRequests: {
       headers: {
         [name: string]: unknown
       }
@@ -175,6 +212,30 @@ export interface operations {
           'application/json': components['schemas']['HealthResponse']
         }
       }
+    }
+  }
+  requestEmailCode: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['EmailCodeRequest']
+      }
+    }
+    responses: {
+      /** @description Code sent */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      400: components['responses']['BadRequest']
+      429: components['responses']['TooManyRequests']
     }
   }
   register: {

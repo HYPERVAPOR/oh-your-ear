@@ -21,6 +21,27 @@ paths:
               schema:
                 $ref: '#/components/schemas/HealthResponse'
 
+  /auth/code:
+    post:
+      operationId: requestEmailCode
+      summary: Send an email verification code
+      description: |
+        Always answers 204 for a valid address so the endpoint cannot be used to
+        enumerate accounts. Only one code per address is kept alive at a time.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailCodeRequest'
+      responses:
+        '204':
+          description: Code sent
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
   /auth/register:
     post:
       operationId: register
@@ -144,6 +165,16 @@ components:
         refreshToken:
           type: string
 
+    EmailCodeRequest:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+
     UserResponse:
       type: object
       required:
@@ -184,6 +215,13 @@ components:
   responses:
     BadRequest:
       description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    TooManyRequests:
+      description: Too many requests
       content:
         application/json:
           schema:

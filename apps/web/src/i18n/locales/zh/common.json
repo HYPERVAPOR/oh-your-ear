@@ -48,8 +48,22 @@
     "eighthNote": "八分音符"
   },
   "auth": {
+    "title": "登录 / 注册",
+    "subtitle": "首次登录即自动创建账号。",
+    "account": "我的账号",
+    "backHome": "返回首页",
+    "email": "邮箱",
+    "name": "昵称",
+    "code": "验证码",
+    "sendCode": "发送验证码",
+    "resendIn": "{{seconds}} 秒后重发",
+    "codeSentHint": "验证码已生成。未接入邮件服务前，请查看 api 容器日志获取验证码。",
+    "submit": "登录",
+    "invalidEmail": "邮箱格式不正确。",
+    "invalidCode": "验证码错误或已过期。",
+    "tooManyRequests": "操作过于频繁，请稍后再试。",
     "loginWithGoogle": "Google 登录",
-    "loginMock": "模拟登录",
+    "loginMock": "模拟登录（仅开发环境）",
     "loggedInAs": "已登录：{{email}}"
   },
   "feedback": {

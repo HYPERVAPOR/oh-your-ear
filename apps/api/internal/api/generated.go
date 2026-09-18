@@ -36,6 +36,11 @@ type EmailAuthRequest struct {
 	Name  *string             `json:"name"`
 }
 
+// EmailCodeRequest defines model for EmailCodeRequest.
+type EmailCodeRequest struct {
+	Email openapi_types.Email `json:"email"`
+}
+
 // ErrorResponse defines model for ErrorResponse.
 type ErrorResponse struct {
 	Error   string  `json:"error"`
@@ -60,8 +65,14 @@ type UserResponse struct {
 // BadRequest defines model for BadRequest.
 type BadRequest = ErrorResponse
 
+// TooManyRequests defines model for TooManyRequests.
+type TooManyRequests = ErrorResponse
+
 // Unauthorized defines model for Unauthorized.
 type Unauthorized = ErrorResponse
+
+// RequestEmailCodeJSONRequestBody defines body for RequestEmailCode for application/json ContentType.
+type RequestEmailCodeJSONRequestBody = EmailCodeRequest
 
 // LoginJSONRequestBody defines body for Login for application/json ContentType.
 type LoginJSONRequestBody = EmailAuthRequest
@@ -71,6 +82,9 @@ type RegisterJSONRequestBody = EmailAuthRequest
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+	// Send an email verification code
+	// (POST /auth/code)
+	RequestEmailCode(c *gin.Context)
 	// Login with email verification code
 	// (POST /auth/login)
 	Login(c *gin.Context)
@@ -96,6 +110,19 @@ type ServerInterfaceWrapper struct {
 }
 
 type MiddlewareFunc func(c *gin.Context)
+
+// RequestEmailCode operation middleware
+func (siw *ServerInterfaceWrapper) RequestEmailCode(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.RequestEmailCode(c)
+}
 
 // Login operation middleware
 func (siw *ServerInterfaceWrapper) Login(c *gin.Context) {
@@ -193,6 +220,7 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 		ErrorHandler:       errorHandler,
 	}
 
+	router.POST(options.BaseURL+"/auth/code", wrapper.RequestEmailCode)
 	router.POST(options.BaseURL+"/auth/login", wrapper.Login)
 	router.POST(options.BaseURL+"/auth/logout", wrapper.Logout)
 	router.GET(options.BaseURL+"/auth/me", wrapper.GetMe)
@@ -203,21 +231,24 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/+xWTW8bNxD9K8S0x60+YjeHPVUp3NSFiwZOjKIwfKC5Iy3jXXIzJNWohv57MeRK1n5E",
-	"alG76KG35ZKcefPmzQwfQdm6sQaNd5A/AqFrrHEYF29kcY2fAjrPK2WNRxM/ZdNUWkmvrZl+dNbwP6dK",
-	"rCV/fU24hBy+mj6ZnqZdN70gsnTdOoHtdptBgU6RbtgY5OxTUOt0m8GNkcGXlvQfWPx7IDpeebu9yYYX",
-	"wZf7u/kjNGQbJK8TZVIpdO6DfcCIx28ahBycJ21WHA/hktCVXz4QHNIp/DcOD+Gz1U9BEzN0mwxkHSB3",
-	"2c6Pvf+IKhJ7UUtdpVj2Ge6GomwRA8TPsm4qvj1/dXb+7WvIoJafr9CsfAn56wxqbQ5Wg4iQPXUNMcbv",
-	"2uVE2RoyWFqqpYe8PT5ix8i6h2dRaYVdOPPZLAMTqkre8xFPAQemeoTtHMZ4R6nqyGXAE/L2aC5rdE6u",
-	"cGSvDyGaGPP9I8rqmN6clz64Li32AU7F3F4b89gR11Dfa+kl3VBM6AmeM1CE0mOxiOraZ7iQHr/xukY4",
-	"ppbTgtBF51wIujimm5NoQ1P8PbQ9UqP7vZr2oR8aHhLOzQVVIO0377m8E833KAmJy/Np9cMO0U+/foC2",
-	"JbGltPuErvS+SU1Nm6Xl+93mtnh3KZaWhC9R/FKK32wgcSFJoCThSWqjzUocNFe2rH1U1uHxxbtLyGCN",
-	"5JLZ+WQ2mTGNtkEjGw05nE1mkzPIoJG+jGFNua1OK7vSsfk1NvUdFlh0dVlADldxO1GLzr+xxeb5On+/",
-	"6227SWRlxB8HU/DVbPZs/jvDY2Tw8D4az8axENwmxe/al8JzH3fM7nlCM+Zkj3p6MLjjlfnpK8ORF+pa",
-	"0maXkIQjqluskfSyJUDEtskX9sm1wR/NLu8POD4fCvXKrlZYCBu8cCGOs2Woqs0/CKktNMhvuyV2e7e9",
-	"60XMXlUgQuNjHg5CTO1khSPRvUX/M8ILCqg3+gcC+r4D+cWJeotfZIlwpZ1Pj5lxKVzvTvxf6/+ZWt/l",
-	"RFgS1V+s+zK+UY7VRHrFvGRd9N5JI3S/R1prhUI7kQBveqEnE0KVqB6SAYfE8y1WQb81KVmJAtdY2aZm",
-	"9BkEfhTBVDZ6up7D9m77ZwAAAP//AA+vnFwNAAA=",
+	"H4sIAAAAAAAC/+xW32/bNhD+Vwhuj5rtpFmB6WlpkXUZUrTIDwxDmocLebbYSKR6JJ16gf/34SjZsWQl",
+	"zrak2MPeTJP87rvvPp7uTipX1c6iDV7md5LQ1856TIs3oE/xS0QfeKWcDWjTT6jr0igIxtnxZ+8s/+dV",
+	"gRXwr+8JpzKX343vocfNrh8fETk6bYPI5XKZSY1ekakZTOYcU1AbdJnJc+feg120NPy343HunKjALlZk",
+	"PLO5sBBD4cj8ifrbUelE5e32JgMfxlCs7+Z3siZXIwXTFBCUQu/P3Q0mPmFRo8ylD2TsjPMhnBL64uED",
+	"0SPt4n/hcZM+o36JhlihywYg6xC5ylZx3PVnVKnMRxWYssll7bduKsrplCB+haou+fbe/quDH1/LTFbw",
+	"9QTtLBQyf53JytiN1VZGyJG6QMzx53Y5Uq6SmZw6qiDIvD0+gGOh6vE5LI3CLp29ySSTNpYlXPORQBG3",
+	"oHqCrQKmfB+U6q3T+KBUz5PiIK9BQh3/brPh7UFzVeg9zHBgrx87QQzF/hWhfOwB+AAh+q4W7mZnsu21",
+	"oYgdt28/uDkEoAtK8u8ofCYVIQTUh6mG63poCPhDMBXKx+y726FGd87FaPRjRt7JNtb677HtiZrCr+29",
+	"Tn0TeFtw7naoIpmwOON+08h8jUBI3C/uV7+sGP32+7lseyQjNbv37IoQ6qbLGjt1fL/bbQ8/HoupIxEK",
+	"FB8K8YeLJI6ABAKJQGCssTOx0e0Z2YTkrM3jhx+PZSbnSL6B3RtNRhOW0dVooTYyl69Gk9ErmckaQpHS",
+	"GnOfH686Xe2ax92jV97Cwguw/hbJi/3JQWILYg6l0QK0JvReeJcSQKtrZ2wQCqx1QVyjiB61CO6TRRsr",
+	"JAgoQCkXbfAj8cGWC+EsCiYhaqQ1oPHiBusgoDRzFBAECK766BMLwE8giXGsZS7bxrRuVLLxAfrwxunF",
+	"8303+41w2XUc2zj9sTHR7E8OtiVlDOGZzzKTB5PJQ4HXSOONwYiv7P+0+0p/kEnOjlUFtJC5PEOrBViR",
+	"noeYI5lpK0qqRDrduKN0M2M37dHV/iRtv6Dgmx/pJwk+ebb4nVlnYE7ifbSBwVGzz0ncmlCIwGOH/6fF",
+	"neztvrI9oa0rmwrS8HhScV0Mj1aX959i6hM3m6EWLgbhY5q+prEsF/8ipbYNy/yy24Avr5ZXvYw5qopE",
+	"aEOqw0aKzcdmhgPZvcPwHuULGqg3qW4Z6G2H8osL9Q4fVIlwZnxoZu9hK5yuTvz/1v8zb31VE+FIlE98",
+	"90WaYB97E82M+5LvojdFD8h9hjQ3CnkKaAgveqk3EEIVqG4aAI/E0096Bf3WpKAUGudYurpi9pmMPDLL",
+	"MdRmPN+Ty6vlXwEAAP//YJrvzJkQAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

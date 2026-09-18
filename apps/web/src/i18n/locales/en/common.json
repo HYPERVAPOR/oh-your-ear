@@ -48,8 +48,22 @@
     "eighthNote": "Eighth note"
   },
   "auth": {
+    "title": "Log in / Sign up",
+    "subtitle": "Your account is created on first login.",
+    "account": "My account",
+    "backHome": "Back home",
+    "email": "Email",
+    "name": "Name",
+    "code": "Code",
+    "sendCode": "Send code",
+    "resendIn": "Resend in {{seconds}}s",
+    "codeSentHint": "Code generated. Until mail delivery lands, read it from the api container log.",
+    "submit": "Log in",
+    "invalidEmail": "That email address is not valid.",
+    "invalidCode": "Wrong or expired code.",
+    "tooManyRequests": "Too many requests, try again later.",
     "loginWithGoogle": "Google login",
-    "loginMock": "Mock login",
+    "loginMock": "Mock login (dev only)",
     "loggedInAs": "Logged in as {{email}}"
   },
   "feedback": {

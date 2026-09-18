@@ -117,20 +117,20 @@
 
 ### 7.1 Email verification code login
 
-- **status**: 🔴 todo
-- **description**: Send code, verify, issue JWT + refresh token.
+- **status**: 🟢 done
+- **description**: `POST /auth/code` issues a 6-digit code (60s cooldown, 5-attempt lock, 10min TTL, hashed at rest); `POST /auth/login` and `POST /auth/register` verify it, upsert the user, and issue access + refresh tokens. Delivery is a server log line until an SMTP sender lands.
 - **depends on**: none
 
 ### 7.2 Google OAuth login
 
 - **status**: 🟢 done
-- **description**: OAuth callback, account linking.
-- **depends on**: 7.1
+- **description**: OAuth callback with CSRF state cookie, account linking.
+- **depends on**: none
 
 ### 7.3 Protected routes
 
-- **status**: 🟡 doing
-- **description**: Frontend guards and backend JWT middleware.
+- **status**: 🟢 done
+- **description**: Backend per-handler JWT guard on `/auth/me`; web `/login` page, `RequireAuth` guard, `/me` account page, and session restore from the refresh cookie on reload.
 - **depends on**: 7.1
 
 ---

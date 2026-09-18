@@ -2,12 +2,22 @@ package auth
 
 import (
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
+)
+
+const (
+	// OAuthStateCookieName holds the CSRF state for an in-flight Google login.
+	OAuthStateCookieName = "oauth_state"
+	// OAuthStateTTL bounds how long a login attempt may stay in flight.
+	OAuthStateTTL = 10 * time.Minute
 )
 
 // GoogleUser represents the data returned by Google's userinfo endpoint.
@@ -27,6 +37,16 @@ func NewGoogleOAuthConfig(clientID, clientSecret, redirectURL string) *oauth2.Co
 		Scopes:       []string{"openid", "email", "profile"},
 		Endpoint:     google.Endpoint,
 	}
+}
+
+// NewOAuthState returns a random value that ties an OAuth callback to the browser
+// that started the flow.
+func NewOAuthState() (string, error) {
+	buf := make([]byte, 16)
+	if _, err := rand.Read(buf); err != nil {
+		return "", fmt.Errorf("failed to generate oauth state: %w", err)
+	}
+	return hex.EncodeToString(buf), nil
 }
 
 // FetchGoogleUser retrieves profile information using an OAuth2 token.

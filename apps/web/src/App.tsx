@@ -5,6 +5,7 @@ import { Music, Layers, AudioLines, Timer, Volume2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { PlayButton } from '@/components/play-button'
+import { RequireAuth } from '@/components/require-auth'
 
 import { ChordExercise } from '@/components/exercises/chord-exercise'
 import { IntervalExercise } from '@/components/exercises/interval-exercise'
@@ -12,8 +13,11 @@ import { MelodyExercise } from '@/components/exercises/melody-exercise'
 import { RhythmExercise } from '@/components/exercises/rhythm-exercise'
 import { SingleNoteExercise } from '@/components/exercises/single-note-exercise'
 import { getPiano } from '@/lib/audio'
+import { restoreSession } from '@/lib/auth'
+import { Login } from '@/pages/login'
+import { Me } from '@/pages/me'
 import { useAppStore, type Language, type Theme } from '@/stores/app-store'
-import { useAuthStore, type User } from '@/stores/auth-store'
+import { useAuthStore } from '@/stores/auth-store'
 
 const modules = [
   { key: 'singleNote', icon: Music, route: '/exercise/single-note' },
@@ -23,57 +27,15 @@ const modules = [
   { key: 'rhythm', icon: Timer, route: '/exercise/rhythm' },
 ] as const
 
-async function fetchUser(token: string): Promise<User | null> {
-  const res = await fetch('/api/v1/auth/me', {
-    headers: { Authorization: `Bearer ${token}` },
-  })
-  if (!res.ok) return null
-  return (await res.json()) as User
-}
-
-async function refreshAccessToken(): Promise<string | null> {
-  const res = await fetch('/api/v1/auth/refresh', {
-    method: 'POST',
-    credentials: 'include',
-  })
-  if (!res.ok) return null
-  const data = await res.json()
-  return data.access_token ?? null
-}
-
 function Home() {
   const { t, i18n } = useTranslation('common')
   const { theme, language, setTheme, setLanguage } = useAppStore()
-  const { user, setAccessToken, setUser, logout } = useAuthStore()
+  const user = useAuthStore((s) => s.user)
+  const logout = useAuthStore((s) => s.logout)
 
   const handleLanguageChange = (lang: Language) => {
     setLanguage(lang)
     i18n.changeLanguage(lang)
-  }
-
-  async function handleMockLogin() {
-    const res = await fetch('/api/v1/auth/mock', {
-      method: 'POST',
-      credentials: 'include',
-    })
-    if (!res.ok) return
-    const data = await res.json()
-    if (data.access_token) {
-      setAccessToken(data.access_token)
-      setUser(data.user as User)
-    }
-  }
-
-  function handleGoogleLogin() {
-    window.location.href = '/api/v1/auth/google'
-  }
-
-  async function handleLogout() {
-    await fetch('/api/v1/auth/logout', {
-      method: 'POST',
-      credentials: 'include',
-    })
-    logout()
   }
 
   return (
@@ -84,22 +46,17 @@ function Home() {
           <div className="flex items-center gap-3">
             {user ? (
               <>
-                <span className="hidden text-sm text-muted-foreground sm:inline">
-                  {t('auth.loggedInAs', { email: user.email })}
-                </span>
-                <Button variant="outline" size="sm" onClick={handleLogout}>
+                <Link to="/me" className="text-sm text-muted-foreground hover:text-foreground">
+                  {t('auth.account')}
+                </Link>
+                <Button variant="outline" size="sm" onClick={() => logout()}>
                   {t('actions.logout')}
                 </Button>
               </>
             ) : (
-              <>
-                <Button variant="outline" size="sm" onClick={handleMockLogin}>
-                  {t('auth.loginMock')}
-                </Button>
-                <Button size="sm" onClick={handleGoogleLogin}>
-                  {t('auth.loginWithGoogle')}
-                </Button>
-              </>
+              <Link to="/login" className="text-sm font-medium hover:underline">
+                {t('actions.login')}
+              </Link>
             )}
             <select
               value={language}
@@ -162,42 +119,25 @@ function NotFound() {
 
 export default function App() {
   const navigate = useNavigate()
-  const { accessToken, setAccessToken, setUser } = useAuthStore()
 
-  // Prefetch piano samples on mount so the first Play click is responsive.
+  // Prefetch piano samples and restore any existing session on mount.
   useEffect(() => {
     getPiano()
+    restoreSession()
   }, [])
-
-  // Handle OAuth callback token and restore session on reload.
-  useEffect(() => {
-    async function initAuth() {
-      const hash = window.location.hash
-      const match = hash.match(/access_token=([^&]+)/)
-      if (match) {
-        const token = decodeURIComponent(match[1])
-        window.history.replaceState(null, '', window.location.pathname + window.location.search)
-        setAccessToken(token)
-        const profile = await fetchUser(token)
-        if (profile) setUser(profile)
-        return
-      }
-
-      if (!accessToken) {
-        const refreshed = await refreshAccessToken()
-        if (refreshed) {
-          setAccessToken(refreshed)
-          const profile = await fetchUser(refreshed)
-          if (profile) setUser(profile)
-        }
-      }
-    }
-    initAuth()
-  }, [accessToken, setAccessToken, setUser])
 
   return (
     <Routes>
       <Route path="/" element={<Home />} />
+      <Route path="/login" element={<Login />} />
+      <Route
+        path="/me"
+        element={
+          <RequireAuth>
+            <Me />
+          </RequireAuth>
+        }
+      />
       <Route
         path="/exercise/single-note"
         element={<SingleNoteExercise onBack={() => navigate('/')} />}
