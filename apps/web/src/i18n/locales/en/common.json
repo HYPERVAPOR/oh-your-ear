@@ -24,11 +24,6 @@
   "score": "Score: {{correct}}/{{total}}",
   "exercises": {
     "randomTest": "Random Test",
-    "instruction": "Listen to the note and pick the right one.",
-    "instructionInterval": "Listen to both notes and pick the interval.",
-    "instructionChord": "Listen to the chord and pick the chord type.",
-    "instructionMelody": "Listen and pick the melody you heard.",
-    "instructionRhythm": "Listen to the rhythm, then tap it back.",
     "tapHint": "Press Space or click the button to tap."
   },
   "exerciseConfig": {
@@ -161,5 +156,24 @@
       "title": "Week streak",
       "description": "Practise 7 days in a row"
     }
+  },
+  "moduleHints": {
+    "singleNote": "Name the note you hear.",
+    "interval": "Name the interval.",
+    "chord": "Name the chord quality.",
+    "melody": "Pick the melody you heard.",
+    "rhythm": "Tap the rhythm back."
+  },
+  "home": {
+    "modulesHeading": "Five modules",
+    "guestNote": "Guests can practise everything; scores last for this session only.",
+    "loginCtaHint": "Study plan, accuracy trend, re-practice, streaks and badges.",
+    "loginHeading": "Sign in for progress and the notebook",
+    "heroLine1": "Five drills, ready whenever you are, no account needed.",
+    "heroLine2": "Pitch, intervals, chords, melody, rhythm."
+  },
+  "settings": {
+    "language": "Language",
+    "theme": "Theme"
   }
 }

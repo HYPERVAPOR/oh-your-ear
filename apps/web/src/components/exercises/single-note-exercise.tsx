@@ -95,7 +95,7 @@ export function SingleNoteExercise({ onBack }: SingleNoteExerciseProps) {
       </header>
 
       <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col items-center justify-center px-6 py-12">
-        <p className="mb-6 text-center text-muted-foreground">{t('exercises.instruction')}</p>
+        <p className="mb-6 text-center text-muted-foreground">{t('moduleHints.singleNote')}</p>
 
         <div className="mb-8">
           <PlayButton note={round.target} label={t('actions.play')} />
