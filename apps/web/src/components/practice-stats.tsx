@@ -38,7 +38,7 @@ export function PracticeStats() {
     <section className="rounded-md border border-border p-6">
       <h2 className="font-medium">{t('stats.title')}</h2>
 
-      <dl className="mt-4 grid grid-cols-3 gap-4">
+      <dl className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
         <div>
           <dt className="text-xs text-muted-foreground">{t('stats.solved')}</dt>
           <dd className="text-2xl font-semibold tabular-nums">{data.solved}</dd>
@@ -50,6 +50,10 @@ export function PracticeStats() {
         <div>
           <dt className="text-xs text-muted-foreground">{t('stats.activeDays')}</dt>
           <dd className="text-2xl font-semibold tabular-nums">{activeDays}</dd>
+        </div>
+        <div>
+          <dt className="text-xs text-muted-foreground">{t('stats.streak')}</dt>
+          <dd className="text-2xl font-semibold tabular-nums">{data.streak}</dd>
         </div>
       </dl>
 
@@ -103,6 +107,26 @@ export function PracticeStats() {
             </li>
           )
         })}
+      </ul>
+
+      <h3 className="mt-6 text-sm font-medium">{t('stats.achievements')}</h3>
+      <ul className="mt-2 flex flex-wrap gap-2">
+        {data.achievements.map((badge) => (
+          <li
+            key={badge.id}
+            title={t(`achievements.${badge.id}.description`)}
+            className={`rounded-md border px-3 py-2 text-sm ${
+              badge.achieved
+                ? 'border-success/40 bg-success/10 text-success'
+                : 'border-border text-muted-foreground'
+            }`}
+          >
+            {t(`achievements.${badge.id}.title`)}
+            <span className="ml-2 tabular-nums text-xs">
+              {badge.achieved ? '✓' : `${badge.progress}/${badge.target}`}
+            </span>
+          </li>
+        ))}
       </ul>
     </section>
   )

@@ -117,11 +117,13 @@
     "solved": "累计题数",
     "accuracy": "正确率",
     "activeDays": "练习天数",
+    "streak": "连续打卡",
     "trend": "每日题数",
     "trendLabel": "每日题数：{{from}} 至 {{to}}，共 {{solved}} 题",
     "dayTitle": "{{date}}：{{solved}} 题",
     "byExercise": "模块分布",
-    "moduleDetail": "{{solved}} 题 · {{percent}}%"
+    "moduleDetail": "{{solved}} 题 · {{percent}}%",
+    "achievements": "成就"
   },
   "mistakes": {
     "title": "错题本",
@@ -133,5 +135,27 @@
     "remove": "移除",
     "open": "查看错题本",
     "rhythmPattern": "{{count}} 个音 · {{bpm}} BPM"
+  },
+  "achievements": {
+    "firstSteps": {
+      "title": "起步",
+      "description": "完成第 1 道题"
+    },
+    "warmUp": {
+      "title": "热身完毕",
+      "description": "累计完成 20 道题"
+    },
+    "century": {
+      "title": "百题",
+      "description": "累计完成 100 道题"
+    },
+    "marathon": {
+      "title": "五百题",
+      "description": "累计完成 500 道题"
+    },
+    "streakWeek": {
+      "title": "坚持一周",
+      "description": "连续 7 天练习"
+    }
   }
 }

@@ -117,11 +117,13 @@
     "solved": "Questions solved",
     "accuracy": "Accuracy",
     "activeDays": "Active days",
+    "streak": "Day streak",
     "trend": "Questions per day",
     "trendLabel": "Questions per day: {{from}} to {{to}}, {{solved}} in total",
     "dayTitle": "{{date}}: {{solved}} questions",
     "byExercise": "By module",
-    "moduleDetail": "{{solved}} · {{percent}}%"
+    "moduleDetail": "{{solved}} · {{percent}}%",
+    "achievements": "Achievements"
   },
   "mistakes": {
     "title": "Mistake notebook",
@@ -133,5 +135,27 @@
     "remove": "Remove",
     "open": "Open the notebook",
     "rhythmPattern": "{{count}} taps · {{bpm}} BPM"
+  },
+  "achievements": {
+    "firstSteps": {
+      "title": "First steps",
+      "description": "Answer your first question"
+    },
+    "warmUp": {
+      "title": "Warmed up",
+      "description": "Answer 20 questions in total"
+    },
+    "century": {
+      "title": "Century",
+      "description": "Answer 100 questions in total"
+    },
+    "marathon": {
+      "title": "Five hundred",
+      "description": "Answer 500 questions in total"
+    },
+    "streakWeek": {
+      "title": "Week streak",
+      "description": "Practise 7 days in a row"
+    }
   }
 }
