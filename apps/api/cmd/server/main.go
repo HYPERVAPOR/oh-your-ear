@@ -7,8 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"time"
-	// Embedded so APP_TIMEZONE resolves even in images without tzdata.
-	_ "time/tzdata"
+	_ "time/tzdata" // embedded so APP_TIMEZONE resolves in images without tzdata
 
 	"github.com/HYPERVAPOR/oh-your-ear/apps/api/internal/api"
 	"github.com/HYPERVAPOR/oh-your-ear/apps/api/internal/auth"
