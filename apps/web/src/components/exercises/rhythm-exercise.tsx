@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ArrowLeft, Music } from 'lucide-react'
+import { Music } from 'lucide-react'
 import * as Tone from 'tone'
 
+import { ExerciseShell, FeedbackNote } from '@/components/exercise-shell'
+import { ConfigPanel, NumberField, ToggleGroup } from '@/components/exercises/config-panel'
 import { Button } from '@/components/ui/button'
-import { CheckboxGroup, ConfigPanel, SliderField } from '@/components/exercises/config-panel'
-import { cn } from '@/lib/utils'
 import { recordAnswer } from '@/lib/practice'
 import { useExerciseConfig } from '@/lib/exercise-config'
 import {
@@ -115,6 +115,8 @@ export function RhythmExercise({ onBack }: RhythmExerciseProps) {
     tapsRef.current = [...tapsRef.current, relative]
   }, [phase])
 
+  const expectedCount = getExpectedTimes(pattern, beatDuration).length
+
   const handleFinish = useCallback(() => {
     if (patternEndRef.current) {
       clearTimeout(patternEndRef.current)
@@ -148,97 +150,74 @@ export function RhythmExercise({ onBack }: RhythmExerciseProps) {
   }, [phase, recordTap])
 
   return (
-    <div className="flex min-h-screen flex-col bg-background text-foreground">
-      <header className="border-b border-border px-6 py-4">
-        <div className="mx-auto flex max-w-5xl items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={onBack} aria-label={t('actions.back')}>
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <div>
-              <h1 className="text-lg font-semibold">{t('modules.rhythm')}</h1>
-              <p className="text-xs text-muted-foreground">{t('exercises.randomTest')}</p>
-            </div>
-          </div>
-          <div className="text-sm text-muted-foreground">
-            {t('score', { correct: score, total })}
-          </div>
-        </div>
-      </header>
+    <ExerciseShell kind="rhythm" onBack={onBack} score={{ correct: score, total }}>
+      <Button size="hero" className="mb-10" onClick={handlePlay} disabled={phase === 'playing'}>
+        {phase === 'playing' ? t('actions.playing') : t('actions.play')}
+      </Button>
 
-      <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col items-center justify-center px-6 py-12">
-        <p className="mb-8 text-center text-muted-foreground">{t('moduleHints.rhythm')}</p>
-
-        <div className="mb-8 flex flex-wrap items-center justify-center gap-3">
-          <Button onClick={handlePlay} disabled={phase === 'playing'}>
-            {phase === 'playing' ? t('actions.playing') : t('actions.play')}
-          </Button>
-          <Button
-            variant="outline"
-            onClick={handleFinish}
-            disabled={phase !== 'tapping' && phase !== 'playing'}
-          >
-            {t('actions.finish')}
-          </Button>
-        </div>
-
-        {phase === 'tapping' && (
-          <div className="mb-8 flex flex-col items-center gap-4">
-            <p className="text-sm text-muted-foreground">{t('exercises.tapHint')}</p>
+      {/* The pad is always present so the interaction teaches itself and the page
+          does not jump between phases; it only accepts taps while tapping. */}
+      <div className="flex min-h-[232px] flex-col items-center justify-start gap-5">
+        {phase !== 'result' && (
+          <>
+            <p className="text-[15px] text-body">
+              {phase === 'tapping'
+                ? t('exercises.tapHint')
+                : phase === 'playing'
+                  ? t('actions.playing')
+                  : t('exercises.rhythmIdle')}
+            </p>
             <button
               type="button"
+              disabled={phase !== 'tapping'}
               onMouseDown={recordTap}
-              className={cn(
-                'flex h-40 w-40 items-center justify-center rounded-full border-4 border-primary',
-                'bg-primary/10 text-primary shadow-lg transition-transform active:scale-95',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-              )}
               aria-label={t('actions.tap')}
+              className="flex h-36 w-36 items-center justify-center rounded-full bg-primary text-on-primary transition-all active:scale-95 disabled:bg-surface-strong disabled:text-muted-soft"
             >
-              <Music className="h-16 w-16" />
+              <Music className="h-12 w-12" />
             </button>
-          </div>
+            {phase === 'playing' && (
+              <p className="text-[13px] text-muted">{t('exercises.tapArmed')}</p>
+            )}
+            {phase === 'tapping' && (
+              <Button variant="outline" onClick={handleFinish}>
+                {t('actions.finish')}
+              </Button>
+            )}
+          </>
         )}
 
         {phase === 'result' && (
-          <div className="mb-8 rounded-md bg-muted px-6 py-4 text-center">
-            <p className="text-sm text-muted-foreground">
-              {t('score', {
-                correct: roundScore,
-                total: getExpectedTimes(pattern, beatDuration).length,
-              })}
-            </p>
-          </div>
+          <>
+            <FeedbackNote tone={roundScore === expectedCount ? 'success' : 'error'}>
+              {t('score', { correct: roundScore, total: expectedCount })}
+            </FeedbackNote>
+            <Button size="lg" onClick={startRound}>
+              {t('actions.newRhythm')}
+            </Button>
+          </>
         )}
+      </div>
 
-        {phase !== 'idle' && phase !== 'playing' && (
-          <Button variant="quiet" onClick={startRound}>
-            {t('actions.newRhythm')}
-          </Button>
-        )}
-
-        <div className="mt-8 w-full max-w-md">
-          <ConfigPanel title={t('exerciseConfig.title')} onReset={resetConfig}>
-            <div className="space-y-4">
-              <SliderField
-                label={t('exerciseConfig.patternLength')}
-                value={config.patternLength}
-                min={2}
-                max={8}
-                onChange={(patternLength) => updateConfig({ patternLength })}
-              />
-              <CheckboxGroup
-                label={t('exerciseConfig.durations')}
-                options={durationOptions}
-                selected={config.durations.map(String)}
-                onChange={(selected) =>
-                  updateConfig({ durations: selected.map(Number).sort((a, b) => b - a) })
-                }
-              />
-            </div>
-          </ConfigPanel>
-        </div>
-      </main>
-    </div>
+      <div className="mt-8 w-full">
+        <ConfigPanel title={t('exerciseConfig.title')} onReset={resetConfig}>
+          <NumberField
+            label={t('exerciseConfig.patternLength')}
+            value={config.patternLength}
+            min={2}
+            max={8}
+            onChange={(patternLength) => updateConfig({ patternLength })}
+          />
+          <ToggleGroup
+            label={t('exerciseConfig.durations')}
+            options={durationOptions}
+            selected={config.durations.map(String)}
+            onChange={(selected) =>
+              updateConfig({ durations: selected.map(Number).sort((a, b) => b - a) })
+            }
+          />
+        </ConfigPanel>
+      </div>
+    </ExerciseShell>
   )
 }

@@ -58,6 +58,10 @@
   --color-on-primary: var(--on-primary);
   --color-success: var(--success);
   --color-error: var(--error);
+  /* The darker variants exist because the source hue is too light to carry text
+     on paper (3.1:1); marks use the hue, words use these. */
+  --color-success-text: var(--success-text);
+  --color-error-text: var(--error-text);
 
   /* Aliases kept while the older screens are migrated; they map onto the same
      values so nothing renders in the previous palette in the meantime. */
