@@ -21,6 +21,15 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 CREATE INDEX IF NOT EXISTS idx_users_google_id ON users(google_id);
+
+-- One live verification code per address; rows are short-lived by design.
+CREATE TABLE IF NOT EXISTS email_codes (
+email TEXT PRIMARY KEY,
+code_hash TEXT NOT NULL,
+expires_at TIMESTAMPTZ NOT NULL,
+attempts INT NOT NULL DEFAULT 0,
+created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
 `
 
 // Migrate applies the database schema.

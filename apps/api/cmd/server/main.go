@@ -5,17 +5,14 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"time"
+	"net/url"
 
 	"github.com/HYPERVAPOR/oh-your-ear/apps/api/internal/api"
 	"github.com/HYPERVAPOR/oh-your-ear/apps/api/internal/auth"
 	"github.com/HYPERVAPOR/oh-your-ear/apps/api/internal/config"
 	"github.com/HYPERVAPOR/oh-your-ear/apps/api/internal/db"
-	"github.com/HYPERVAPOR/oh-your-ear/apps/api/internal/middleware"
-	"github.com/HYPERVAPOR/oh-your-ear/apps/api/internal/models"
 	"github.com/HYPERVAPOR/oh-your-ear/apps/api/internal/services"
 	"github.com/gin-gonic/gin"
-	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
 func run() error {
@@ -33,13 +30,14 @@ func run() error {
 	}
 
 	authSvc := services.NewAuthService(pool)
+	server := api.NewServer(cfg, authSvc)
 
 	r := gin.Default()
 
-	// Custom auth routes (not in the OpenAPI contract yet).
-	registerAuthRoutes(r, cfg, authSvc)
+	// OAuth, token refresh, and the dev-only mock login are not in the OpenAPI
+	// contract yet, so they are registered by hand.
+	registerAuthRoutes(r, cfg, server, authSvc)
 
-	server := api.NewServer(cfg, authSvc)
 	// The route prefix must match `servers` in openapi.yaml, which the web client
 	// (src/api/client.ts) and nginx both assume.
 	api.RegisterHandlersWithOptions(r, server, api.GinServerOptions{BaseURL: "/api/v1"})
@@ -52,52 +50,22 @@ func run() error {
 	return nil
 }
 
-func registerAuthRoutes(r *gin.Engine, cfg config.Config, authSvc *services.AuthService) {
+func registerAuthRoutes(r *gin.Engine, cfg config.Config, server *api.Server, authSvc *services.AuthService) {
 	googleCfg := auth.NewGoogleOAuthConfig(cfg.GoogleClientID, cfg.GoogleSecret, cfg.GoogleRedirect)
-
-	accessTTL := parseDuration(cfg.AccessTokenTTL, 15*time.Minute)
-	refreshTTL := parseDuration(cfg.RefreshTokenTTL, 7*24*time.Hour)
-
 	ctx := context.Background()
-
-	issueTokens := func(c *gin.Context, user *models.User) (string, string, error) {
-		accessToken, err := auth.GenerateAccessToken(user.ID.String(), user.Email, cfg.JWTSecret, accessTTL)
-		if err != nil {
-			return "", "", err
-		}
-		refreshToken, err := auth.GenerateRefreshToken(user.ID.String(), user.Email, cfg.JWTSecret, refreshTTL)
-		if err != nil {
-			return "", "", err
-		}
-		return accessToken, refreshToken, nil
-	}
-
-	setCookiesAndRespond := func(c *gin.Context, user *models.User) {
-		accessToken, refreshToken, err := issueTokens(c, user)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, api.ErrorResponse{Error: "failed to generate tokens"})
-			return
-		}
-		c.SetCookie(auth.RefreshTokenCookieName, refreshToken, int(refreshTTL.Seconds()), "/", "", false, true)
-		c.JSON(http.StatusOK, api.AuthResponse{
-			AccessToken: accessToken,
-			User: api.UserResponse{
-				Id:        user.ID,
-				Email:     openapi_types.Email(user.Email),
-				Name:      user.Name,
-				AvatarUrl: user.AvatarURL,
-				CreatedAt: user.CreatedAt.UTC(),
-				UpdatedAt: user.UpdatedAt.UTC(),
-			},
-		})
-	}
 
 	r.GET("/api/v1/auth/google", func(c *gin.Context) {
 		if cfg.GoogleClientID == "" {
 			c.JSON(http.StatusNotImplemented, api.ErrorResponse{Error: "google oauth not configured"})
 			return
 		}
-		state := "TODO" // Add CSRF state in a real implementation.
+
+		state, err := auth.NewOAuthState()
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, api.ErrorResponse{Error: "failed to start oauth flow"})
+			return
+		}
+		c.SetCookie(auth.OAuthStateCookieName, state, int(auth.OAuthStateTTL.Seconds()), "/", "", false, true)
 		c.Redirect(http.StatusTemporaryRedirect, googleCfg.AuthCodeURL(state))
 	})
 
@@ -107,13 +75,14 @@ func registerAuthRoutes(r *gin.Engine, cfg config.Config, authSvc *services.Auth
 			return
 		}
 
-		code := c.Query("code")
-		if code == "" {
-			c.JSON(http.StatusBadRequest, api.ErrorResponse{Error: "missing code"})
+		state, _ := c.Cookie(auth.OAuthStateCookieName)
+		if code := c.Query("code"); code == "" || state == "" || c.Query("state") != state {
+			c.JSON(http.StatusBadRequest, api.ErrorResponse{Error: "invalid oauth callback"})
 			return
 		}
+		c.SetCookie(auth.OAuthStateCookieName, "", -1, "/", "", false, true)
 
-		token, err := googleCfg.Exchange(ctx, code)
+		token, err := googleCfg.Exchange(ctx, c.Query("code"))
 		if err != nil {
 			c.JSON(http.StatusBadRequest, api.ErrorResponse{Error: "failed to exchange code"})
 			return
@@ -125,31 +94,30 @@ func registerAuthRoutes(r *gin.Engine, cfg config.Config, authSvc *services.Auth
 			return
 		}
 
-		user, err := authSvc.UpsertGoogleUser(ctx, gUser.ID, gUser.Email, gUser.Name, gUser.Picture)
+		user, err := authSvc.UpsertGoogleUser(c.Request.Context(), gUser.ID, gUser.Email, gUser.Name, gUser.Picture)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, api.ErrorResponse{Error: "failed to save user"})
 			return
 		}
 
-		accessToken, refreshToken, err := issueTokens(c, user)
+		accessToken, refreshToken, err := server.IssueTokens(user)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, api.ErrorResponse{Error: "failed to generate tokens"})
 			return
 		}
 
-		c.SetCookie(auth.RefreshTokenCookieName, refreshToken, int(refreshTTL.Seconds()), "/", "", false, true)
-		frontendURL := "http://localhost:5173"
-		c.Redirect(http.StatusTemporaryRedirect, frontendURL+"/#access_token="+accessToken)
+		server.SetRefreshCookie(c, refreshToken)
+		c.Redirect(http.StatusTemporaryRedirect, cfg.FrontendURL+"/#access_token="+url.QueryEscape(accessToken))
 	})
 
 	r.POST("/api/v1/auth/mock", func(c *gin.Context) {
-		user, err := authSvc.UpsertMockUser(ctx, cfg.MockAuthEmail, cfg.MockAuthName)
+		user, err := authSvc.UpsertMockUser(c.Request.Context(), cfg.MockAuthEmail, cfg.MockAuthName)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, api.ErrorResponse{Error: "failed to create mock user"})
 			return
 		}
 
-		setCookiesAndRespond(c, user)
+		server.RespondWithSession(c, user)
 	})
 
 	r.POST("/api/v1/auth/refresh", func(c *gin.Context) {
@@ -165,25 +133,15 @@ func registerAuthRoutes(r *gin.Engine, cfg config.Config, authSvc *services.Auth
 			return
 		}
 
+		accessTTL, _ := server.TokenTTLs()
 		accessToken, err := auth.GenerateAccessToken(claims.UserID, claims.Email, cfg.JWTSecret, accessTTL)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, api.ErrorResponse{Error: "failed to generate access token"})
 			return
 		}
 
-		c.JSON(http.StatusOK, api.AuthResponse{AccessToken: accessToken})
+		c.JSON(http.StatusOK, gin.H{"accessToken": accessToken})
 	})
-
-	// Apply JWT middleware to generated /auth/me and future protected routes.
-	r.Use(middleware.AuthMiddleware(cfg.JWTSecret))
-}
-
-func parseDuration(value string, fallback time.Duration) time.Duration {
-	d, err := time.ParseDuration(value)
-	if err != nil {
-		return fallback
-	}
-	return d
 }
 
 func main() {

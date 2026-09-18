@@ -8,24 +8,26 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// AuthMiddleware validates the access token and sets the user claims in context.
-func AuthMiddleware(secret string) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		tokenStr := extractBearerToken(c)
-		if tokenStr == "" {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "missing access token"})
-			return
-		}
-
-		claims, err := auth.ParseToken(tokenStr, secret)
-		if err != nil || claims.Type != "access" {
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid access token"})
-			return
-		}
-
-		c.Set("user", claims)
-		c.Next()
+// Auth validates the access token on the current request.
+//
+// It is called from inside protected handlers: the generated router registers
+// every route up front, so engine-level Use() middleware would never reach them.
+// It reports whether the caller may continue and writes the 401 itself.
+func Auth(c *gin.Context, secret string) bool {
+	tokenStr := extractBearerToken(c)
+	if tokenStr == "" {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "missing access token"})
+		return false
 	}
+
+	claims, err := auth.ParseToken(tokenStr, secret)
+	if err != nil || claims.Type != "access" {
+		c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid access token"})
+		return false
+	}
+
+	c.Set("user", claims)
+	return true
 }
 
 func extractBearerToken(c *gin.Context) string {

@@ -16,6 +16,7 @@ type Config struct {
 	GoogleRedirect  string
 	MockAuthEmail   string
 	MockAuthName    string
+	FrontendURL     string
 	AccessTokenTTL  string
 	RefreshTokenTTL string
 }
@@ -33,6 +34,7 @@ func Load() Config {
 		GoogleRedirect:  getEnv("GOOGLE_REDIRECT_URL", "http://localhost:8080/api/v1/auth/google/callback"),
 		MockAuthEmail:   getEnv("MOCK_AUTH_EMAIL", "dev@ohyourear.test"),
 		MockAuthName:    getEnv("MOCK_AUTH_NAME", "Developer"),
+		FrontendURL:     getEnv("FRONTEND_URL", "http://localhost:5173"),
 		AccessTokenTTL:  getEnv("ACCESS_TOKEN_TTL", "15m"),
 		RefreshTokenTTL: getEnv("REFRESH_TOKEN_TTL", "7d"),
 	}
