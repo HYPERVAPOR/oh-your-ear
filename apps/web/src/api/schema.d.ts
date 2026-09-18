@@ -162,6 +162,43 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/me/mistakes': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * List the open mistakes in the notebook
+     * @description Questions answered wrong and not answered correctly again yet.
+     */
+    get: operations['listMistakes']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/me/mistakes/{id}': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post?: never
+    /** Remove a mistake from the notebook */
+    delete: operations['resolveMistake']
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
 }
 export type webhooks = Record<string, never>
 export interface components {
@@ -225,6 +262,26 @@ export interface components {
       correct: boolean
       chosen?: string | null
       expected?: string | null
+      /**
+       * @description The question itself (notes, interval, chord type, rhythm pattern...).
+       *     Wrong answers carrying a prompt land in the mistake notebook, and a
+       *     later correct answer for the same prompt clears the entry.
+       */
+      prompt?: {
+        [key: string]: unknown
+      } | null
+    }
+    Mistake: {
+      /** Format: uuid */
+      id: string
+      exercise: components['schemas']['ExerciseKind']
+      prompt?: {
+        [key: string]: unknown
+      } | null
+      answer: string
+      wrongCount: number
+      /** Format: date-time */
+      lastWrongAt: string
     }
     ExerciseStats: {
       solved: number
@@ -526,6 +583,58 @@ export interface operations {
         }
       }
       401: components['responses']['Unauthorized']
+    }
+  }
+  listMistakes: {
+    parameters: {
+      query?: {
+        exercise?: components['schemas']['ExerciseKind']
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Open mistakes, most recently missed first */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Mistake'][]
+        }
+      }
+      400: components['responses']['BadRequest']
+      401: components['responses']['Unauthorized']
+    }
+  }
+  resolveMistake: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Mistake cleared */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      401: components['responses']['Unauthorized']
+      /** @description No such open mistake for this user */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
     }
   }
 }

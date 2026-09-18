@@ -122,5 +122,16 @@
     "dayTitle": "{{date}}：{{solved}} 题",
     "byExercise": "模块分布",
     "moduleDetail": "{{solved}} 题 · {{percent}}%"
+  },
+  "mistakes": {
+    "title": "错题本",
+    "empty": "还没有错题。答错的题会自动收进这里，答对同题后自动移除。",
+    "filterAll": "全部",
+    "answer": "正确答案：{{answer}}",
+    "wrongCount": "错过 {{count}} 次",
+    "practice": "重练",
+    "remove": "移除",
+    "open": "查看错题本",
+    "rhythmPattern": "{{count}} 个音 · {{bpm}} BPM"
   }
 }

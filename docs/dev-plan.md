@@ -155,14 +155,14 @@
 
 ### 9.1 Record wrong answers
 
-- **status**: 🔴 todo
-- **description**: Store wrong answer history per user.
+- **status**: 🟢 done
+- **description**: `POST /me/practice-records` takes an optional `prompt` (the question payload: notes, interval, chord type, rhythm pattern). A wrong answer carrying a prompt is upserted into `mistakes` keyed by `md5(exercise + prompt::jsonb::text)`, bumping `wrong_count`; answering that same prompt correctly later resolves the entry. All four judged modules send the prompt; a wrong answer without one is only counted in the statistics.
 - **depends on**: 7.3
 
 ### 9.2 Review mode
 
-- **status**: 🔴 todo
-- **description**: Filter exercises to previously wrong items.
+- **status**: 🟢 done
+- **description**: `/mistakes` lists the open entries with per-module filters (`GET /me/mistakes?exercise=`), each showing the question, the localised correct answer and the miss count, plus manual removal (`DELETE /me/mistakes/{id}`) and a re-practice link. Re-practice re-enters the exercise seeded with the exact same question through URL params (`?note=`, `?root=&interval=`, `?root=&type=`), so the attempt is scored and reported like any other and getting it right clears the entry automatically. Rhythm has no per-question seed yet, so it links to the module without one.
 - **depends on**: 9.1
 
 ---

@@ -16,6 +16,7 @@ import { SingleNoteExercise } from '@/components/exercises/single-note-exercise'
 import { getPiano } from '@/lib/audio'
 import { restoreSession } from '@/lib/auth'
 import { Login } from '@/pages/login'
+import { Mistakes } from '@/pages/mistakes'
 import { Me } from '@/pages/me'
 import { useAppStore, type Language, type Theme } from '@/stores/app-store'
 import { useAuthStore } from '@/stores/auth-store'
@@ -138,6 +139,14 @@ export default function App() {
         element={
           <RequireAuth>
             <Me />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/mistakes"
+        element={
+          <RequireAuth>
+            <Mistakes />
           </RequireAuth>
         }
       />

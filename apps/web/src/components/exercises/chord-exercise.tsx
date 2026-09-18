@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ArrowLeft, ChevronRight } from 'lucide-react'
 import { Chord, Note } from 'tonal'
@@ -39,7 +40,9 @@ export function ChordExercise({ onBack }: ChordExerciseProps) {
     () => (config.types.length > 0 ? config.types : [...CHORD_TYPES]),
     [config.types],
   )
-  const [round, setRound] = useState(() => createRound(allowedTypes))
+  // A notebook entry seeds the exact question it wants re-practised.
+  const seed = readSeed(useSearchParams()[0])
+  const [round, setRound] = useState(() => seed ?? createRound(allowedTypes))
   const [selected, setSelected] = useState<string | null>(null)
   const [score, setScore] = useState(0)
   const [total, setTotal] = useState(0)
@@ -65,7 +68,13 @@ export function ChordExercise({ onBack }: ChordExerciseProps) {
     if (isRight) {
       setScore((prev) => prev + 1)
     }
-    recordAnswer({ exercise: 'chord', correct: isRight, chosen: guess, expected: type })
+    recordAnswer({
+      exercise: 'chord',
+      correct: isRight,
+      chosen: guess,
+      expected: type,
+      prompt: { root: round.root, notes, type },
+    })
   }
 
   const currentOptions = selected
@@ -152,6 +161,14 @@ export function ChordExercise({ onBack }: ChordExerciseProps) {
       </main>
     </div>
   )
+}
+
+function readSeed(params: URLSearchParams): { root: string; type: string; notes: string[] } | null {
+  const root = params.get('root')
+  const type = params.get('type')
+  if (!root || !type || !CHORD_TYPES.includes(type as (typeof CHORD_TYPES)[number])) return null
+  const notes = Chord.get(type).intervals.map((interval) => Note.transpose(root, interval))
+  return { root, type, notes }
 }
 
 function createRound(allowedTypes: string[]) {

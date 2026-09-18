@@ -188,6 +188,54 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
+  /me/mistakes:
+    get:
+      operationId: listMistakes
+      summary: List the open mistakes in the notebook
+      description: Questions answered wrong and not answered correctly again yet.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: exercise
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/ExerciseKind'
+      responses:
+        '200':
+          description: Open mistakes, most recently missed first
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Mistake'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /me/mistakes/{id}:
+    delete:
+      operationId: resolveMistake
+      summary: Remove a mistake from the notebook
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Mistake cleared
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: No such open mistake for this user
+
 components:
   securitySchemes:
     bearerAuth:
@@ -328,6 +376,40 @@ components:
         expected:
           type: string
           nullable: true
+        prompt:
+          type: object
+          additionalProperties: true
+          nullable: true
+          description: |
+            The question itself (notes, interval, chord type, rhythm pattern...).
+            Wrong answers carrying a prompt land in the mistake notebook, and a
+            later correct answer for the same prompt clears the entry.
+
+    Mistake:
+      type: object
+      required:
+        - id
+        - exercise
+        - answer
+        - wrongCount
+        - lastWrongAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        exercise:
+          $ref: '#/components/schemas/ExerciseKind'
+        prompt:
+          type: object
+          additionalProperties: true
+          nullable: true
+        answer:
+          type: string
+        wrongCount:
+          type: integer
+        lastWrongAt:
+          type: string
+          format: date-time
 
     ExerciseStats:
       type: object

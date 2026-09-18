@@ -26,3 +26,13 @@ type ExerciseStats struct {
 	Solved  int
 	Correct int
 }
+
+// Mistake is one entry of the mistake notebook.
+type Mistake struct {
+	ID          uuid.UUID
+	Exercise    string
+	Prompt      []byte
+	Answer      string
+	WrongCount  int
+	LastWrongAt time.Time
+}

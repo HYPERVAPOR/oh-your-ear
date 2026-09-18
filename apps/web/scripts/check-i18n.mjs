@@ -48,9 +48,20 @@ for (const file of sourceFiles(join(root, 'src'))) {
   const relative = file.replace(`${root}/`, '')
   const source = readFileSync(file, 'utf8')
 
+  // Dotted literals are unambiguous; bare words would match unrelated strings
+  // like cache keys, so those are only picked up straight out of t('...').
+  const candidates = [...source.matchAll(/\bt\(\s*['"]([a-z][A-Za-z0-9]*)['"]/g)].map((match) => [
+    match[1],
+    '',
+  ])
+
   for (const [, literal, trailingDot] of source.matchAll(
     /['"`]([a-z][A-Za-z0-9]*(?:\.[A-Za-z0-9]+)*)(\.?)(?=\$\{|['"`])/g,
   )) {
+    if (literal.includes('.') || trailingDot) candidates.push([literal, trailingDot])
+  }
+
+  for (const [literal, trailingDot] of candidates) {
     if (!namespaces.has(literal.split('.')[0])) continue
 
     if (trailingDot) {

@@ -44,6 +44,24 @@ created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 
 CREATE INDEX IF NOT EXISTS idx_practice_records_user_time ON practice_records(user_id, created_at DESC);
 
+-- The mistake notebook. One row per distinct wrong question, kept until the
+-- user answers that same question correctly (or removes it by hand).
+CREATE TABLE IF NOT EXISTS mistakes (
+id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+exercise TEXT NOT NULL,
+fingerprint TEXT NOT NULL,
+prompt JSONB,
+answer TEXT NOT NULL,
+wrong_count INT NOT NULL DEFAULT 1,
+last_wrong_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+resolved_at TIMESTAMPTZ,
+created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+UNIQUE (user_id, exercise, fingerprint)
+);
+
+CREATE INDEX IF NOT EXISTS idx_mistakes_user_open ON mistakes(user_id, last_wrong_at DESC) WHERE resolved_at IS NULL;
+
 -- One live verification code per address; rows are short-lived by design.
 CREATE TABLE IF NOT EXISTS email_codes (
 email TEXT PRIMARY KEY,

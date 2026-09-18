@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ArrowLeft, ChevronRight } from 'lucide-react'
 import { Note } from 'tonal'
@@ -9,6 +10,11 @@ import { BooleanToggle, ConfigPanel } from '@/components/exercises/config-panel'
 import { cn, feedbackPill, optionHighlight } from '@/lib/utils'
 import { recordAnswer } from '@/lib/practice'
 import { buildSingleNotePool, useExerciseConfig } from '@/lib/exercise-config'
+
+function pickOptions(seed: string | null, pool: string[]): string[] {
+  if (!seed || !pool.includes(seed)) return shuffle(pool).slice(0, 8)
+  return shuffle([seed, ...shuffle(pool.filter((note) => note !== seed)).slice(0, 7)])
+}
 
 function shuffle<T>(array: T[]): T[] {
   const copy = [...array]
@@ -27,8 +33,12 @@ export function SingleNoteExercise({ onBack }: SingleNoteExerciseProps) {
   const { t } = useTranslation('common')
   const { config, updateConfig, resetConfig } = useExerciseConfig('singleNote')
   const notePool = useMemo(() => buildSingleNotePool(config), [config])
-  const [target, setTarget] = useState(() => notePool[Math.floor(Math.random() * notePool.length)])
-  const [options, setOptions] = useState(() => shuffle(notePool).slice(0, 8))
+  // A notebook entry seeds the exact question it wants re-practised.
+  const seededNote = useSearchParams()[0].get('note')
+  const [target, setTarget] = useState(
+    () => seededNote ?? notePool[Math.floor(Math.random() * notePool.length)],
+  )
+  const [options, setOptions] = useState(() => pickOptions(seededNote, notePool))
   const [selected, setSelected] = useState<string | null>(null)
   const [score, setScore] = useState(0)
   const [total, setTotal] = useState(0)
@@ -50,7 +60,13 @@ export function SingleNoteExercise({ onBack }: SingleNoteExerciseProps) {
       if (isRight) {
         setScore((prev) => prev + 1)
       }
-      recordAnswer({ exercise: 'singleNote', correct: isRight, chosen: guess, expected: target })
+      recordAnswer({
+        exercise: 'singleNote',
+        correct: isRight,
+        chosen: guess,
+        expected: target,
+        prompt: { note: target },
+      })
     },
     [selected, target],
   )

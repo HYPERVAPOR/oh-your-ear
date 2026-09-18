@@ -132,6 +132,7 @@ export function RhythmExercise({ onBack }: RhythmExerciseProps) {
       exercise: 'rhythm',
       correct: matched === expected.length,
       chosen: `${matched}/${expected.length}`,
+      prompt: { pattern, bpm: BPM },
     })
   }, [pattern, beatDuration])
 
