@@ -11,9 +11,17 @@ import { cn, feedbackPill, optionHighlight } from '@/lib/utils'
 import { recordAnswer } from '@/lib/practice'
 import { buildSingleNotePool, useExerciseConfig } from '@/lib/exercise-config'
 
-function pickOptions(seed: string | null, pool: string[]): string[] {
-  if (!seed || !pool.includes(seed)) return shuffle(pool).slice(0, 8)
-  return shuffle([seed, ...shuffle(pool.filter((note) => note !== seed)).slice(0, 7)])
+interface SingleNoteRound {
+  target: string
+  options: string[]
+}
+
+/** One draw for the whole round: picking the target and the options separately
+ *  could leave the target out of its own option list. */
+function createRound(seed: string | null, pool: string[]): SingleNoteRound {
+  const target = seed ?? pool[Math.floor(Math.random() * pool.length)]
+  const distractors = shuffle(pool.filter((note) => note !== target)).slice(0, 7)
+  return { target, options: shuffle([target, ...distractors]) }
 }
 
 function shuffle<T>(array: T[]): T[] {
@@ -35,19 +43,13 @@ export function SingleNoteExercise({ onBack }: SingleNoteExerciseProps) {
   const notePool = useMemo(() => buildSingleNotePool(config), [config])
   // A notebook entry seeds the exact question it wants re-practised.
   const seededNote = useSearchParams()[0].get('note')
-  const [target, setTarget] = useState(
-    () => seededNote ?? notePool[Math.floor(Math.random() * notePool.length)],
-  )
-  const [options, setOptions] = useState(() => pickOptions(seededNote, notePool))
+  const [round, setRound] = useState(() => createRound(seededNote, notePool))
   const [selected, setSelected] = useState<string | null>(null)
   const [score, setScore] = useState(0)
   const [total, setTotal] = useState(0)
 
   const startRound = useCallback(() => {
-    const pool = buildSingleNotePool(config)
-    const nextTarget = pool[Math.floor(Math.random() * pool.length)]
-    setTarget(nextTarget)
-    setOptions(shuffle(pool).slice(0, 8))
+    setRound(createRound(null, buildSingleNotePool(config)))
     setSelected(null)
   }, [config])
 
@@ -56,7 +58,7 @@ export function SingleNoteExercise({ onBack }: SingleNoteExerciseProps) {
       if (selected) return
       setSelected(guess)
       setTotal((prev) => prev + 1)
-      const isRight = Note.midi(guess) === Note.midi(target)
+      const isRight = Note.midi(guess) === Note.midi(round.target)
       if (isRight) {
         setScore((prev) => prev + 1)
       }
@@ -64,14 +66,14 @@ export function SingleNoteExercise({ onBack }: SingleNoteExerciseProps) {
         exercise: 'singleNote',
         correct: isRight,
         chosen: guess,
-        expected: target,
-        prompt: { note: target },
+        expected: round.target,
+        prompt: { note: round.target },
       })
     },
-    [selected, target],
+    [selected, round.target],
   )
 
-  const isCorrect = selected ? Note.midi(selected) === Note.midi(target) : null
+  const isCorrect = selected ? Note.midi(selected) === Note.midi(round.target) : null
 
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
@@ -96,7 +98,7 @@ export function SingleNoteExercise({ onBack }: SingleNoteExerciseProps) {
         <p className="mb-6 text-center text-muted-foreground">{t('exercises.instruction')}</p>
 
         <div className="mb-8">
-          <PlayButton note={target} label={t('actions.play')} />
+          <PlayButton note={round.target} label={t('actions.play')} />
         </div>
 
         {selected && (
@@ -106,12 +108,12 @@ export function SingleNoteExercise({ onBack }: SingleNoteExerciseProps) {
               feedbackPill(isCorrect),
             )}
           >
-            {isCorrect ? t('feedback.correct') : t('feedback.wrong', { answer: target })}
+            {isCorrect ? t('feedback.correct') : t('feedback.wrong', { answer: round.target })}
           </div>
         )}
 
         <div className="grid w-full grid-cols-4 gap-3">
-          {options.map((note) => (
+          {round.options.map((note) => (
             <Button
               key={note}
               variant="outline"
@@ -119,7 +121,9 @@ export function SingleNoteExercise({ onBack }: SingleNoteExerciseProps) {
               onClick={() => handleGuess(note)}
               className={cn(
                 'h-14 text-lg',
-                selected && Note.midi(note) === Note.midi(target) && optionHighlight('correct'),
+                selected &&
+                  Note.midi(note) === Note.midi(round.target) &&
+                  optionHighlight('correct'),
                 selected === note && !isCorrect && optionHighlight('wrong'),
               )}
             >

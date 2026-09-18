@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useSearchParams } from 'react-router-dom'
 import { ArrowLeft, ChevronRight } from 'lucide-react'
@@ -16,8 +16,21 @@ interface MelodyExerciseProps {
   onBack?: () => void
 }
 
+interface RollScale {
+  low: number
+  span: number
+}
+
+/** Shared pitch scale, so options are drawn on the same axis and their
+ *  differences are visible instead of every card being stretched to fit. */
+function rollScale(options: string[][]): RollScale {
+  const midis = options.flat().map((note) => Note.midi(note) ?? 60)
+  const low = Math.min(...midis)
+  return { low, span: Math.max(Math.max(...midis) - low, 1) }
+}
+
 /** Mini piano roll: pitch becomes height, order becomes left-to-right. */
-function MelodyRoll({ notes }: { notes: string[] }) {
+function MelodyRoll({ notes, scale }: { notes: string[]; scale: RollScale }) {
   // A repeated pitch is two bars, so identity is the pitch plus which time it occurs.
   const occurrences = new Map<string, number>()
   const bars = notes.map((note) => {
@@ -26,20 +39,25 @@ function MelodyRoll({ notes }: { notes: string[] }) {
     return { key: `${note}#${occurrence}`, midi: Note.midi(note) ?? 60 }
   })
 
-  const midis = bars.map((bar) => bar.midi)
-  const low = Math.min(...midis)
-  const span = Math.max(Math.max(...midis) - low, 1)
+  // One fixed slot per note: a longer melody is drawn wider, and the strip lines up
+  // with the note names instead of floating in the middle of the card.
+  const slot = 12
 
   return (
-    <svg viewBox={`0 0 ${bars.length * 10} 40`} className="h-10 w-full" aria-hidden="true">
+    <svg
+      width={bars.length * slot}
+      height={32}
+      viewBox={`0 0 ${bars.length * slot} 40`}
+      aria-hidden="true"
+    >
       {bars.map((bar, position) => {
-        const height = 8 + ((bar.midi - low) / span) * 24
+        const height = 6 + ((bar.midi - scale.low) / scale.span) * 26
         return (
           <rect
             key={bar.key}
-            x={position * 10 + 1}
+            x={position * slot + 1}
             y={34 - height}
-            width={8}
+            width={slot - 3}
             height={height}
             rx={1.5}
             fill="currentColor"
@@ -97,6 +115,7 @@ export function MelodyExercise({ onBack }: MelodyExerciseProps) {
   const [total, setTotal] = useState(0)
 
   const gap = melodyGap(config)
+  const scale = useMemo(() => rollScale(question.options), [question])
   const isCorrect = selected === null ? null : selected === question.answerIndex
   const answer = question.notes.join(' ')
 
@@ -187,8 +206,8 @@ export function MelodyExercise({ onBack }: MelodyExerciseProps) {
                 selected === index && !isCorrect && optionHighlight('wrong'),
               )}
             >
-              <MelodyRoll notes={option} />
               <span className="text-sm font-medium tracking-wide">{option.join(' ')}</span>
+              <MelodyRoll notes={option} scale={scale} />
             </button>
           ))}
         </div>

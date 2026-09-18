@@ -163,19 +163,24 @@ export function ChordExercise({ onBack }: ChordExerciseProps) {
   )
 }
 
+/** Chord tones as note names. Sharps keep the spelling consistent with the other
+ * modules: F Ab Cb is theoretically right but reads worse than F G# B. */
+function chordNotes(root: string, type: string): string[] {
+  return Chord.get(type)
+    .intervals.map((interval) => Note.transpose(root, interval))
+    .map((note) => Note.fromMidiSharps(Note.midi(note) ?? 60))
+}
+
 function readSeed(params: URLSearchParams): { root: string; type: string; notes: string[] } | null {
   const root = params.get('root')
   const type = params.get('type')
   if (!root || !type || !CHORD_TYPES.includes(type as (typeof CHORD_TYPES)[number])) return null
-  const notes = Chord.get(type).intervals.map((interval) => Note.transpose(root, interval))
-  return { root, type, notes }
+  return { root, type, notes: chordNotes(root, type) }
 }
 
 function createRound(allowedTypes: string[]) {
   const pool = allowedTypes.length > 0 ? allowedTypes : [...CHORD_TYPES]
   const root = ROOT_POOL[Math.floor(Math.random() * ROOT_POOL.length)]
   const type = pool[Math.floor(Math.random() * pool.length)]
-  const intervals = Chord.get(type).intervals
-  const notes = intervals.map((interval) => Note.transpose(root, interval))
-  return { root, type, notes }
+  return { root, type, notes: chordNotes(root, type) }
 }

@@ -47,41 +47,21 @@ export function IntervalExercise({ onBack }: IntervalExerciseProps) {
   )
   // A notebook entry seeds the exact question it wants re-practised.
   const seed = readSeed(useSearchParams()[0])
-  const [root, setRoot] = useState(() => seed?.root ?? pickRoot())
-  const [semitones, setSemitones] = useState(
-    () => seed?.semitones ?? pickSemitones(allowedSemitones),
-  )
-  const [second, setSecond] = useState(() =>
-    seed
-      ? computeSecond(seed.root, seed.semitones)
-      : computeSecond(pickRoot(), pickSemitones(allowedSemitones)),
-  )
-  const [options, setOptions] = useState(() =>
-    pickOptions(
-      Interval.fromSemitones(seed?.semitones ?? pickSemitones(allowedSemitones)),
-      allowedIntervals,
-    ),
-  )
+  const [round, setRound] = useState(() => createRound(seed, allowedSemitones, allowedIntervals))
   const [selected, setSelected] = useState<string | null>(null)
   const [score, setScore] = useState(0)
   const [total, setTotal] = useState(0)
 
-  const correctInterval = Interval.fromSemitones(semitones)
+  const correctInterval = Interval.fromSemitones(round.semitones)
   const isCorrect = selected ? selected === correctInterval : null
 
   const startRound = useCallback(() => {
-    const semitonesPool = pickAllowedIntervalSemitones(config)
-    const nextSemitones = pickSemitones(semitonesPool)
-    const nextRoot = pickRoot()
-    setRoot(nextRoot)
-    setSemitones(nextSemitones)
-    setSecond(computeSecond(nextRoot, nextSemitones))
-    setOptions(pickOptions(Interval.fromSemitones(nextSemitones), config.intervals))
+    setRound(createRound(null, pickAllowedIntervalSemitones(config), config.intervals))
     setSelected(null)
   }, [config])
 
   function handlePlay() {
-    playSequence([root, second])
+    playSequence([round.root, round.second])
   }
 
   function handleGuess(guess: string) {
@@ -97,7 +77,7 @@ export function IntervalExercise({ onBack }: IntervalExerciseProps) {
       correct: isRight,
       chosen: guess,
       expected: correctInterval,
-      prompt: { root, second, interval: correctInterval },
+      prompt: { root: round.root, second: round.second, interval: correctInterval },
     })
   }
 
@@ -142,8 +122,8 @@ export function IntervalExercise({ onBack }: IntervalExerciseProps) {
           </div>
         )}
 
-        <div className="grid w-full grid-cols-3 gap-3">
-          {options.map((ivl) => (
+        <div className="grid w-full grid-cols-2 gap-3 sm:grid-cols-4">
+          {round.options.map((ivl) => (
             <Button
               key={ivl}
               variant="outline"
@@ -185,6 +165,32 @@ export function IntervalExercise({ onBack }: IntervalExerciseProps) {
   )
 }
 
+interface IntervalRound {
+  root: string
+  semitones: number
+  second: string
+  options: string[]
+}
+
+/** One draw for the whole round. Choosing the root, the interval and the options
+ *  independently left the played pair and the option list out of step with the
+ *  answer, which made the first question of a session unanswerable. */
+function createRound(
+  seed: { root: string; semitones: number } | null,
+  allowedSemitones: number[],
+  allowedIntervals: string[],
+): IntervalRound {
+  const root = seed?.root ?? pickRoot()
+  const semitones = seed?.semitones ?? pickSemitones(allowedSemitones)
+
+  return {
+    root,
+    semitones,
+    second: computeSecond(root, semitones),
+    options: pickOptions(Interval.fromSemitones(semitones), allowedIntervals),
+  }
+}
+
 function readSeed(params: URLSearchParams): { root: string; semitones: number } | null {
   const root = params.get('root')
   const interval = params.get('interval')
@@ -203,7 +209,9 @@ function pickSemitones(allowed: number[]): number {
   return pool[Math.floor(Math.random() * pool.length)]
 }
 
+/** Second note of the interval. Spelled with sharps so the notebook and the other
+ * modules agree: Db5 and C#5 are the same key, and only one of them is used here. */
 function computeSecond(root: string, semitones: number): string {
   const interval = Interval.fromSemitones(semitones)
-  return Note.transpose(root, interval)
+  return Note.fromMidiSharps(Note.midi(Note.transpose(root, interval)) ?? 60)
 }

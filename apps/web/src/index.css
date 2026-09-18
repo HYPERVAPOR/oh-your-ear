@@ -64,6 +64,13 @@
   --success-foreground: #052e16;
 }
 
+/* Native controls otherwise pick up the OS accent, which is the one blue in an
+   otherwise monochrome palette. */
+input[type='checkbox'],
+input[type='radio'] {
+  accent-color: var(--primary);
+}
+
 body {
   background-color: var(--background);
   color: var(--foreground);
