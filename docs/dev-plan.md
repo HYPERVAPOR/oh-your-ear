@@ -230,8 +230,8 @@
 
 ### 12.3 Production deployment
 
-- **status**: 🔴 todo
-- **description**: Self-hosted server, reverse proxy, SSL, backups.
+- **status**: 🟡 doing
+- **description**: Artifacts are in place and verified locally: hardened `compose/compose.yml` (api and db publish no ports, `JWT_SECRET` / `POSTGRES_PASSWORD` / `FRONTEND_URL` have no fallback and refuse to start when unset), `compose/compose.tls.yml` + `Caddyfile` for automatic Let's Encrypt TLS, `compose/backup.sh` (pg_dump with retention, verified by restoring into a scratch database) and a runbook in [deploy.md](./deploy.md). What is left is server-side and needs a host, domain and secrets: DNS, `.env`, first deploy, cert issuance, cron for backups, and a real email sender for verification codes (currently a log line).
 - **depends on**: 12.2
 
 ---

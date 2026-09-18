@@ -5,8 +5,10 @@ services:
     build:
       context: ..
       dockerfile: apps/web/Containerfile
+    # Only the edge (Caddy via compose.tls.yml, or whatever proxy you put in
+    # front) may talk to the app. Loopback keeps this off the public interface.
     ports:
-      - "80:80"
+      - "127.0.0.1:8080:80"
     depends_on:
       - api
     restart: unless-stopped
@@ -15,12 +17,16 @@ services:
     build:
       context: ../apps/api
       dockerfile: Containerfile
-    ports:
-      - "8080:8080"
     environment:
       SERVER_ADDR: ":8080"
-      DATABASE_URL: "postgres://postgres:${POSTGRES_PASSWORD:-postgres}@db:5432/ohyourear?sslmode=disable"
-      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      DATABASE_URL: "postgres://postgres:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}@db:5432/ohyourear?sslmode=disable"
+      # No default: a known fallback secret in production would let anyone mint tokens.
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set}
+      APP_TIMEZONE: ${APP_TIMEZONE:-Asia/Shanghai}
+      FRONTEND_URL: ${FRONTEND_URL:?FRONTEND_URL must be set}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_REDIRECT_URL: ${GOOGLE_REDIRECT_URL:-}
     depends_on:
       db:
         condition: service_healthy
@@ -30,12 +36,10 @@ services:
     image: postgres:17.4-alpine
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}
       POSTGRES_DB: ohyourear
     volumes:
       - postgres-data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d ohyourear"]
       interval: 5s

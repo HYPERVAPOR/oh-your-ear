@@ -11,3 +11,4 @@ bin
 .turbo
 .idea
 .agents/
+backups/

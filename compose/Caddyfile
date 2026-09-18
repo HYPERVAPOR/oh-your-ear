@@ -1,0 +1,9 @@
+{$DOMAIN} {
+	tls {$ACME_EMAIL}
+
+	# Everything goes to nginx inside the web container, which serves the built
+	# SPA and proxies /api to the api container.
+	reverse_proxy web:80
+
+	encode zstd gzip
+}
