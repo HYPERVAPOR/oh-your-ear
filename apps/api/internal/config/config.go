@@ -17,6 +17,7 @@ type Config struct {
 	MockAuthEmail   string
 	MockAuthName    string
 	FrontendURL     string
+	AppTimezone     string
 	AccessTokenTTL  string
 	RefreshTokenTTL string
 }
@@ -35,6 +36,7 @@ func Load() Config {
 		MockAuthEmail:   getEnv("MOCK_AUTH_EMAIL", "dev@ohyourear.test"),
 		MockAuthName:    getEnv("MOCK_AUTH_NAME", "Developer"),
 		FrontendURL:     getEnv("FRONTEND_URL", "http://localhost:5173"),
+		AppTimezone:     getEnv("APP_TIMEZONE", "Asia/Shanghai"),
 		AccessTokenTTL:  getEnv("ACCESS_TOKEN_TTL", "15m"),
 		RefreshTokenTTL: getEnv("REFRESH_TOKEN_TTL", "7d"),
 	}

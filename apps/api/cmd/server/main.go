@@ -6,6 +6,9 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"time"
+	// Embedded so APP_TIMEZONE resolves even in images without tzdata.
+	_ "time/tzdata"
 
 	"github.com/HYPERVAPOR/oh-your-ear/apps/api/internal/api"
 	"github.com/HYPERVAPOR/oh-your-ear/apps/api/internal/auth"
@@ -30,7 +33,14 @@ func run() error {
 	}
 
 	authSvc := services.NewAuthService(pool)
-	server := api.NewServer(cfg, authSvc)
+
+	loc, err := time.LoadLocation(cfg.AppTimezone)
+	if err != nil {
+		return fmt.Errorf("invalid APP_TIMEZONE %q: %w", cfg.AppTimezone, err)
+	}
+	practiceSvc := services.NewPracticeService(pool, loc)
+
+	server := api.NewServer(cfg, authSvc, practiceSvc)
 
 	r := gin.Default()
 

@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
 
+import { StudyPlanForm } from '@/components/study-plan-form'
 import { Button } from '@/components/ui/button'
 import { useAuthStore } from '@/stores/auth-store'
 
@@ -27,7 +28,7 @@ export function Me() {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-3xl flex-1 px-6 py-12">
+      <main className="mx-auto w-full max-w-3xl flex-1 space-y-6 px-6 py-12">
         <dl className="space-y-4 rounded-md border border-border p-6">
           <div className="flex flex-col gap-1">
             <dt className="text-sm text-muted-foreground">{t('auth.email')}</dt>
@@ -41,7 +42,9 @@ export function Me() {
           )}
         </dl>
 
-        <Button variant="outline" className="mt-6" onClick={handleLogout}>
+        <StudyPlanForm />
+
+        <Button variant="outline" onClick={handleLogout}>
           {t('actions.logout')}
         </Button>
       </main>

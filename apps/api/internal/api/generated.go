@@ -22,11 +22,31 @@ const (
 	BearerAuthScopes = "bearerAuth.Scopes"
 )
 
+// Defines values for ExerciseKind.
+const (
+	Chord      ExerciseKind = "chord"
+	Interval   ExerciseKind = "interval"
+	Melody     ExerciseKind = "melody"
+	Rhythm     ExerciseKind = "rhythm"
+	SingleNote ExerciseKind = "singleNote"
+)
+
 // AuthResponse defines model for AuthResponse.
 type AuthResponse struct {
 	AccessToken  string       `json:"accessToken"`
 	RefreshToken *string      `json:"refreshToken,omitempty"`
 	User         UserResponse `json:"user"`
+}
+
+// DailyProgress defines model for DailyProgress.
+type DailyProgress struct {
+	// ByExercise Solved count per exercise kind, only for kinds practised today.
+	ByExercise *map[string]int `json:"byExercise,omitempty"`
+	Correct    int             `json:"correct"`
+
+	// Date Calendar date in the server's APP_TIMEZONE.
+	Date   openapi_types.Date `json:"date"`
+	Solved int                `json:"solved"`
 }
 
 // EmailAuthRequest defines model for EmailAuthRequest.
@@ -47,9 +67,35 @@ type ErrorResponse struct {
 	Message *string `json:"message,omitempty"`
 }
 
+// ExerciseKind The five exercise modules. Melody and rhythm are scored as a whole.
+type ExerciseKind string
+
 // HealthResponse defines model for HealthResponse.
 type HealthResponse struct {
 	Status string `json:"status"`
+}
+
+// PracticeRecordRequest defines model for PracticeRecordRequest.
+type PracticeRecordRequest struct {
+	Chosen  *string `json:"chosen"`
+	Correct bool    `json:"correct"`
+
+	// Exercise The five exercise modules. Melody and rhythm are scored as a whole.
+	Exercise ExerciseKind `json:"exercise"`
+	Expected *string      `json:"expected"`
+}
+
+// StudyPlan defines model for StudyPlan.
+type StudyPlan struct {
+	DailyGoal      int            `json:"dailyGoal"`
+	FocusExercises []ExerciseKind `json:"focusExercises"`
+	Today          DailyProgress  `json:"today"`
+}
+
+// StudyPlanUpdate defines model for StudyPlanUpdate.
+type StudyPlanUpdate struct {
+	DailyGoal      int             `json:"dailyGoal"`
+	FocusExercises *[]ExerciseKind `json:"focusExercises,omitempty"`
 }
 
 // UserResponse defines model for UserResponse.
@@ -80,6 +126,12 @@ type LoginJSONRequestBody = EmailAuthRequest
 // RegisterJSONRequestBody defines body for Register for application/json ContentType.
 type RegisterJSONRequestBody = EmailAuthRequest
 
+// UpdateStudyPlanJSONRequestBody defines body for UpdateStudyPlan for application/json ContentType.
+type UpdateStudyPlanJSONRequestBody = StudyPlanUpdate
+
+// CreatePracticeRecordJSONRequestBody defines body for CreatePracticeRecord for application/json ContentType.
+type CreatePracticeRecordJSONRequestBody = PracticeRecordRequest
+
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
 	// Send an email verification code
@@ -100,6 +152,15 @@ type ServerInterface interface {
 	// Health check
 	// (GET /health)
 	GetHealth(c *gin.Context)
+	// Get the study plan and today's progress for the current user
+	// (GET /me/plan)
+	GetStudyPlan(c *gin.Context)
+	// Create or replace the study plan for the current user
+	// (PUT /me/plan)
+	UpdateStudyPlan(c *gin.Context)
+	// Record the result of one answered question
+	// (POST /me/practice-records)
+	CreatePracticeRecord(c *gin.Context)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -193,6 +254,51 @@ func (siw *ServerInterfaceWrapper) GetHealth(c *gin.Context) {
 	siw.Handler.GetHealth(c)
 }
 
+// GetStudyPlan operation middleware
+func (siw *ServerInterfaceWrapper) GetStudyPlan(c *gin.Context) {
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetStudyPlan(c)
+}
+
+// UpdateStudyPlan operation middleware
+func (siw *ServerInterfaceWrapper) UpdateStudyPlan(c *gin.Context) {
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.UpdateStudyPlan(c)
+}
+
+// CreatePracticeRecord operation middleware
+func (siw *ServerInterfaceWrapper) CreatePracticeRecord(c *gin.Context) {
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.CreatePracticeRecord(c)
+}
+
 // GinServerOptions provides options for the Gin server.
 type GinServerOptions struct {
 	BaseURL      string
@@ -226,29 +332,40 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	router.GET(options.BaseURL+"/auth/me", wrapper.GetMe)
 	router.POST(options.BaseURL+"/auth/register", wrapper.Register)
 	router.GET(options.BaseURL+"/health", wrapper.GetHealth)
+	router.GET(options.BaseURL+"/me/plan", wrapper.GetStudyPlan)
+	router.PUT(options.BaseURL+"/me/plan", wrapper.UpdateStudyPlan)
+	router.POST(options.BaseURL+"/me/practice-records", wrapper.CreatePracticeRecord)
 }
 
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/+xW32/bNhD+Vwhuj5rtpFmB6WlpkXUZUrTIDwxDmocLebbYSKR6JJ16gf/34SjZsWQl",
-	"zrak2MPeTJP87rvvPp7uTipX1c6iDV7md5LQ1856TIs3oE/xS0QfeKWcDWjTT6jr0igIxtnxZ+8s/+dV",
-	"gRXwr+8JpzKX343vocfNrh8fETk6bYPI5XKZSY1ekakZTOYcU1AbdJnJc+feg120NPy343HunKjALlZk",
-	"PLO5sBBD4cj8ifrbUelE5e32JgMfxlCs7+Z3siZXIwXTFBCUQu/P3Q0mPmFRo8ylD2TsjPMhnBL64uED",
-	"0SPt4n/hcZM+o36JhlihywYg6xC5ylZx3PVnVKnMRxWYssll7bduKsrplCB+haou+fbe/quDH1/LTFbw",
-	"9QTtLBQyf53JytiN1VZGyJG6QMzx53Y5Uq6SmZw6qiDIvD0+gGOh6vE5LI3CLp29ySSTNpYlXPORQBG3",
-	"oHqCrQKmfB+U6q3T+KBUz5PiIK9BQh3/brPh7UFzVeg9zHBgrx87QQzF/hWhfOwB+AAh+q4W7mZnsu21",
-	"oYgdt28/uDkEoAtK8u8ofCYVIQTUh6mG63poCPhDMBXKx+y726FGd87FaPRjRt7JNtb677HtiZrCr+29",
-	"Tn0TeFtw7naoIpmwOON+08h8jUBI3C/uV7+sGP32+7lseyQjNbv37IoQ6qbLGjt1fL/bbQ8/HoupIxEK",
-	"FB8K8YeLJI6ABAKJQGCssTOx0e0Z2YTkrM3jhx+PZSbnSL6B3RtNRhOW0dVooTYyl69Gk9ErmckaQpHS",
-	"GnOfH686Xe2ax92jV97Cwguw/hbJi/3JQWILYg6l0QK0JvReeJcSQKtrZ2wQCqx1QVyjiB61CO6TRRsr",
-	"JAgoQCkXbfAj8cGWC+EsCiYhaqQ1oPHiBusgoDRzFBAECK766BMLwE8giXGsZS7bxrRuVLLxAfrwxunF",
-	"8303+41w2XUc2zj9sTHR7E8OtiVlDOGZzzKTB5PJQ4HXSOONwYiv7P+0+0p/kEnOjlUFtJC5PEOrBViR",
-	"noeYI5lpK0qqRDrduKN0M2M37dHV/iRtv6Dgmx/pJwk+ebb4nVlnYE7ifbSBwVGzz0ncmlCIwGOH/6fF",
-	"neztvrI9oa0rmwrS8HhScV0Mj1aX959i6hM3m6EWLgbhY5q+prEsF/8ipbYNy/yy24Avr5ZXvYw5qopE",
-	"aEOqw0aKzcdmhgPZvcPwHuULGqg3qW4Z6G2H8osL9Q4fVIlwZnxoZu9hK5yuTvz/1v8zb31VE+FIlE98",
-	"90WaYB97E82M+5LvojdFD8h9hjQ3CnkKaAgveqk3EEIVqG4aAI/E0096Bf3WpKAUGudYurpi9pmMPDLL",
-	"MdRmPN+Ty6vlXwEAAP//YJrvzJkQAAA=",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

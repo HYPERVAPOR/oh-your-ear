@@ -99,5 +99,16 @@
     "light": "浅色",
     "dark": "深色",
     "system": "跟随系统"
+  },
+  "plan": {
+    "today": "今日进度",
+    "solvedOfGoal": "{{solved}} / {{goal}} 题",
+    "accuracy": "正确率 {{percent}}%",
+    "title": "学习计划",
+    "description": "设定每日目标题数，未勾选重点模块表示五个模块都练。",
+    "dailyGoal": "每日目标题数",
+    "focus": "重点模块",
+    "save": "保存计划",
+    "saved": "已保存"
   }
 }

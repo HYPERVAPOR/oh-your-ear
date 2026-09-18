@@ -110,6 +110,41 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/me/plan': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Get the study plan and today's progress for the current user */
+    get: operations['getStudyPlan']
+    /** Create or replace the study plan for the current user */
+    put: operations['updateStudyPlan']
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/me/practice-records': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** Record the result of one answered question */
+    post: operations['createPracticeRecord']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
 }
 export type webhooks = Record<string, never>
 export interface components {
@@ -140,6 +175,39 @@ export interface components {
        * @example user@example.com
        */
       email: string
+    }
+    /**
+     * @description The five exercise modules. Melody and rhythm are scored as a whole.
+     * @enum {string}
+     */
+    ExerciseKind: 'singleNote' | 'interval' | 'chord' | 'melody' | 'rhythm'
+    DailyProgress: {
+      /**
+       * Format: date
+       * @description Calendar date in the server's APP_TIMEZONE.
+       */
+      date: string
+      solved: number
+      correct: number
+      /** @description Solved count per exercise kind, only for kinds practised today. */
+      byExercise?: {
+        [key: string]: number
+      }
+    }
+    StudyPlan: {
+      dailyGoal: number
+      focusExercises: components['schemas']['ExerciseKind'][]
+      today: components['schemas']['DailyProgress']
+    }
+    StudyPlanUpdate: {
+      dailyGoal: number
+      focusExercises?: components['schemas']['ExerciseKind'][]
+    }
+    PracticeRecordRequest: {
+      exercise: components['schemas']['ExerciseKind']
+      correct: boolean
+      chosen?: string | null
+      expected?: string | null
     }
     UserResponse: {
       /** Format: uuid */
@@ -327,6 +395,77 @@ export interface operations {
         }
         content?: never
       }
+      401: components['responses']['Unauthorized']
+    }
+  }
+  getStudyPlan: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Study plan with today's progress */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['StudyPlan']
+        }
+      }
+      401: components['responses']['Unauthorized']
+    }
+  }
+  updateStudyPlan: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['StudyPlanUpdate']
+      }
+    }
+    responses: {
+      /** @description Saved study plan */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['StudyPlan']
+        }
+      }
+      400: components['responses']['BadRequest']
+      401: components['responses']['Unauthorized']
+    }
+  }
+  createPracticeRecord: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['PracticeRecordRequest']
+      }
+    }
+    responses: {
+      /** @description Record stored */
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      400: components['responses']['BadRequest']
       401: components['responses']['Unauthorized']
     }
   }

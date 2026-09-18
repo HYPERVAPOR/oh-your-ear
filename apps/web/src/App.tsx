@@ -6,6 +6,7 @@ import { Music, Layers, AudioLines, Timer, Volume2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { PlayButton } from '@/components/play-button'
 import { RequireAuth } from '@/components/require-auth'
+import { TodayProgress } from '@/components/today-progress'
 
 import { ChordExercise } from '@/components/exercises/chord-exercise'
 import { IntervalExercise } from '@/components/exercises/interval-exercise'
@@ -81,6 +82,8 @@ function Home() {
 
       <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col items-center justify-center px-6 py-12">
         <p className="mb-6 text-center text-lg text-muted-foreground">{t('tagline')}</p>
+
+        <TodayProgress />
 
         <div className="mb-10 flex items-center gap-3">
           <PlayButton note="C4" />

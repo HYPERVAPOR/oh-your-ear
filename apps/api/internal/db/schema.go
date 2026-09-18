@@ -22,6 +22,28 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE INDEX IF NOT EXISTS idx_users_google_id ON users(google_id);
 
+CREATE TABLE IF NOT EXISTS study_plans (
+user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+daily_goal INT NOT NULL DEFAULT 20 CHECK (daily_goal BETWEEN 1 AND 500),
+focus_exercises TEXT[] NOT NULL DEFAULT '{}',
+created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- One row per answered question. Stats are aggregated on read; add rollup
+-- tables only if these queries stop being fast enough.
+CREATE TABLE IF NOT EXISTS practice_records (
+id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+exercise TEXT NOT NULL,
+correct BOOLEAN NOT NULL,
+chosen TEXT,
+expected TEXT,
+created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_practice_records_user_time ON practice_records(user_id, created_at DESC);
+
 -- One live verification code per address; rows are short-lived by design.
 CREATE TABLE IF NOT EXISTS email_codes (
 email TEXT PRIMARY KEY,

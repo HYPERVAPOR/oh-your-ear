@@ -8,23 +8,22 @@ import (
 
 	"github.com/HYPERVAPOR/oh-your-ear/apps/api/internal/auth"
 	"github.com/HYPERVAPOR/oh-your-ear/apps/api/internal/config"
-	"github.com/HYPERVAPOR/oh-your-ear/apps/api/internal/middleware"
 	"github.com/HYPERVAPOR/oh-your-ear/apps/api/internal/models"
 	"github.com/HYPERVAPOR/oh-your-ear/apps/api/internal/services"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
 
 // Server implements the generated OpenAPI server interface.
 type Server struct {
-	cfg  config.Config
-	auth *services.AuthService
+	cfg      config.Config
+	auth     *services.AuthService
+	practice *services.PracticeService
 }
 
 // NewServer creates a new API server.
-func NewServer(cfg config.Config, authSvc *services.AuthService) *Server {
-	return &Server{cfg: cfg, auth: authSvc}
+func NewServer(cfg config.Config, authSvc *services.AuthService, practiceSvc *services.PracticeService) *Server {
+	return &Server{cfg: cfg, auth: authSvc, practice: practiceSvc}
 }
 
 // GetHealth handles GET /health.
@@ -97,20 +96,8 @@ func (s *Server) loginWithEmail(c *gin.Context) {
 
 // GetMe handles GET /auth/me.
 func (s *Server) GetMe(c *gin.Context) {
-	if !middleware.Auth(c, s.cfg.JWTSecret) {
-		return
-	}
-
-	claims, ok := c.Get("user")
+	userID, ok := s.requireUser(c)
 	if !ok {
-		c.JSON(http.StatusUnauthorized, ErrorResponse{Error: "unauthorized"})
-		return
-	}
-
-	tokenClaims := claims.(*auth.TokenClaims)
-	userID, err := uuid.Parse(tokenClaims.UserID)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, ErrorResponse{Error: "invalid user"})
 		return
 	}
 
