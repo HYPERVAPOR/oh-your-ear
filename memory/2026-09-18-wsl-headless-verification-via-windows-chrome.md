@@ -39,6 +39,21 @@ Windows 侧能直连 WSL 的 `localhost:5173`（WSL2 localhost 转发）。截�
 
 `--force-dark-mode` 会让页面看到 `prefers-color-scheme: dark`。注意它会写进 Chrome 的默认 profile，所以后续"浅色"验证必须带 `--user-data-dir=<独立目录>`，否则会串味（第一次就踩了：两次运行都返回 `class="dark"`）。
 
+**2b. 窄屏截图必须用固定宽度 iframe**
+
+`--window-size=390,844` **不会**得到 390px 视口：headless Chrome 对窗口有个约 500px 的最小宽度，页面按 ~500px 排版，而 PNG 只截了 390px 宽 —— 右边被裁掉，看起来就像「页面横向溢出」，我差点据此去改布局。正确做法是固定宽度的 iframe：
+
+```html
+<script>
+  const f = document.createElement('iframe')
+  f.style.width = '390px'; f.style.height = '900px'; f.style.display = 'block'
+  f.src = '/me'
+  document.body.append(f)
+</script>
+```
+
+窗口开大一点（如 `--window-size=430,980`），截图里 iframe 之外是页面底色，一眼能看出真实视口范围。验证视口是否真的生效：`f.contentDocument.documentElement.clientWidth`。
+
 **3. 预置 localStorage（验证持久化状态）**
 
 zustand persist 的主题存在 `oye-app-storage`，headless 每次都是干净 profile，没法直接设。做法是在 `apps/web/public/__seed.html` 放一个同源小页面：
