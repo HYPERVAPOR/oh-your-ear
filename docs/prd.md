@@ -204,6 +204,8 @@
 - **共享用户偏好**：语言与主题是同一份偏好（父域 cookie + 本地存储），用户在落地页切了深色或英文，进 app 后保持。登录态靠 httpOnly 刷新 cookie 跨子域生效，**不在 URL 里传任何令牌**。
 - **不共享**：文案与页面结构。落地页有自己的文案命名空间，避免与产品文案互相牵动；字体文件各自打包（跨域名加载字体要额外配 CORS，不值得）。
 
+**部署形态**：两个前端由 Vercel 托管（`xxx.xxx` 落地页、`app.xxx.xxx` app），Go API 与 Postgres 自托管在 VPS 上。app 的 `/api` 请求由 Vercel 的 rewrite 代理回 VPS，因此**浏览器始终只与 app 域名交互**：刷新 cookie 是 host-only、`SameSite` 保持默认、API 不需要 CORS、OAuth 回调也落在 app 域名上。VPS 上的 Caddy 只为 `api.xxx.xxx` 签证书。
+
 拆分不改变「游客可练基础题」：直接访问 app 域名同样能开始练习，落地页只是入口之一。
 
 ### 7.2 响应式断点
