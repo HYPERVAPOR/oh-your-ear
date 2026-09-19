@@ -169,13 +169,14 @@
     "rhythm": "Tap the rhythm back."
   },
   "home": {
-    "modulesHeading": "Five modules",
     "guestNote": "Guests can practise everything; scores last for this session only.",
     "loginCtaHint": "Study plan, accuracy trend, re-practice, streaks and badges.",
     "loginHeading": "Sign in for progress and the notebook",
     "heroLine1": "Five drills, ready whenever you are, no account needed.",
     "heroLine2": "Pitch, intervals, chords, melody, rhythm.",
-    "startCta": "Start with single note"
+    "startCta": "Start with single note",
+    "practiceHeading": "Practice mode",
+    "practiceHint": "Endless random questions; start and stop whenever. Guests can practise everything."
   },
   "settings": {
     "language": "Language",
@@ -209,9 +210,13 @@
     "questions": "{{count}} questions",
     "best": "best {{percent}}%",
     "empty": "Nothing here yet. Start with level 1.",
-    "entry": "Question sets",
-    "entryHint": "Work through each module by difficulty, with your best score kept per level.",
     "guestBanner": "Question-set progress lives in your account. Sign in to start from level 1.",
-    "entryHintGuest": "Work through each module by difficulty; progress is saved to your account."
+    "entryHintGuest": "Work through each module by difficulty; progress is saved to your account.",
+    "modeTitle": "Question sets",
+    "modeHint": "One chain per module, easy to hard. Pass a level to open the next one; progress follows your account.",
+    "continueAt": "Continue level {{number}} · best {{percent}}%",
+    "startAt": "Start at level {{number}}",
+    "allPassed": "Every level in this chain is passed",
+    "viewAll": "See all levels"
   }
 }
