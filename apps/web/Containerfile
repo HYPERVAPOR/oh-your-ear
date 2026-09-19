@@ -9,11 +9,16 @@ WORKDIR /workspace
 FROM base AS deps
 COPY package.json pnpm-workspace.yaml .npmrc pnpm-lock.yaml ./
 COPY apps/web/package.json ./apps/web/package.json
+# The shared package is a workspace dependency of the app: without its manifest here
+# pnpm does not link it, and the build stage then cannot resolve the packages the
+# shared source imports (react, i18next, zustand).
+COPY packages/shared/package.json ./packages/shared/package.json
 RUN pnpm install --frozen-lockfile
 
 FROM base AS builder
 COPY --from=deps /workspace/node_modules /workspace/node_modules
 COPY --from=deps /workspace/apps/web/node_modules /workspace/apps/web/node_modules
+COPY --from=deps /workspace/packages/shared/node_modules /workspace/packages/shared/node_modules
 COPY . .
 RUN pnpm --filter @oh-your-ear/web run build
 
