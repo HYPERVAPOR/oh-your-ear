@@ -1,13 +1,20 @@
-// Guards the i18n surface: both locales must expose the same keys, and every
-// locale key referenced from src/ must exist. Reports unused keys without failing.
+// Guards the i18n surface of one site: both locales must expose the same keys, and
+// every locale key referenced from its src/ must exist. Reports unused keys without
+// failing.
+//
+// Usage: node scripts/check-i18n.mjs <dir>   (default: .)
+//
+// Reads every JSON file in <dir>/src/i18n/locales/<locale>/ so a site can split its copy
+// into namespaces, and ignores the keys this package ships for shared components
+// (packages/shared/src/i18n-ui) — those never appear in a site's own locale files.
 //
 // Dynamic keys such as t(`chords.${type}`) are matched by their literal prefix,
 // so every key under that prefix counts as used.
 import { readdirSync, readFileSync, statSync } from 'node:fs'
-import { join } from 'node:path'
+import { join, resolve } from 'node:path'
 
 const LOCALES = ['zh', 'en']
-const root = new URL('..', import.meta.url).pathname
+const root = resolve(process.argv[2] ?? '.')
 
 function flatten(value, prefix = '') {
   return Object.entries(value).flatMap(([key, child]) => {
@@ -17,8 +24,12 @@ function flatten(value, prefix = '') {
 }
 
 function localeKeys(locale) {
-  const file = join(root, 'src/i18n/locales', locale, 'common.json')
-  return new Set(flatten(JSON.parse(readFileSync(file, 'utf8'))))
+  const dir = join(root, 'src/i18n/locales', locale)
+  return new Set(
+    readdirSync(dir)
+      .filter((name) => name.endsWith('.json'))
+      .flatMap((name) => flatten(JSON.parse(readFileSync(join(dir, name), 'utf8')))),
+  )
 }
 
 function sourceFiles(dir) {

@@ -21,6 +21,22 @@ services:
     depends_on:
       - api
 
+  landing:
+    image: node:24.16.0-slim
+    working_dir: /workspace
+    volumes:
+      - ..:/workspace:cached
+    ports:
+      - "5174:5174"
+    command:
+      - sh
+      - -c
+      - |
+        corepack enable
+        corepack prepare pnpm@10.15.0 --activate
+        pnpm install --config.confirmModulesPurge=false
+        pnpm --filter @oh-your-ear/landing dev
+
   api:
     image: golang:1.26.4-bookworm
     working_dir: /workspace/apps/api

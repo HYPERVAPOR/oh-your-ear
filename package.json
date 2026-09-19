@@ -13,7 +13,10 @@
     "build": "turbo run build",
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
-    "clean": "turbo run clean"
+    "check:i18n": "turbo run check:i18n",
+    "format:check": "turbo run format:check",
+    "clean": "turbo run clean",
+    "test": "turbo run test"
   },
   "devDependencies": {
     "turbo": "2.10.13"

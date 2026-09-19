@@ -6,7 +6,7 @@ import { BrowserRouter } from 'react-router-dom'
 import './i18n'
 import './index.css'
 
-import { ThemeProvider } from '@/providers/theme-provider'
+import { ThemeProvider } from '@oh-your-ear/shared/theme'
 import App from './App.tsx'
 
 const queryClient = new QueryClient({

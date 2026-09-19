@@ -1,6 +1,5 @@
 {
   "appName": "Oh Your Ear",
-  "tagline": "Train your ear, anywhere.",
   "modules": {
     "singleNote": "Single Note",
     "interval": "Interval",
@@ -97,11 +96,6 @@
     "wrong": "The answer was {{answer}}."
   },
   "notFound": "Page not found.",
-  "theme": {
-    "light": "Light",
-    "dark": "Dark",
-    "system": "System"
-  },
   "plan": {
     "today": "Today's progress",
     "solvedOfGoal": "{{solved}} / {{goal}} questions",
@@ -173,18 +167,11 @@
     "guestNote": "Guests can practise everything; scores last for this session only.",
     "loginCtaHint": "Study plan, accuracy trend, re-practice, streaks and badges.",
     "loginHeading": "Sign in for progress and the notebook",
-    "heroLine1": "Five drills, ready whenever you are, no account needed.",
-    "heroLine2": "Pitch, intervals, chords, melody, rhythm.",
-    "startCta": "Get started",
     "practiceHeading": "Random practice",
     "practiceHint": "Endless random questions, no rounds and no goal; guests can practise everything.",
     "dailyHint": "Set a daily question goal and focus modules, then work through the day’s amount.",
     "mistakesTile": "Mistake review",
     "mistakesHint": "Drawn from your mistake notebook."
-  },
-  "settings": {
-    "theme": "Theme",
-    "switchLanguage": "Switch to {{language}}"
   },
   "round": {
     "title": "Round complete",
