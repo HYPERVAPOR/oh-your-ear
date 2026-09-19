@@ -214,9 +214,19 @@ func (s *PracticeService) GetPlan(ctx context.Context, userID uuid.UUID) (*model
 	return plan, nil
 }
 
-// UpdatePlan creates or replaces a user's study plan.
+// UpdatePlan creates or replaces a user's study plan, and records today's goal so
+// the calendar can judge this day later on its own terms.
 func (s *PracticeService) UpdatePlan(ctx context.Context, userID uuid.UUID, dailyGoal int, focusExercises []string) error {
 	_, err := s.pool.Exec(ctx, `
+		INSERT INTO daily_goals (user_id, day, goal)
+		VALUES ($1, (NOW() AT TIME ZONE $3)::date, $2)
+		ON CONFLICT (user_id, day) DO UPDATE SET goal = EXCLUDED.goal
+	`, userID, dailyGoal, s.loc.String())
+	if err != nil {
+		return fmt.Errorf("failed to record today's goal: %w", err)
+	}
+
+	_, err = s.pool.Exec(ctx, `
 		INSERT INTO study_plans (user_id, daily_goal, focus_exercises)
 		VALUES ($1, $2, $3)
 		ON CONFLICT (user_id) DO UPDATE SET
@@ -421,6 +431,123 @@ func fillTrend(counts map[string]models.DailyProgress, loc *time.Location, days 
 		trend = append(trend, entry)
 	}
 	return trend
+}
+
+// DailyBucket is one day of practice history, judged against the goal in force then.
+type DailyBucket struct {
+	Date    time.Time
+	Solved  int
+	Correct int
+	Goal    int
+}
+
+// DailyHistory is the calendar data: a bucket per day plus the streaks.
+type DailyHistory struct {
+	Days          []DailyBucket
+	CurrentStreak int
+	LongestStreak int
+}
+
+// DailyHistoryForUser returns one bucket per local day for the requested span,
+// oldest first, filling days with no practice. Past days are judged against the
+// goal recorded for that day; days from before goals were recorded fall back to
+// the current goal.
+func (s *PracticeService) DailyHistoryForUser(ctx context.Context, userID uuid.UUID, days int) (*DailyHistory, error) {
+	plan, err := s.GetPlan(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	now := time.Now().In(s.loc)
+	start := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, s.loc).AddDate(0, 0, -(days - 1))
+
+	counts := map[string]DailyBucket{}
+	rows, err := s.pool.Query(ctx, `
+		SELECT date_trunc('day', created_at AT TIME ZONE $2)::date AS day,
+		       COUNT(*)::int,
+		       COUNT(*) FILTER (WHERE correct)::int
+		FROM practice_records
+		WHERE user_id = $1 AND created_at >= $3
+		GROUP BY 1
+	`, userID, s.loc.String(), start)
+	if err != nil {
+		return nil, fmt.Errorf("failed to aggregate daily history: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var bucket DailyBucket
+		if err := rows.Scan(&bucket.Date, &bucket.Solved, &bucket.Correct); err != nil {
+			return nil, fmt.Errorf("failed to read daily history: %w", err)
+		}
+		counts[bucket.Date.Format("2006-01-02")] = bucket
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("failed to aggregate daily history: %w", err)
+	}
+
+	goals := map[string]int{}
+	goalRows, err := s.pool.Query(ctx,
+		`SELECT day, goal FROM daily_goals WHERE user_id = $1 AND day >= $2`, userID, start)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read recorded goals: %w", err)
+	}
+	defer goalRows.Close()
+
+	for goalRows.Next() {
+		var day time.Time
+		var goal int
+		if err := goalRows.Scan(&day, &goal); err != nil {
+			return nil, fmt.Errorf("failed to read recorded goals: %w", err)
+		}
+		goals[day.Format("2006-01-02")] = goal
+	}
+	if err := goalRows.Err(); err != nil {
+		return nil, fmt.Errorf("failed to read recorded goals: %w", err)
+	}
+
+	history := &DailyHistory{Days: make([]DailyBucket, 0, days)}
+	run, longest := 0, 0
+	for offset := days - 1; offset >= 0; offset-- {
+		day := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, s.loc).AddDate(0, 0, -offset)
+		key := day.Format("2006-01-02")
+
+		bucket := counts[key]
+		bucket.Date = day
+		if goal, ok := goals[key]; ok {
+			bucket.Goal = goal
+		} else {
+			bucket.Goal = plan.DailyGoal
+		}
+
+		if bucket.Solved > 0 {
+			run++
+			if run > longest {
+				longest = run
+			}
+		} else {
+			run = 0
+		}
+
+		history.Days = append(history.Days, bucket)
+	}
+
+	// The current streak counts back from today, or from yesterday when today is
+	// still ahead of the user.
+	history.CurrentStreak = 0
+	for i := len(history.Days) - 1; i >= 0; i-- {
+		if history.Days[i].Solved > 0 {
+			history.CurrentStreak++
+			continue
+		}
+		if i == len(history.Days)-1 {
+			continue
+		}
+		break
+	}
+	history.LongestStreak = longest
+
+	return history, nil
 }
 
 // TodayProgress aggregates the current local day for a user.

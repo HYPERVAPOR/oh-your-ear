@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom'
 
 import { apiClient } from '@/api/client'
 import { AppHeader } from '@/components/app-header'
+import { DailyHeatmap } from '@/components/daily-heatmap'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { ModuleSwatch, type ExerciseKind } from '@/components/ui/orb'
@@ -122,7 +123,11 @@ export function Daily() {
           </Card>
         )}
 
-        <p className="mt-8 text-[14px] text-muted">{t('daily.historySoon')}</p>
+        {user && (
+          <div className="mt-6">
+            <DailyHeatmap />
+          </div>
+        )}
       </main>
     </div>
   )

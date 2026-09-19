@@ -188,6 +188,35 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
+  /me/daily:
+    get:
+      operationId: listDailyHistory
+      summary: Per-day practice history for the calendar
+      description: |
+        One bucket per local day, oldest first, including days with no practice.
+        Each day is judged against the goal that was in force then; days from
+        before goals were recorded fall back to the current goal.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: days
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 7
+            maximum: 400
+            default: 371
+      responses:
+        '200':
+          description: Daily buckets and streaks
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DailyHistory'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
   /me/levels:
     get:
       operationId: listLevelProgress
@@ -436,6 +465,46 @@ components:
             The question itself (notes, interval, chord type, rhythm pattern...).
             Wrong answers carrying a prompt land in the mistake notebook, and a
             later correct answer for the same prompt clears the entry.
+
+    DailyBucket:
+      type: object
+      required:
+        - date
+        - solved
+        - correct
+        - goal
+        - met
+      properties:
+        date:
+          type: string
+          format: date
+        solved:
+          type: integer
+        correct:
+          type: integer
+        goal:
+          type: integer
+          description: The daily goal that applied that day.
+        met:
+          type: boolean
+          description: Solved reached the goal.
+
+    DailyHistory:
+      type: object
+      required:
+        - days
+        - currentStreak
+        - longestStreak
+      properties:
+        days:
+          type: array
+          items:
+            $ref: '#/components/schemas/DailyBucket'
+        currentStreak:
+          type: integer
+          description: Consecutive days up to today (or yesterday) with any practice.
+        longestStreak:
+          type: integer
 
     LevelProgress:
       type: object

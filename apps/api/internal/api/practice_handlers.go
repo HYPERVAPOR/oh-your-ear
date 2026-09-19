@@ -188,6 +188,48 @@ func (s *Server) ResolveMistake(c *gin.Context, id openapi_types.UUID) {
 	c.Status(http.StatusNoContent)
 }
 
+// ListDailyHistory handles GET /me/daily.
+func (s *Server) ListDailyHistory(c *gin.Context, params ListDailyHistoryParams) {
+	userID, ok := s.requireUser(c)
+	if !ok {
+		return
+	}
+
+	days := 371
+	if params.Days != nil {
+		days = *params.Days
+	}
+	if days < 7 {
+		days = 7
+	}
+	if days > 400 {
+		days = 400
+	}
+
+	history, err := s.practice.DailyHistoryForUser(c.Request.Context(), userID, days)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "failed to load daily history"})
+		return
+	}
+
+	buckets := make([]DailyBucket, 0, len(history.Days))
+	for _, day := range history.Days {
+		buckets = append(buckets, DailyBucket{
+			Date:    openapi_types.Date{Time: day.Date},
+			Solved:  day.Solved,
+			Correct: day.Correct,
+			Goal:    day.Goal,
+			Met:     day.Solved >= day.Goal,
+		})
+	}
+
+	c.JSON(http.StatusOK, DailyHistory{
+		Days:          buckets,
+		CurrentStreak: history.CurrentStreak,
+		LongestStreak: history.LongestStreak,
+	})
+}
+
 // ListLevelProgress handles GET /me/levels.
 func (s *Server) ListLevelProgress(c *gin.Context) {
 	userID, ok := s.requireUser(c)
