@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/HYPERVAPOR/oh-your-ear/apps/api/internal/auth"
@@ -173,7 +174,8 @@ func (s *Server) IssueTokens(user *models.User) (string, string, error) {
 // SetRefreshCookie stores the refresh token in an http-only cookie.
 func (s *Server) SetRefreshCookie(c *gin.Context, refreshToken string) {
 	_, refreshTTL := s.TokenTTLs()
-	c.SetCookie(auth.RefreshTokenCookieName, refreshToken, int(refreshTTL.Seconds()), "/", "", false, true)
+	secure := strings.HasPrefix(s.cfg.FrontendURL, "https://")
+	c.SetCookie(auth.RefreshTokenCookieName, refreshToken, int(refreshTTL.Seconds()), "/", "", secure, true)
 }
 
 // RespondWithSession signs the user in and writes the generated AuthResponse.
@@ -226,6 +228,6 @@ func (s *Server) Logout(c *gin.Context) {
 		}
 	}
 
-	c.SetCookie(auth.RefreshTokenCookieName, "", -1, "/", "", false, true)
+	c.SetCookie(auth.RefreshTokenCookieName, "", -1, "/", "", strings.HasPrefix(s.cfg.FrontendURL, "https://"), true)
 	c.Status(http.StatusNoContent)
 }

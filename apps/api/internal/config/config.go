@@ -40,16 +40,18 @@ func Load() Config {
 		GoogleClientID: getEnv("GOOGLE_CLIENT_ID", ""),
 		GoogleSecret:   getEnv("GOOGLE_CLIENT_SECRET", ""),
 		GoogleRedirect: getEnv("GOOGLE_REDIRECT_URL", "http://localhost:8080/api/v1/auth/google/callback"),
-		MockAuthEmail:  getEnv("MOCK_AUTH_EMAIL", "dev@ohyourear.test"),
-		MockAuthName:   getEnv("MOCK_AUTH_NAME", "Developer"),
-		FrontendURL:    getEnv("FRONTEND_URL", "http://localhost:5173"),
-		AppTimezone:    getEnv("APP_TIMEZONE", "Asia/Shanghai"),
-		MailDriver:     getEnv("MAIL_DRIVER", "log"),
-		SMTPHost:       getEnv("SMTP_HOST", ""),
-		SMTPPort:       getEnv("SMTP_PORT", "587"),
-		SMTPUsername:   getEnv("SMTP_USERNAME", ""),
-		SMTPPassword:   getEnv("SMTP_PASSWORD", ""),
-		SMTPFrom:       getEnv("SMTP_FROM", "no-reply@ohyourear.local"),
+		// No default: the mock login route is only registered when this is set, so an
+		// unconfigured deployment has no way in through it (see main.go).
+		MockAuthEmail: getEnv("MOCK_AUTH_EMAIL", ""),
+		MockAuthName:  getEnv("MOCK_AUTH_NAME", ""),
+		FrontendURL:   getEnv("FRONTEND_URL", "http://localhost:5173"),
+		AppTimezone:   getEnv("APP_TIMEZONE", "Asia/Shanghai"),
+		MailDriver:    getEnv("MAIL_DRIVER", "log"),
+		SMTPHost:      getEnv("SMTP_HOST", ""),
+		SMTPPort:      getEnv("SMTP_PORT", "587"),
+		SMTPUsername:  getEnv("SMTP_USERNAME", ""),
+		SMTPPassword:  getEnv("SMTP_PASSWORD", ""),
+		SMTPFrom:      getEnv("SMTP_FROM", "no-reply@ohyourear.local"),
 		// Private ranges cover the compose network the reverse proxy sits on.
 		// Trusting them is what makes X-Forwarded-For usable; trusting everyone
 		// would let any caller forge its own IP and walk past rate limits.
