@@ -17,6 +17,8 @@ import { playSequence } from '@/lib/audio'
 import { useExerciseConfig } from '@/lib/exercise-config'
 import { buildMelodyPool, makeMelodyQuestion, melodyGap, readMelodySeed } from '@/lib/melody'
 import { recordAnswer } from '@/lib/practice'
+import { useRound, useRoundSize } from '@/lib/round'
+import { RoundSummary } from '@/components/round-summary'
 
 interface RollScale {
   low: number
@@ -82,11 +84,11 @@ export function MelodyExercise({ onBack }: { onBack?: () => void }) {
     [config],
   )
 
+  const roundSize = useRoundSize()
+  const round = useRound(roundSize)
   const [question, setQuestion] = useState(() => newQuestion(seed))
   const [selected, setSelected] = useState<number | null>(null)
   const [playing, setPlaying] = useState(false)
-  const [score, setScore] = useState(0)
-  const [total, setTotal] = useState(0)
 
   const gap = melodyGap(config)
   const scale = useMemo(() => rollScale(question.options), [question])
@@ -107,9 +109,13 @@ export function MelodyExercise({ onBack }: { onBack?: () => void }) {
     if (selected !== null) return
 
     setSelected(index)
-    setTotal((prev) => prev + 1)
     const right = index === question.answerIndex
-    if (right) setScore((prev) => prev + 1)
+    round.record({
+      question: answer,
+      chosen: question.options[index].join(' '),
+      expected: answer,
+      correct: right,
+    })
 
     recordAnswer({
       exercise: 'melody',
@@ -125,8 +131,28 @@ export function MelodyExercise({ onBack }: { onBack?: () => void }) {
     setSelected(null)
   }
 
+  if (round.finished) {
+    return (
+      <RoundSummary
+        kind="melody"
+        entries={round.entries}
+        durationMs={round.durationMs}
+        onRestart={() => {
+          round.restart()
+          startRound()
+        }}
+        onBack={onBack}
+      />
+    )
+  }
+
   return (
-    <ExerciseShell kind="melody" onBack={onBack} score={{ correct: score, total }}>
+    <ExerciseShell
+      kind="melody"
+      onBack={onBack}
+      score={{ correct: round.correct, total: round.total }}
+      progress={roundSize > 0 ? { done: round.total, size: roundSize } : undefined}
+    >
       <div className="mb-10 flex items-center gap-2.5">
         <Button
           size="hero"

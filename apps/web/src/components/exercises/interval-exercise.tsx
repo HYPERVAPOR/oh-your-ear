@@ -14,6 +14,8 @@ import {
   useExerciseConfig,
 } from '@/lib/exercise-config'
 import { recordAnswer } from '@/lib/practice'
+import { useRound, useRoundSize } from '@/lib/round'
+import { RoundSummary } from '@/components/round-summary'
 
 const ROOT_POOL = ['C3', 'D3', 'E3', 'F3', 'G3', 'A3', 'B3', 'C4', 'D4', 'E4', 'F4', 'G4', 'A4']
 
@@ -91,48 +93,74 @@ export function IntervalExercise({ onBack }: { onBack?: () => void }) {
   const allowedIntervals = useMemo(() => config.intervals, [config.intervals])
 
   const seed = readSeed(useSearchParams()[0])
-  const [round, setRound] = useState(() => createRound(seed, allowedSemitones, allowedIntervals))
+  const roundSize = useRoundSize()
+  const round = useRound(roundSize)
+  const [question, setQuestion] = useState(() =>
+    createRound(seed, allowedSemitones, allowedIntervals),
+  )
   const [selected, setSelected] = useState<string | null>(null)
-  const [score, setScore] = useState(0)
-  const [total, setTotal] = useState(0)
 
-  const correctInterval = Interval.fromSemitones(round.semitones)
+  const correctInterval = Interval.fromSemitones(question.semitones)
   const isCorrect = selected ? selected === correctInterval : null
 
   const startRound = useCallback(() => {
-    setRound(createRound(null, pickAllowedIntervalSemitones(config), config.intervals))
+    setQuestion(createRound(null, pickAllowedIntervalSemitones(config), config.intervals))
     setSelected(null)
   }, [config])
 
+  if (round.finished) {
+    return (
+      <RoundSummary
+        kind="interval"
+        entries={round.entries}
+        durationMs={round.durationMs}
+        onRestart={() => {
+          round.restart()
+          startRound()
+        }}
+        onBack={onBack}
+      />
+    )
+  }
+
   function handlePlay() {
-    playSequence([round.root, round.second])
+    playSequence([question.root, question.second])
   }
 
   function handleGuess(guess: string) {
     if (selected) return
     setSelected(guess)
-    setTotal((prev) => prev + 1)
 
     const right = guess === correctInterval
-    if (right) setScore((prev) => prev + 1)
+    round.record({
+      question: `${question.root} → ${question.second}`,
+      chosen: t(`intervals.${guess}`),
+      expected: t(`intervals.${correctInterval}`),
+      correct: right,
+    })
 
     recordAnswer({
       exercise: 'interval',
       correct: right,
       chosen: guess,
       expected: correctInterval,
-      prompt: { root: round.root, second: round.second, interval: correctInterval },
+      prompt: { root: question.root, second: question.second, interval: correctInterval },
     })
   }
 
   return (
-    <ExerciseShell kind="interval" onBack={onBack} score={{ correct: score, total }}>
+    <ExerciseShell
+      kind="interval"
+      onBack={onBack}
+      score={{ correct: round.correct, total: round.total }}
+      progress={roundSize > 0 ? { done: round.total, size: roundSize } : undefined}
+    >
       <Button size="hero" className="mb-10" onClick={handlePlay}>
         {t('actions.play')}
       </Button>
 
       <div className="grid w-full grid-cols-2 gap-2.5 sm:grid-cols-4">
-        {round.options.map((ivl) => (
+        {question.options.map((ivl) => (
           <OptionTile
             key={ivl}
             disabled={!!selected}

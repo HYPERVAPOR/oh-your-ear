@@ -180,5 +180,19 @@
   "settings": {
     "language": "Language",
     "theme": "Theme"
+  },
+  "round": {
+    "title": "Round complete",
+    "correct": "Correct",
+    "accuracy": "Accuracy",
+    "duration": "Time",
+    "review": "Review",
+    "restart": "Another round",
+    "exit": "Back home",
+    "progress": "{{done}} / {{size}}",
+    "answeredCorrect": "{{answer}} ✓",
+    "answeredWrong": "you chose {{chosen}}, answer {{answer}}",
+    "guestHint": "Sign in to keep detailed statistics and a mistake notebook.",
+    "rhythmQuestion": "{{count}} beats · {{bpm}} BPM"
   }
 }
