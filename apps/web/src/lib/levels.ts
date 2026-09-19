@@ -205,6 +205,31 @@ export function findLevel(id: string | null): Level | undefined {
   return LEVELS.find((level) => level.id === id)
 }
 
+/** What one user has done with one level, as the API reports it. */
+export interface LevelProgressEntry {
+  levelId: string
+  passed: boolean
+  bestAccuracy: number
+}
+
+/** The level to continue a chain with: the first one not passed yet. */
+export function currentLevel(
+  module: ExerciseKind,
+  progress: Map<string, LevelProgressEntry>,
+): Level | undefined {
+  const chain = levelsFor(module)
+  return chain.find((level) => !progress.get(level.id)?.passed) ?? chain[chain.length - 1]
+}
+
+/** True when every level of the chain is passed. */
+export function chainComplete(
+  module: ExerciseKind,
+  progress: Map<string, LevelProgressEntry>,
+): boolean {
+  const chain = levelsFor(module)
+  return chain.length > 0 && chain.every((level) => progress.get(level.id)?.passed)
+}
+
 /** The level after this one, or undefined at the end of a chain. */
 export function nextLevel(id: string): Level | undefined {
   const level = findLevel(id)

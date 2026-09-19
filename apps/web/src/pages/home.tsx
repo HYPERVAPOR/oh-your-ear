@@ -1,13 +1,72 @@
+import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
+import { apiClient } from '@/api/client'
 import { AppHeader } from '@/components/app-header'
 import { PlayButton } from '@/components/play-button'
 import { TodayProgress } from '@/components/today-progress'
 import { buttonVariants } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { Orb } from '@/components/ui/orb'
+import { ModuleSwatch, Orb, type ExerciseKind } from '@/components/ui/orb'
+import { chainComplete, currentLevel, levelsFor, type LevelProgressEntry } from '@/lib/levels'
 import { useAuthStore } from '@/stores/auth-store'
+
+const MODULES: ExerciseKind[] = ['singleNote', 'interval', 'chord', 'melody', 'rhythm']
+
+/** One module's chain as a card: continue where you left off, or start at level 1. */
+function LevelCard({
+  kind,
+  progress,
+  signedIn,
+}: {
+  kind: ExerciseKind
+  progress: Map<string, LevelProgressEntry>
+  signedIn: boolean
+}) {
+  const { t } = useTranslation('common')
+  const level = currentLevel(kind, progress)
+  if (!level) return null
+
+  const number = levelsFor(kind).findIndex((item) => item.id === level.id) + 1
+  const entry = progress.get(level.id)
+  const target = `/exercise/${level.module}?level=${level.id}`
+
+  return (
+    <Link
+      to={signedIn ? target : '/login'}
+      state={signedIn ? undefined : { from: target }}
+      className="group block w-full sm:w-[calc(50%-10px)] lg:w-[calc(33.333%-14px)]"
+    >
+      <Card
+        interactive
+        className="relative h-full min-h-[132px] overflow-hidden p-5 transition-colors group-hover:border-hairline-strong"
+      >
+        <Orb
+          kind={kind}
+          size="md"
+          className="-bottom-16 -right-12 transition-transform duration-500 group-hover:scale-110"
+        />
+        <div className="relative">
+          <div className="flex items-center gap-2.5">
+            <ModuleSwatch kind={kind} />
+            <h3 className="text-[21px] font-light leading-tight">{t(`modules.${kind}`)}</h3>
+          </div>
+          <p className="mt-2 text-[15px] text-body">
+            {chainComplete(kind, progress)
+              ? t('levels.allPassed')
+              : entry
+                ? t('levels.continueAt', {
+                    number,
+                    percent: Math.round(entry.bestAccuracy * 100),
+                  })
+                : t('levels.startAt', { number })}
+          </p>
+        </div>
+      </Card>
+    </Link>
+  )
+}
 
 const modules = [
   { key: 'singleNote', route: '/exercise/single-note' },
@@ -20,6 +79,19 @@ const modules = [
 export function Home() {
   const { t } = useTranslation('common')
   const user = useAuthStore((s) => s.user)
+
+  const { data: progress } = useQuery({
+    queryKey: ['level-progress'],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await apiClient.GET('/me/levels')
+      return data
+    },
+  })
+
+  const progressById = new Map<string, LevelProgressEntry>(
+    (progress ?? []).map((entry) => [entry.levelId, entry]),
+  )
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -66,17 +138,8 @@ export function Home() {
         {/* The five modules, each carrying the orb colour it owns everywhere else. */}
         <section className="px-6 pb-24 sm:pb-32">
           <div className="mx-auto max-w-[1200px]">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <h2 className="text-[26px] font-light sm:text-[32px]">{t('home.modulesHeading')}</h2>
-              {/* The other mode, beside the practice modules: shown to guests too,
-                  because the ladder is what makes signing in worth it. */}
-              <Link to="/levels" className={buttonVariants({ variant: 'outline' })}>
-                {t('levels.entry')}
-              </Link>
-            </div>
-            <p className="mt-3 max-w-[60ch] text-[14px] text-muted">
-              {user ? t('levels.entryHint') : t('levels.entryHintGuest')}
-            </p>
+            <h2 className="text-[26px] font-light sm:text-[32px]">{t('home.practiceHeading')}</h2>
+            <p className="mt-3 max-w-[60ch] text-[14px] text-muted">{t('home.practiceHint')}</p>
 
             {/* Five modules in rows of three: the second row is centred, so there is
                 no hole where a sixth card would have been. */}
@@ -111,15 +174,29 @@ export function Home() {
           </div>
         </section>
 
-        {/* Shown to everyone: the ladder itself is the invitation to sign in. */}
+        {/* The second mode is laid out here, not hidden behind a link: the five
+            chains' current levels are the invitation. */}
         <section className="px-6 pb-4">
           <div className="mx-auto max-w-[1200px]">
-            <Link to="/levels" className={buttonVariants({ variant: 'outline', size: 'lg' })}>
-              {t('levels.entry')}
-            </Link>
-            <p className="mt-3 max-w-[46ch] text-[14px] text-muted">
-              {user ? t('levels.entryHint') : t('levels.entryHintGuest')}
+            <h2 className="text-[26px] font-light sm:text-[32px]">{t('levels.modeTitle')}</h2>
+            <p className="mt-3 max-w-[60ch] text-[14px] text-muted">
+              {user ? t('levels.modeHint') : t('levels.entryHintGuest')}
             </p>
+
+            <div className="mt-8 flex flex-wrap justify-center gap-5">
+              {MODULES.map((kind) => (
+                <LevelCard key={kind} kind={kind} progress={progressById} signedIn={!!user} />
+              ))}
+            </div>
+
+            <div className="mt-6">
+              <Link
+                to="/levels"
+                className="text-[15px] text-muted underline underline-offset-4 hover:text-ink"
+              >
+                {t('levels.viewAll')}
+              </Link>
+            </div>
           </div>
         </section>
 
