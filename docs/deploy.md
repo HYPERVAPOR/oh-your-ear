@@ -30,14 +30,33 @@
 
 Vercel 项目面板里绑定域名，按它给的记录填；改完等证书签发。
 
+### 前端不用 Docker
+
+Vercel 用的是它自己的构建镜像（装依赖 → 跑 build → `dist` 作为静态产物上 CDN），**前端项目里不需要也不应该放 Dockerfile/Containerfile**。
+
+Vercel 确实支持容器，但那条路是给 **Functions** 用的：项目根目录放 `Dockerfile.vercel` 或 `Containerfile.vercel`，Vercel 会构建镜像并作为函数运行。对纯静态 SPA 用它只会更差 —— 每个请求都经过计算（Active CPU 计费）而不是走静态 CDN。普通名字的 `Containerfile` 会被 Vercel 直接忽略。
+
+### 两个会咬人的构建前提
+
+- **Node 版本只支持主版本**（24.x / 22.x / 20.x）。仓库根 `package.json` 原本把 `engines.node` 精确到 `24.16.0`，Vercel 上没有这个 patch 版本 → 已改成 `24.x`（pnpm 的精确版本可以保留，corepack 支持）。
+- **`.npmrc` 指定了 `registry.npmmirror.com`**（国内镜像）。Vercel 的构建机不在国内，从镜像装依赖会更慢、偶尔会抽风。构建失败时这是第一个怀疑对象，可以用项目环境变量 `NPM_CONFIG_REGISTRY=https://registry.npmjs.org/` 覆盖。
+
 ## 2. Vercel：两个项目
 
 同一个仓库建两个项目，**Root Directory 分别是 `apps/landing` 和 `apps/web`**。Vercel 认 pnpm workspace，会在仓库根目录安装依赖，`packages/shared` 里的设计令牌与偏好包随之可用。
 
-| 项目 | Root Directory | Build Command | Output | 环境变量 |
+| 项目 | Root Directory | Build Command | Output Directory | 环境变量 |
 | --- | --- | --- | --- | --- |
-| 落地页 | `apps/landing` | `pnpm --filter @oh-your-ear/landing build` | `apps/landing/dist` | `VITE_APP_URL=https://app.<domain>` |
-| app | `apps/web` | `pnpm --filter @oh-your-ear/web build` | `apps/web/dist` | — |
+| 落地页 | `apps/landing` | `pnpm build`（见 `apps/landing/vercel.json`） | `dist` | `VITE_APP_URL=https://app.<domain>` |
+| app | `apps/web` | `pnpm build`（见 `apps/web/vercel.json`） | `dist` | — |
+
+构建与安装命令写在各自的 `vercel.json` 里而不是点面板，配置跟代码一起走版本：
+
+```json
+{ "installCommand": "pnpm install --frozen-lockfile", "buildCommand": "pnpm build" }
+```
+
+`--frozen-lockfile` 和 CI 一致：lockfile 不是最新的就让部署失败，而不是在构建机里偷偷改依赖。Output Directory 是**相对 Root Directory** 的，所以是 `dist` 而不是 `apps/web/dist`。
 
 **落地页的 `VITE_APP_URL` 必须配**：它决定「开始练习」跳到哪个 app 域名；不配会退回 `http://localhost:5173`。
 
