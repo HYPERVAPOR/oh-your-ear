@@ -217,6 +217,125 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
+  /me/collections:
+    get:
+      operationId: listCollections
+      summary: The user's collection folders
+      description: |
+        Folders of levels. The default folder is created on first read with an
+        empty name, which the client renders in the reader's language.
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Collections with the level slugs in each
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Collection'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      operationId: createCollection
+      summary: Create a collection folder
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CollectionRequest'
+      responses:
+        '201':
+          description: Created
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /me/collections/{id}:
+    patch:
+      operationId: renameCollection
+      summary: Rename a collection folder
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CollectionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CollectionRequest'
+      responses:
+        '204':
+          description: Renamed
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: No such folder, or the default folder (which has no name)
+    delete:
+      operationId: deleteCollection
+      summary: Delete a collection folder
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CollectionId'
+      responses:
+        '204':
+          description: Deleted
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: No such folder, or the default folder
+
+  /me/collections/{id}/levels/{levelId}:
+    put:
+      operationId: addCollectionItem
+      summary: Put a level in a folder
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CollectionId'
+        - name: levelId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: singleNote-1
+      responses:
+        '204':
+          description: Added
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: No such folder for this user
+    delete:
+      operationId: removeCollectionItem
+      summary: Take a level out of a folder
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/CollectionId'
+        - name: levelId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: singleNote-1
+      responses:
+        '204':
+          description: Removed
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          description: No such folder for this user
+
   /levels/sets:
     get:
       operationId: listLevelSets
@@ -524,6 +643,38 @@ components:
         longestStreak:
           type: integer
 
+    Collection:
+      type: object
+      required:
+        - id
+        - name
+        - isDefault
+        - levels
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          description: Empty for the default folder, which the client names.
+        isDefault:
+          type: boolean
+        levels:
+          type: array
+          items:
+            type: string
+          description: Level slugs in this folder.
+
+    CollectionRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 60
+
     LocalizedText:
       type: object
       required:
@@ -759,6 +910,15 @@ components:
           type: string
         message:
           type: string
+
+  parameters:
+    CollectionId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
 
   responses:
     BadRequest:

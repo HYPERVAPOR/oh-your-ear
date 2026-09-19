@@ -50,6 +50,23 @@ type AuthResponse struct {
 	User         UserResponse `json:"user"`
 }
 
+// Collection defines model for Collection.
+type Collection struct {
+	Id        openapi_types.UUID `json:"id"`
+	IsDefault bool               `json:"isDefault"`
+
+	// Levels Level slugs in this folder.
+	Levels []string `json:"levels"`
+
+	// Name Empty for the default folder, which the client names.
+	Name string `json:"name"`
+}
+
+// CollectionRequest defines model for CollectionRequest.
+type CollectionRequest struct {
+	Name string `json:"name"`
+}
+
 // DailyBucket defines model for DailyBucket.
 type DailyBucket struct {
 	Correct int                `json:"correct"`
@@ -237,6 +254,9 @@ type UserResponse struct {
 	UpdatedAt time.Time           `json:"updatedAt"`
 }
 
+// CollectionId defines model for CollectionId.
+type CollectionId = openapi_types.UUID
+
 // BadRequest defines model for BadRequest.
 type BadRequest = ErrorResponse
 
@@ -264,6 +284,12 @@ type LoginJSONRequestBody = EmailAuthRequest
 
 // RegisterJSONRequestBody defines body for Register for application/json ContentType.
 type RegisterJSONRequestBody = EmailAuthRequest
+
+// CreateCollectionJSONRequestBody defines body for CreateCollection for application/json ContentType.
+type CreateCollectionJSONRequestBody = CollectionRequest
+
+// RenameCollectionJSONRequestBody defines body for RenameCollection for application/json ContentType.
+type RenameCollectionJSONRequestBody = CollectionRequest
 
 // RecordLevelResultJSONRequestBody defines body for RecordLevelResult for application/json ContentType.
 type RecordLevelResultJSONRequestBody = LevelResultRequest
@@ -297,6 +323,24 @@ type ServerInterface interface {
 	// The question-set catalog
 	// (GET /levels/sets)
 	ListLevelSets(c *gin.Context)
+	// The user's collection folders
+	// (GET /me/collections)
+	ListCollections(c *gin.Context)
+	// Create a collection folder
+	// (POST /me/collections)
+	CreateCollection(c *gin.Context)
+	// Delete a collection folder
+	// (DELETE /me/collections/{id})
+	DeleteCollection(c *gin.Context, id CollectionId)
+	// Rename a collection folder
+	// (PATCH /me/collections/{id})
+	RenameCollection(c *gin.Context, id CollectionId)
+	// Take a level out of a folder
+	// (DELETE /me/collections/{id}/levels/{levelId})
+	RemoveCollectionItem(c *gin.Context, id CollectionId, levelId string)
+	// Put a level in a folder
+	// (PUT /me/collections/{id}/levels/{levelId})
+	AddCollectionItem(c *gin.Context, id CollectionId, levelId string)
 	// Per-day practice history for the calendar
 	// (GET /me/daily)
 	ListDailyHistory(c *gin.Context, params ListDailyHistoryParams)
@@ -428,6 +472,158 @@ func (siw *ServerInterfaceWrapper) ListLevelSets(c *gin.Context) {
 	}
 
 	siw.Handler.ListLevelSets(c)
+}
+
+// ListCollections operation middleware
+func (siw *ServerInterfaceWrapper) ListCollections(c *gin.Context) {
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ListCollections(c)
+}
+
+// CreateCollection operation middleware
+func (siw *ServerInterfaceWrapper) CreateCollection(c *gin.Context) {
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.CreateCollection(c)
+}
+
+// DeleteCollection operation middleware
+func (siw *ServerInterfaceWrapper) DeleteCollection(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id CollectionId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Param("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.DeleteCollection(c, id)
+}
+
+// RenameCollection operation middleware
+func (siw *ServerInterfaceWrapper) RenameCollection(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id CollectionId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Param("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.RenameCollection(c, id)
+}
+
+// RemoveCollectionItem operation middleware
+func (siw *ServerInterfaceWrapper) RemoveCollectionItem(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id CollectionId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Param("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "levelId" -------------
+	var levelId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "levelId", c.Param("levelId"), &levelId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter levelId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.RemoveCollectionItem(c, id, levelId)
+}
+
+// AddCollectionItem operation middleware
+func (siw *ServerInterfaceWrapper) AddCollectionItem(c *gin.Context) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id CollectionId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", c.Param("id"), &id, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "levelId" -------------
+	var levelId string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "levelId", c.Param("levelId"), &levelId, runtime.BindStyledParameterOptions{Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter levelId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	c.Set(BearerAuthScopes, []string{})
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.AddCollectionItem(c, id, levelId)
 }
 
 // ListDailyHistory operation middleware
@@ -647,6 +843,12 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	router.POST(options.BaseURL+"/auth/register", wrapper.Register)
 	router.GET(options.BaseURL+"/health", wrapper.GetHealth)
 	router.GET(options.BaseURL+"/levels/sets", wrapper.ListLevelSets)
+	router.GET(options.BaseURL+"/me/collections", wrapper.ListCollections)
+	router.POST(options.BaseURL+"/me/collections", wrapper.CreateCollection)
+	router.DELETE(options.BaseURL+"/me/collections/:id", wrapper.DeleteCollection)
+	router.PATCH(options.BaseURL+"/me/collections/:id", wrapper.RenameCollection)
+	router.DELETE(options.BaseURL+"/me/collections/:id/levels/:levelId", wrapper.RemoveCollectionItem)
+	router.PUT(options.BaseURL+"/me/collections/:id/levels/:levelId", wrapper.AddCollectionItem)
 	router.GET(options.BaseURL+"/me/daily", wrapper.ListDailyHistory)
 	router.GET(options.BaseURL+"/me/levels", wrapper.ListLevelProgress)
 	router.POST(options.BaseURL+"/me/levels/:id", wrapper.RecordLevelResult)
@@ -661,60 +863,68 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/+xb727cNrZ/lQPdC7QFlPE4SVvcyZfr5LptbuPGGzsodutgQYtnRqwpUiWpcZTCwL7D",
-	"vuE+yeKQ+jvD8chJbOTDfstY0uH5+zv/mD+TTBelVqicTRZ/JgZtqZVF/+M542/wjwqto1+ZVg6V/ycr",
-	"Syky5oRWB79brehvNsuxYPSv/za4TBbJfx30pA/CU3twbIw2b5pDkpubmzThaDMjSiKWLOhMMM2hN2ly",
-	"rvUJU3XDhn04Ps61hoKpumXGEjdvFatcro34gPzhWBmdSo+bL4nwUZYLXGPRcFEaXaJxItiPhYeeVVeX",
-	"mCySS60lMkXCCP/38VFnjl1KBMGfgcsRMilQOShYaUE4cBoYOOEkAlMcBp/OkjTB96woJR2SoXKVqZO0",
-	"PdU6I9SKDi2NXhm0dsCSUA5XaOipY2aFLvbsJk3IEMKQNL8R7wNa3YdpL/K77nB9+Ttm3pmOKpd3io5o",
-	"K0Nrz/UVqgEHPesGlwZtvvuFyqLZZ+y3Foe2HkvlCaQjRmJi/B8Tsn5eZVcYsXmmjaH3ovrlzHnBl9oU",
-	"zCWL8IeImVaayW3vOM8ROB0O9Bxczhx4v0cefnBWz3pyg4OLwOqGs2m5Rop2luWeAnq6AwoDb7X+5Qmu",
-	"0YjUvJ92CmmECrzsVOtPwjpt6oheK2NQuTNnkF1ty/KCDJpVTqxJRbWFqqRwcZqzGr7WBmq0Dg1n9Tdw",
-	"LVwOBC2lYZkTGcZ1RmToIOGwsPv8augTNx01Zgyr6bfUaoV2wP1eJdYUVmOhN8nsVOLpIMjHWrysj9+j",
-	"yUSIP8a5IP0xeTp6K6KLmONkulIOSjSADVG4EoqnoJWsYamN/2kbNVtyMT320J7vSWGzYXImUXFmgB6D",
-	"UN6BLZo1mq8sHJ2e/v385cnx317/ckwn7g25T3bwmDmOCyZkgL0uj2/iBfey9eh9+PjJ02+/o0Bh71+h",
-	"Wrk8WXyXJoVQg19b7COdNCZEcPa/zc9ZpouhFsLrETqKFRv8HEmR4Zidw/k8TVQlJWWrZOFMhVukNrTW",
-	"Hujl3amqF5rjTlV9HhGjfEUZGtUF29zQ42geKtBatsLIs82zPYno2U1A/SwUj+eBJSFdF3eF5pVEO4MT",
-	"lJrXvjwwee3yAphBsJk2yIFZYHCda+kRD1VVEBdWqJXEX7T3anJ6s/Y4neXacI/XRDJJk0BwwG8vcsvv",
-	"mWPORlN7ZVhWb4vyg8cGreAS3TWigrnn/fAZzOE6RwVKu1yoFVwzCyHkxtGsK3LBjiVVFZcBNG5FlMnB",
-	"HkljnTAxw/2ETN5W5FjHXGXHTqyv9npp81nsxFe4RhnDFbUUq90oH2J2269KZliBDg1YdB5SOyczlbI+",
-	"eUYRvGTWnjBzNa5vdpqn1FaEY2P28QggtNqRjqysVmMd9k786DAGa75q3pfEX+mMSaryz/G927YBHTpg",
-	"vCU65Haghp22uiU7o3VHO0PlOVoHyzZe9BIalwSm7DUaCywz2lpgzmFROpvC/F//+OfhxHCRxNpLfjet",
-	"BtjZ22ANwazxlHhTtKHxlqfuoO7bdKyrnbp+g7aS7pbk22FEIZQoCBDn0fr5owVtQ2Jsy5ZzUIjcF0ZA",
-	"L7cmg/OulAGOmeBoU0LCQVM40axOu9BJ3Cbfhto7ZfeYF8hM8e6zWFM0Ev5OMdg45vRCPMBhpAT/OBO2",
-	"SHOPgNKpu4WTRuKoikcEt2uSeGP8Id9fi3zIfUkQPfVEWMeuYi27R57omTjoM+6i8DAV6Ty7qvyoYYu8",
-	"ZNb9arRaHbmthvqREwXuGH4UpduXE3fUtb06runcF9T8TJ2UdMpIW5WNqIzFiVngtOlU32CmDd+NZ7m2",
-	"wQf2FOex8mjQ7H+s8fB9iZkL2L6Xg2nW2K5Q2mwLwlmUS/haaUf42JauKfjKFejAtK2CS8qKRs1ms29m",
-	"F8qrusubGTOmphqTQeAJJNWgTUdZBOcn+MVLra9SX6CyCyUZVUnjJOy7Xt+HsgJbaplEZmyopZQz9eyC",
-	"ioc9brbZKvQedFu/2frJhDp8QvJg/XBzG8aT4zWTFXPIQSswyMYzS32tgsjX2nChVpSvJgH4cKIagfFp",
-	"E4wpTht0tDXc+Blr5HBZj4caz5pZhkLKyf1Eg7ordmmbhHzXsYaQkTrvtWr8xI9Wsn7KUaegJfdVoDDW",
-	"pbBipYWlkBJ5GGp9QKPtZE2PZ0URXe/uklKK42mDOFRk/tgkLg0dXniSMwtKX6h2Jgc1unZU50Aisw60",
-	"wibOkHcwEKLpE9q4kU+1VukE3IiCWNCduYrXp5KpSOFDxH5shrkFex9KsG/n87QvyA5jBedSZ5VtuZpe",
-	"/WwC8qZFva7v6Bdb469WpC0uW/q3Kult2Y7zvmRV7RQ6JttoqbANumvmmHlr5LS8bJAw9S5lTTcX2z/d",
-	"m1hdtUPAvdxW3ph34DZaHbWjwU70IeF3sdRIEGOEq8/ImG3zzAyao8rl/a8fWo7+/9fzpNnb+VLHP+25",
-	"y50rw+ZPqKWOtGunL7vM/jqHv+rKwDEzgMyAM0woXz30G8iumF8kw9ePTl8mabJGYwPZw9l8Nic16hIV",
-	"K0WySJ7M5rMnvtFyuRfrgFUuP2inxKW2kUXOkbwmpG3rmcfzp55bBmsmBQfGOUUyWN3UILzUQjnImKKe",
-	"8hKhCsP5C4WqKtAwh8AyP963M3itZO2hl5jwOaklKCxcYemASUJ75vx2ssCAyBQCXhkvebJImpK1G/Im",
-	"wQ/Quuea159vl7s5RL4Zexy5sf/DYMv+eP40lsY4deChBnk6n+86uKN0MFjW0yeP/2f/J5vLde/ZVVEw",
-	"UyeL5AypzlTgwwPWaMSyUYq3hH87eIfUK6GG7jHW/Sv/+B4VPlxwTFL4/LOdP1opR3b39ByVI+LIyc9N",
-	"qCmcvkJlP9a488P9n2zfGugs6w0S+JhkXF25W61Lz6c49Su9WlG5XjmwlV9yLysp608QqYHhZPHbGIB/",
-	"e3fzbkNiOrXZZ3o7DEQMyaa5eTCW7kd0J5jcowNtXAjYcqAXI5bvXVE/4k4tGVwJqpx3u8Kb9o3/xPoX",
-	"E+utTUAbkBPjPvdLpNtiIqyZ7jMuNhZZEXWfoVlToyYsBIbrDdEDCchyzK6CYGGyeWAxzBNWsVspr5dL",
-	"kQkmgd5qDJijMBA+TkEbTg3gDE6rSymyRZg6MMekXhEzpdG8ytyFavQQBjYrn2J9v14gU/4ylUWE65yF",
-	"sbpknCPZSF9ZkOIKZ9D2QESqQAtLows4KLCRI1bnvBLWtXNw+6n2mT7wPotdO9k2mX/XK3bDVMO52iNL",
-	"GBT0GcxW4EE3q4jbTCFc+ssvvj6UOmMyNrAQKpOVHwf40YA3rtL9PZwLdcyynB6SIX+vOKUrtmJCWdfd",
-	"TwpXna6ZBaGozs2QHqlngSbZ6EJd4lKb8LqFazQIxk9OkcOSSQmXLLvy94PIdRq49Xefdph0dDeJqvNm",
-	"SWo9oFPxlfxRoX8Weqf2Bk9vTI5LVkmXLJ58f5j2De7TUYP7fWSS8e4eo3wkV8Rh/PPGtNbHURiL2AdI",
-	"hadoHpEndBOhPPDZdWLtaKxz0n5VFPVS7/1+KFlYlGsMaNDABTT6BI5LocIEsB9nPgOXCwsGXWWUvVAd",
-	"avgsk7Nu60r+qjiENeWtAHHa3558IJDYPerbNvx4CNkLJ9v12j0b/y9DMGovmvaW36qQOusf/Cn4zW0l",
-	"EsHAYDe8I5qp/+6D2Y8pxoXOMLSnLsxDKH/+wiyy6n7g0mzDvyLFgvM3kDYsKezQoR6qNpvqg8FXgMFS",
-	"KGHzwczZe6XnvA2NzgubddFuFGo92/aj7OtmHcX9jr/7czOrlnVIgVCjXzJs48lJe+akzDRYJU2s+0eT",
-	"0k/OR5MAq105T4GqElW7pbMpFNo6yvaoSHOFICAO9ceX6WVkQA9qeihHu31st45b/tXhHEeJYZ6+iXR+",
-	"6dEq8jPA3J6xccQxIjOIhp+wFEX+kQqmjyLEf9FgqywfqbKHmi5b3AEBCr1GYD0t6gCidimb/c+ujq1f",
-	"Et0jDPeHRCG44jUQn21bzFn9le0w+YGmG3473rNCqLfJyY48nyZlFVFuWCiN9fv5c+zm/uqBE+ztlmVr",
-	"5AOlfplA98Kvd0AbMFhKFtq2oSvcWt21XcCj0MjZ3SVeOGd8Y+aenCJ+LWeSaxxuo1dTb1hfKn3RJRFZ",
-	"yfh6E/QyvpbvDGfbqyi7kHF8Z+UeY2h8UGyAuFoZXPnpYdd0EvvCOpE9SMvbnurvW9qUmq9H3T2U9sZC",
-	"cwOp+a9gzqAvy/w5Zt2m983Jv5/IUMWqS3+1Jk0qI5NFcsBKcbA+TG7e3fw7AAD//z1iLAOMOgAA",
+	"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",
+	"cUcAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

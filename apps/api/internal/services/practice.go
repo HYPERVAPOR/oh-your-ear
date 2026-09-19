@@ -191,6 +191,126 @@ func (s *PracticeService) LevelModule(ctx context.Context, slug string) (string,
 	return module, true, nil
 }
 
+// Collection is one of a user's folders of levels.
+type Collection struct {
+	ID        uuid.UUID
+	Name      string
+	IsDefault bool
+	Position  int
+	LevelIDs  []string
+}
+
+// EnsureDefaultCollection returns the user's default folder, creating it on first use.
+func (s *PracticeService) EnsureDefaultCollection(ctx context.Context, userID uuid.UUID) error {
+	_, err := s.pool.Exec(ctx, `
+		INSERT INTO collections (owner_id, name, position, is_default)
+		SELECT $1, '', 0, TRUE
+		WHERE NOT EXISTS (SELECT 1 FROM collections WHERE owner_id = $1 AND is_default)
+	`, userID)
+	if err != nil {
+		return fmt.Errorf("failed to ensure the default collection: %w", err)
+	}
+	return nil
+}
+
+// ListCollections returns the user's folders with the levels in each.
+func (s *PracticeService) ListCollections(ctx context.Context, userID uuid.UUID) ([]Collection, error) {
+	rows, err := s.pool.Query(ctx, `
+		SELECT c.id, c.name, c.is_default, c.position, COALESCE(i.level_ids, '{}')
+		FROM collections c
+		LEFT JOIN (
+			SELECT collection_id, array_agg(level_id ORDER BY added_at) AS level_ids
+			FROM collection_items GROUP BY collection_id
+		) i ON i.collection_id = c.id
+		WHERE c.owner_id = $1
+		ORDER BY c.is_default DESC, c.position, c.created_at
+	`, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list collections: %w", err)
+	}
+	defer rows.Close()
+
+	collections := []Collection{}
+	for rows.Next() {
+		var entry Collection
+		if err := rows.Scan(&entry.ID, &entry.Name, &entry.IsDefault, &entry.Position, &entry.LevelIDs); err != nil {
+			return nil, fmt.Errorf("failed to read collection: %w", err)
+		}
+		collections = append(collections, entry)
+	}
+
+	return collections, rows.Err()
+}
+
+// CreateCollection adds a folder for the user.
+func (s *PracticeService) CreateCollection(ctx context.Context, userID uuid.UUID, name string) (uuid.UUID, error) {
+	var id uuid.UUID
+	err := s.pool.QueryRow(ctx, `
+		INSERT INTO collections (owner_id, name, position)
+		VALUES ($1, $2, COALESCE((SELECT MAX(position) + 1 FROM collections WHERE owner_id = $1), 1))
+		RETURNING id
+	`, userID, name).Scan(&id)
+	if err != nil {
+		return uuid.Nil, fmt.Errorf("failed to create collection: %w", err)
+	}
+	return id, nil
+}
+
+// RenameCollection renames a folder the user owns. The default folder has no name
+// of its own, so it cannot be renamed.
+func (s *PracticeService) RenameCollection(ctx context.Context, userID, id uuid.UUID, name string) (bool, error) {
+	tag, err := s.pool.Exec(ctx, `
+		UPDATE collections SET name = $3, updated_at = NOW()
+		WHERE id = $1 AND owner_id = $2 AND NOT is_default
+	`, id, userID, name)
+	if err != nil {
+		return false, fmt.Errorf("failed to rename collection: %w", err)
+	}
+	return tag.RowsAffected() > 0, nil
+}
+
+// DeleteCollection removes a folder (not the levels themselves). The default
+// folder stays.
+func (s *PracticeService) DeleteCollection(ctx context.Context, userID, id uuid.UUID) (bool, error) {
+	tag, err := s.pool.Exec(ctx,
+		`DELETE FROM collections WHERE id = $1 AND owner_id = $2 AND NOT is_default`, id, userID)
+	if err != nil {
+		return false, fmt.Errorf("failed to delete collection: %w", err)
+	}
+	return tag.RowsAffected() > 0, nil
+}
+
+// SetCollectionItem adds or removes a level in one of the user's folders.
+func (s *PracticeService) SetCollectionItem(ctx context.Context, userID, collectionID uuid.UUID, levelID string, present bool) (bool, error) {
+	owned := false
+	if err := s.pool.QueryRow(ctx,
+		`SELECT EXISTS (SELECT 1 FROM collections WHERE id = $1 AND owner_id = $2)`, collectionID, userID,
+	).Scan(&owned); err != nil {
+		return false, fmt.Errorf("failed to check collection ownership: %w", err)
+	}
+	if !owned {
+		return false, nil
+	}
+
+	if present {
+		_, err := s.pool.Exec(ctx, `
+			INSERT INTO collection_items (collection_id, level_id) VALUES ($1, $2)
+			ON CONFLICT DO NOTHING
+		`, collectionID, levelID)
+		if err != nil {
+			return false, fmt.Errorf("failed to add to collection: %w", err)
+		}
+		return true, nil
+	}
+
+	_, err := s.pool.Exec(ctx,
+		`DELETE FROM collection_items WHERE collection_id = $1 AND level_id = $2`, collectionID, levelID)
+	if err != nil {
+		return false, fmt.Errorf("failed to remove from collection: %w", err)
+	}
+	return true, nil
+}
+
 // LevelProgress is what one user has done with one question-set level.
 type LevelProgress struct {
 	LevelID      string

@@ -184,6 +184,64 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/me/collections': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * The user's collection folders
+     * @description Folders of levels. The default folder is created on first read with an
+     *     empty name, which the client renders in the reader's language.
+     */
+    get: operations['listCollections']
+    put?: never
+    /** Create a collection folder */
+    post: operations['createCollection']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/me/collections/{id}': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post?: never
+    /** Delete a collection folder */
+    delete: operations['deleteCollection']
+    options?: never
+    head?: never
+    /** Rename a collection folder */
+    patch: operations['renameCollection']
+    trace?: never
+  }
+  '/me/collections/{id}/levels/{levelId}': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    /** Put a level in a folder */
+    put: operations['addCollectionItem']
+    post?: never
+    /** Take a level out of a folder */
+    delete: operations['removeCollectionItem']
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/levels/sets': {
     parameters: {
       query?: never
@@ -369,6 +427,18 @@ export interface components {
       currentStreak: number
       longestStreak: number
     }
+    Collection: {
+      /** Format: uuid */
+      id: string
+      /** @description Empty for the default folder, which the client names. */
+      name: string
+      isDefault: boolean
+      /** @description Level slugs in this folder. */
+      levels: string[]
+    }
+    CollectionRequest: {
+      name: string
+    }
     LocalizedText: {
       zh: string
       en: string
@@ -510,7 +580,9 @@ export interface components {
       }
     }
   }
-  parameters: never
+  parameters: {
+    CollectionId: string
+  }
   requestBodies: never
   headers: never
   pathItems: never
@@ -766,6 +838,170 @@ export interface operations {
         }
       }
       401: components['responses']['Unauthorized']
+    }
+  }
+  listCollections: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Collections with the level slugs in each */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['Collection'][]
+        }
+      }
+      401: components['responses']['Unauthorized']
+    }
+  }
+  createCollection: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CollectionRequest']
+      }
+    }
+    responses: {
+      /** @description Created */
+      201: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      400: components['responses']['BadRequest']
+      401: components['responses']['Unauthorized']
+    }
+  }
+  deleteCollection: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: components['parameters']['CollectionId']
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Deleted */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      401: components['responses']['Unauthorized']
+      /** @description No such folder, or the default folder */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+    }
+  }
+  renameCollection: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: components['parameters']['CollectionId']
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['CollectionRequest']
+      }
+    }
+    responses: {
+      /** @description Renamed */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      400: components['responses']['BadRequest']
+      401: components['responses']['Unauthorized']
+      /** @description No such folder, or the default folder (which has no name) */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+    }
+  }
+  addCollectionItem: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: components['parameters']['CollectionId']
+        levelId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Added */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      401: components['responses']['Unauthorized']
+      /** @description No such folder for this user */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+    }
+  }
+  removeCollectionItem: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: components['parameters']['CollectionId']
+        levelId: string
+      }
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Removed */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      401: components['responses']['Unauthorized']
+      /** @description No such folder for this user */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
     }
   }
   listLevelSets: {

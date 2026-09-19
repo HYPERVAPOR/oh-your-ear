@@ -119,6 +119,28 @@ BEGIN
 	END IF;
 END $$;
 
+-- Collections: a user's folders of levels. The default folder is created lazily
+-- with an empty name, which the client renders in the reader's language.
+CREATE TABLE IF NOT EXISTS collections (
+id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+owner_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+name TEXT NOT NULL DEFAULT '',
+position INT NOT NULL DEFAULT 0,
+is_default BOOLEAN NOT NULL DEFAULT FALSE,
+created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_collections_owner ON collections(owner_id, position);
+
+-- One level can sit in several folders.
+CREATE TABLE IF NOT EXISTS collection_items (
+collection_id UUID NOT NULL REFERENCES collections(id) ON DELETE CASCADE,
+level_id TEXT NOT NULL REFERENCES levels(slug) ON DELETE CASCADE,
+added_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+PRIMARY KEY (collection_id, level_id)
+);
+
 -- The mistake notebook. One row per distinct wrong question, kept until the
 -- user answers that same question correctly (or removes it by hand).
 CREATE TABLE IF NOT EXISTS mistakes (

@@ -244,5 +244,21 @@
       "partial": "练了一部分",
       "none": "没练"
     }
+  },
+  "collections": {
+    "title": "收藏夹",
+    "intro": "把想反复练的关卡收进收藏夹，可以建多个（比如「每天热身」「顽固点」），同一个关卡能同时属于多个收藏夹。",
+    "defaultName": "收藏",
+    "collect": "收藏",
+    "newFolder": "新建收藏夹",
+    "folderEmpty": "这个收藏夹还是空的。在题单页点关卡右侧的书签图标即可收藏。",
+    "remove": "移出",
+    "practise": "开练",
+    "rename": "收藏夹名称",
+    "deleteFolder": "删除收藏夹",
+    "empty": "还没有收藏夹。",
+    "guestBanner": "收藏夹跟着账号走，登录后即可使用。",
+    "openHint": "收藏的关卡，可建多个收藏夹。",
+    "open": "查看收藏夹"
   }
 }

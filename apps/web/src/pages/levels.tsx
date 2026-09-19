@@ -7,6 +7,7 @@ import { apiClient } from '@/api/client'
 import { AppHeader } from '@/components/app-header'
 import { EmptyState } from '@/components/ui/card'
 import { Orb } from '@/components/ui/orb'
+import { CollectMenu } from '@/components/collect-menu'
 import { ModuleSwatch } from '@/components/ui/orb'
 import { useAuthStore } from '@/stores/auth-store'
 import { pickText, useLevelCatalog, type Level } from '@/lib/levels'
@@ -91,35 +92,42 @@ export function Levels() {
                             </span>
                           </div>
                         ) : (
-                          <Link
-                            to={
-                              user ? `/exercise/${modulePath(kind)}?level=${level.slug}` : '/login'
-                            }
-                            state={
-                              user
-                                ? undefined
-                                : { from: `/exercise/${modulePath(kind)}?level=${level.slug}` }
-                            }
-                            className="flex items-center justify-between gap-4 rounded-xl border border-hairline bg-surface px-4 py-3.5 transition-colors hover:border-hairline-strong hover:bg-canvas-soft"
-                          >
-                            <span className="flex items-center gap-3 text-[15px] font-medium">
-                              {progress?.passed ? (
-                                <Check className="h-4 w-4 text-success-text" />
-                              ) : (
-                                <span className="h-4 w-4 rounded-full border border-hairline-strong" />
-                              )}
-                              {pickText(level.title, i18n.language)}
-                            </span>
-                            <span className="tabular text-[13px] text-muted">
-                              {!user
-                                ? t('levels.questions', { count: level.questions })
-                                : progress
-                                  ? t('levels.best', {
-                                      percent: Math.round(progress.bestAccuracy * 100),
-                                    })
-                                  : t('levels.questions', { count: level.questions })}
-                            </span>
-                          </Link>
+                          <div className="flex items-center gap-1">
+                            <Link
+                              to={
+                                user
+                                  ? `/exercise/${modulePath(kind)}?level=${level.slug}`
+                                  : '/login'
+                              }
+                              state={
+                                user
+                                  ? undefined
+                                  : { from: `/exercise/${modulePath(kind)}?level=${level.slug}` }
+                              }
+                              className="flex flex-1 items-center justify-between gap-4 rounded-xl border border-hairline bg-surface px-4 py-3.5 transition-colors hover:border-hairline-strong hover:bg-canvas-soft"
+                            >
+                              <span className="flex items-center gap-3 text-[15px] font-medium">
+                                {progress?.passed ? (
+                                  <Check className="h-4 w-4 text-success-text" />
+                                ) : (
+                                  <span className="h-4 w-4 rounded-full border border-hairline-strong" />
+                                )}
+                                {pickText(level.title, i18n.language)}
+                              </span>
+                              <span className="flex items-center gap-2">
+                                <span className="tabular text-[13px] text-muted">
+                                  {!user
+                                    ? t('levels.questions', { count: level.questions })
+                                    : progress
+                                      ? t('levels.best', {
+                                          percent: Math.round(progress.bestAccuracy * 100),
+                                        })
+                                      : t('levels.questions', { count: level.questions })}
+                                </span>
+                              </span>
+                            </Link>
+                            <CollectMenu levelSlug={level.slug} />
+                          </div>
                         )}
                       </li>
                     )
