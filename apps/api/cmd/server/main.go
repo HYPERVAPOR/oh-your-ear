@@ -75,6 +75,13 @@ func run() error {
 	return nil
 }
 
+// secureCookies reports whether session cookies may be marked Secure. Deriving it from
+// the deployment's own URL keeps one flag out of the environment: HTTPS deployments get
+// the flag, plain-http development keeps working (a Secure cookie is dropped on http).
+func secureCookies(cfg config.Config) bool {
+	return strings.HasPrefix(cfg.FrontendURL, "https://")
+}
+
 func registerAuthRoutes(r *gin.Engine, cfg config.Config, server *api.Server, authSvc *services.AuthService) {
 	googleCfg := auth.NewGoogleOAuthConfig(cfg.GoogleClientID, cfg.GoogleSecret, cfg.GoogleRedirect)
 	ctx := context.Background()
@@ -90,7 +97,7 @@ func registerAuthRoutes(r *gin.Engine, cfg config.Config, server *api.Server, au
 			c.JSON(http.StatusInternalServerError, api.ErrorResponse{Error: "failed to start oauth flow"})
 			return
 		}
-		c.SetCookie(auth.OAuthStateCookieName, state, int(auth.OAuthStateTTL.Seconds()), "/", "", false, true)
+		c.SetCookie(auth.OAuthStateCookieName, state, int(auth.OAuthStateTTL.Seconds()), "/", "", secureCookies(cfg), true)
 		c.Redirect(http.StatusTemporaryRedirect, googleCfg.AuthCodeURL(state))
 	})
 
@@ -105,7 +112,7 @@ func registerAuthRoutes(r *gin.Engine, cfg config.Config, server *api.Server, au
 			c.JSON(http.StatusBadRequest, api.ErrorResponse{Error: "invalid oauth callback"})
 			return
 		}
-		c.SetCookie(auth.OAuthStateCookieName, "", -1, "/", "", false, true)
+		c.SetCookie(auth.OAuthStateCookieName, "", -1, "/", "", secureCookies(cfg), true)
 
 		token, err := googleCfg.Exchange(ctx, c.Query("code"))
 		if err != nil {
@@ -135,15 +142,21 @@ func registerAuthRoutes(r *gin.Engine, cfg config.Config, server *api.Server, au
 		c.Redirect(http.StatusTemporaryRedirect, cfg.FrontendURL+"/#access_token="+url.QueryEscape(accessToken))
 	})
 
-	r.POST("/api/v1/auth/mock", func(c *gin.Context) {
-		user, err := authSvc.UpsertMockUser(c.Request.Context(), cfg.MockAuthEmail, cfg.MockAuthName)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, api.ErrorResponse{Error: "failed to create mock user"})
-			return
-		}
+	// Development-only door, and only when it is explicitly configured: this route used
+	// to be registered unconditionally with a default address, which on a public
+	// deployment meant one unauthenticated POST bought a session. The front end hides
+	// its mock button in production builds, but a hidden button is not an absent route.
+	if cfg.MockAuthEmail != "" {
+		r.POST("/api/v1/auth/mock", func(c *gin.Context) {
+			user, err := authSvc.UpsertMockUser(c.Request.Context(), cfg.MockAuthEmail, cfg.MockAuthName)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, api.ErrorResponse{Error: "failed to create mock user"})
+				return
+			}
 
-		server.RespondWithSession(c, user)
-	})
+			server.RespondWithSession(c, user)
+		})
+	}
 
 	r.POST("/api/v1/auth/refresh", func(c *gin.Context) {
 		refreshToken, err := c.Cookie(auth.RefreshTokenCookieName)
