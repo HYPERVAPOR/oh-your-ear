@@ -277,21 +277,21 @@
 ### 15.1 Daily practice session
 
 - **issue**: #60
-- **status**: 🔴 todo
+- **status**: 🟢 done
 - **description**: The plan stops being a number that is only measured. A session is generated from it: work out how many questions are left today, draw them from the focus modules (rotating module per round), and run it on the existing round machinery. The summary shows progress against the daily goal and offers to continue with the next focus module. Guests see the mode and are asked to sign in.
 - **depends on**: 14.1
 
 ### 15.2 Daily history
 
 - **issue**: #61
-- **status**: 🔴 todo
+- **status**: 🟢 done
 - **description**: A calendar heatmap of the last year built from `practice_records` aggregated by local day: three tiers (goal met / partly done / nothing), plus current and longest streak. Each day is judged against the goal that was in force then — `daily_goals` records a row whenever the plan is saved, so changing the goal does not rewrite history. `GET /me/daily?days=371` returns the buckets.
 - **depends on**: 8.1
 
 ### 15.3 Fold the study plan into daily practice
 
 - **issue**: #62
-- **status**: 🔴 todo
+- **status**: 🟢 done
 - **description**: The plan's settings became the daily practice settings (`/me` holds them, `/daily` acts on them, and each links to the other); 练习模式 is renamed 随机练习 everywhere; the home page lays out all three modes as bands. The calendar history is 15.2.
 - **depends on**: 15.1
 
