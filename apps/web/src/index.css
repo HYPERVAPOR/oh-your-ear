@@ -182,6 +182,21 @@
     background: var(--ink);
     color: var(--canvas);
   }
+  /* Lucide ships round caps; a rounded stroke end is the last soft edge left in the
+     interface. CSS beats the presentation attribute, so one rule squares every icon
+     onto the same technical-pen grid as the hairline boxes they sit in — and turns
+     zero-length "dot" segments into small squares. */
+  svg.lucide {
+    stroke-linecap: square;
+  }
+  /* Two snap points on the landing page — the hero and the practice rack — and
+     `proximity`, not `mandatory`: a scroll that already ended near an edge gets pulled
+     flush (that is the magnet), while every position in between stays reachable.
+     Mandatory snapping would fight the long sections further down. */
+  html {
+    scroll-behavior: smooth;
+    scroll-snap-type: y proximity;
+  }
 }
 
 @utility badge-label {

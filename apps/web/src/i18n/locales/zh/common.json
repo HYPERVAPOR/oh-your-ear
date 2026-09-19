@@ -175,7 +175,7 @@
     "loginHeading": "登录解锁进度与错题本",
     "heroLine1": "五组练习，随时开始，无需注册。",
     "heroLine2": "掌握音高、音程、和弦、旋律与节奏。",
-    "startCta": "从单音开始",
+    "startCta": "开始练习",
     "practiceHeading": "随机练习",
     "practiceHint": "无限出题、随机练习，没有轮次也没有目标；游客也能练全部基础题。",
     "dailyHint": "设定每日题数与重点模块，按计划练完当天的量。",
@@ -183,8 +183,8 @@
     "mistakesHint": "从错题本抽题，专攻弱项。"
   },
   "settings": {
-    "language": "语言",
-    "theme": "主题"
+    "theme": "主题",
+    "switchLanguage": "切换到 {{language}}"
   },
   "round": {
     "title": "一轮结束",
