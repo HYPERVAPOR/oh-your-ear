@@ -62,14 +62,9 @@ export default function App() {
           </RequireAuth>
         }
       />
-      <Route
-        path="/levels"
-        element={
-          <RequireAuth>
-            <Levels />
-          </RequireAuth>
-        }
-      />
+      {/* Open to guests on purpose: they can see the ladder, and starting a level
+          asks them to sign in (PRD §6, non-blocking prompt). */}
+      <Route path="/levels" element={<Levels />} />
       <Route
         path="/mistakes"
         element={
