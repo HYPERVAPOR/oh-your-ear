@@ -6,7 +6,6 @@ import { apiClient } from '@/api/client'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Field, Input } from '@/components/ui/field'
-import { Orb } from '@/components/ui/orb'
 import { useAuthStore } from '@/stores/auth-store'
 
 const RESEND_SECONDS = 60
@@ -70,9 +69,7 @@ export function Login() {
   }, [from, navigate, setSession])
 
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 py-16">
-      <Orb kind="ambient" size="lg" className="-top-32 left-1/2 -translate-x-1/2" />
-
+    <div className="flex min-h-screen flex-col items-center justify-center px-6 py-16">
       <div className="relative w-full max-w-[440px]">
         <Link to="/" className="font-display text-[21px] tracking-tight">
           {t('appName')}

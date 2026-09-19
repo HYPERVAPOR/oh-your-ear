@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next'
 import { ArrowLeft, Check, X } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
-import { Orb } from '@/components/ui/orb'
 import type { ExerciseKind } from '@/components/ui/orb'
 
 /**
@@ -31,10 +30,8 @@ export function ExerciseShell({
   const { t } = useTranslation('common')
 
   return (
-    <div className="relative flex min-h-screen flex-col overflow-hidden">
-      <Orb kind={kind} size="lg" className="-top-48 left-1/2 -translate-x-1/2" />
-
-      <header className="relative border-b border-hairline">
+    <div className="flex min-h-screen flex-col">
+      <header className="border-b border-hairline">
         <div className="mx-auto flex h-16 max-w-[1200px] items-center justify-between gap-4 px-5 sm:px-6">
           <div className="flex items-center gap-2 sm:gap-3">
             <Button variant="ghost" size="icon" onClick={onBack} aria-label={t('actions.back')}>
@@ -65,7 +62,7 @@ export function ExerciseShell({
         )}
       </header>
 
-      <main className="relative mx-auto flex w-full max-w-[600px] flex-1 flex-col items-center justify-center px-5 py-12 sm:py-16">
+      <main className="mx-auto flex w-full max-w-[600px] flex-1 flex-col items-center justify-center px-5 py-12 sm:py-16">
         {instruction && (
           <p className="mb-7 text-center text-[15px] text-body">{t(`moduleHints.${kind}`)}</p>
         )}
@@ -88,8 +85,8 @@ export function FeedbackNote({
       role="status"
       className={
         tone === 'success'
-          ? 'rounded-full bg-success/10 px-4 py-2 text-center text-[15px] font-medium text-success-text'
-          : 'rounded-full bg-error/10 px-4 py-2 text-center text-[15px] font-medium text-error-text'
+          ? 'rounded-none bg-success/10 px-4 py-2 text-center text-[15px] font-medium text-success-text'
+          : 'rounded-none bg-error/10 px-4 py-2 text-center text-[15px] font-medium text-error-text'
       }
     >
       {children}

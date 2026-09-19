@@ -77,7 +77,7 @@ export function Bookmarks() {
             <Link
               to="/login"
               state={{ from: '/bookmarks' }}
-              className="inline-flex h-10 items-center rounded-full bg-primary px-5 text-[15px] font-medium text-on-primary transition-opacity hover:opacity-90"
+              className="inline-flex h-10 items-center rounded-none bg-primary px-5 text-[15px] font-medium text-on-primary transition-opacity hover:opacity-90"
             >
               {t('actions.login')}
             </Link>

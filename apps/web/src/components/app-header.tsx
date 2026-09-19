@@ -7,7 +7,7 @@ import { useAppStore, type Language, type Theme } from '@/stores/app-store'
 import { useAuthStore } from '@/stores/auth-store'
 
 const pillControl =
-  'cursor-pointer appearance-none whitespace-nowrap rounded-full border border-hairline-strong bg-transparent py-1.5 pl-2.5 pr-6 text-[12px] font-medium text-body transition-colors hover:bg-surface-strong hover:text-ink sm:pl-3 sm:pr-7 sm:text-[13px]'
+  'cursor-pointer appearance-none whitespace-nowrap rounded-none border border-hairline-strong bg-transparent py-1.5 pl-2.5 pr-6 text-[12px] font-medium text-body transition-colors hover:bg-surface-strong hover:text-ink sm:pl-3 sm:pr-7 sm:text-[13px]'
 
 /** Quiet pill control with its own chevron: an appearance-none select with no
  *  indicator reads as a static label. */

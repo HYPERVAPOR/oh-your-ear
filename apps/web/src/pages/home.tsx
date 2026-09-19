@@ -9,7 +9,7 @@ import { PlayButton } from '@/components/play-button'
 import { TodayProgress } from '@/components/today-progress'
 import { buttonVariants } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { ModuleSwatch, Orb, type ExerciseKind } from '@/components/ui/orb'
+import { ModuleSwatch, type ExerciseKind } from '@/components/ui/orb'
 import {
   chainComplete,
   currentLevel,
@@ -49,14 +49,9 @@ function LevelCard({
     >
       <Card
         interactive
-        className="relative h-full min-h-[132px] overflow-hidden p-5 transition-colors group-hover:border-hairline-strong"
+        className="h-full min-h-[132px] p-5 transition-colors group-hover:border-hairline-strong"
       >
-        <Orb
-          kind={kind}
-          size="md"
-          className="-bottom-16 -right-12 transition-transform duration-500 group-hover:scale-110"
-        />
-        <div className="relative">
+        <div>
           <div className="flex items-center gap-2.5">
             <ModuleSwatch kind={kind} />
             <h3 className="text-[21px] font-light leading-tight">{t(`modules.${kind}`)}</h3>
@@ -111,9 +106,8 @@ export function Home() {
       <main className="flex-1">
         {/* Hero: the first thing a visitor meets is the sound itself, and the one
             action we want them to take. */}
-        <section className="relative overflow-hidden px-6 pb-20 pt-24 sm:pb-28 sm:pt-32">
-          <Orb kind="ambient" size="lg" className="-top-28 left-1/2 -translate-x-1/2" />
-          <div className="relative mx-auto flex max-w-[720px] flex-col items-center text-center">
+        <section className="px-6 pb-20 pt-24 sm:pb-28 sm:pt-32">
+          <div className="mx-auto flex max-w-[720px] flex-col items-center text-center">
             <h1 className="max-w-[24ch] text-balance text-[40px] font-light leading-[1.08] tracking-[-0.03em] sm:text-[60px]">
               {t('tagline')}
             </h1>
@@ -165,11 +159,6 @@ export function Home() {
                     interactive
                     className="relative h-full min-h-[132px] overflow-hidden p-5 transition-colors group-hover:border-hairline-strong"
                   >
-                    <Orb
-                      kind={key}
-                      size="md"
-                      className="-bottom-16 -right-12 transition-transform duration-500 group-hover:scale-110"
-                    />
                     <div className="relative">
                       <h3 className="font-display text-[24px] font-light leading-tight">
                         {t(`modules.${key}`)}
@@ -239,9 +228,8 @@ export function Home() {
         {!user && (
           <section className="px-6 pb-24 sm:pb-28">
             <div className="mx-auto max-w-[1200px]">
-              <Card className="relative overflow-hidden p-7 sm:p-9">
-                <Orb kind="ambient" size="md" className="-right-10 -top-20" />
-                <div className="relative flex flex-wrap items-center justify-between gap-6">
+              <Card className="p-7 sm:p-9">
+                <div className="flex flex-wrap items-center justify-between gap-6">
                   <div>
                     <h2 className="font-display text-[24px] font-light leading-tight">
                       {t('home.loginHeading')}

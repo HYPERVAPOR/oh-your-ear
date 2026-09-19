@@ -53,11 +53,12 @@
     'Inter', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif;
   --font-display: var(--font-sans);
 
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
-  --radius-2xl: 24px;
+  /* Square corners: this is studio equipment, not a SaaS dashboard. */
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
 
   --shadow-soft: 0 4px 16px rgb(0 0 0 / 0.04);
   --shadow-lift: 0 8px 28px rgb(0 0 0 / 0.07);
@@ -88,18 +89,11 @@
   --success-text: #166534;
   --error: #dc2626;
   --error-text: #991b1b;
-
-  --orb-mint: #a7e5d3;
-  --orb-peach: #f4c5a8;
-  --orb-lavender: #c8b8e0;
-  --orb-sky: #a8c8e8;
-  --orb-rose: #e8b8c4;
   --swatch-singleNote: #35a687;
   --swatch-interval: #d1814a;
   --swatch-chord: #7f66b8;
   --swatch-melody: #4a86c4;
   --swatch-rhythm: #c4697f;
-  --orb-strength: 0.75;
 }
 
 .dark {
@@ -127,7 +121,6 @@
   --swatch-chord: #b39ce0;
   --swatch-melody: #86b8e6;
   --swatch-rhythm: #e39bad;
-  --orb-strength: 0.45;
 }
 
 @layer base {
@@ -175,32 +168,5 @@
   font-feature-settings: 'tnum';
 }
 
-/* Atmospheric orbs: the only chromatic element. Pure decoration behind content —
-   never a fill, never text. See DESIGN.md. */
-@utility orb {
-  position: absolute;
-  border-radius: 9999px;
-  pointer-events: none;
-  filter: blur(52px);
-  opacity: var(--orb-strength);
-}
-
-@utility orb-mint {
-  background: radial-gradient(circle at 50% 50%, var(--orb-mint), transparent 68%);
-}
-
-@utility orb-peach {
-  background: radial-gradient(circle at 50% 50%, var(--orb-peach), transparent 68%);
-}
-
-@utility orb-lavender {
-  background: radial-gradient(circle at 50% 50%, var(--orb-lavender), transparent 68%);
-}
-
-@utility orb-sky {
-  background: radial-gradient(circle at 50% 50%, var(--orb-sky), transparent 68%);
-}
-
-@utility orb-rose {
-  background: radial-gradient(circle at 50% 50%, var(--orb-rose), transparent 68%);
-}
+/* There is deliberately no gradient or glow utility here: light comes from the
+   surfaces and hairlines, not from blurred colour. See PRD 7.1.1. */

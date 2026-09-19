@@ -30,7 +30,7 @@ export function PlayButton({ note, className, duration = '8n', label }: PlayButt
         size="icon"
         aria-label={t('actions.playNote', { note })}
         title={t('actions.playNote', { note })}
-        className={cn('rounded-full', className)}
+        className={cn('rounded-none', className)}
         onClick={handleClick}
       >
         <Volume2 className="h-5 w-5" />

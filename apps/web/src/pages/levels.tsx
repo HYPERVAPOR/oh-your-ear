@@ -6,7 +6,6 @@ import { Check, Lock } from 'lucide-react'
 import { apiClient } from '@/api/client'
 import { AppHeader } from '@/components/app-header'
 import { EmptyState } from '@/components/ui/card'
-import { Orb } from '@/components/ui/orb'
 import { CollectMenu } from '@/components/collect-menu'
 import { ModuleSwatch } from '@/components/ui/orb'
 import { useAuthStore } from '@/stores/auth-store'
@@ -50,7 +49,7 @@ export function Levels() {
             <Link
               to="/login"
               state={{ from: '/levels' }}
-              className="inline-flex h-10 items-center rounded-full bg-primary px-5 text-[15px] font-medium text-on-primary transition-opacity hover:opacity-90"
+              className="inline-flex h-10 items-center rounded-none bg-primary px-5 text-[15px] font-medium text-on-primary transition-opacity hover:opacity-90"
             >
               {t('actions.login')}
             </Link>
@@ -110,7 +109,7 @@ export function Levels() {
                                 {progress?.passed ? (
                                   <Check className="h-4 w-4 text-success-text" />
                                 ) : (
-                                  <span className="h-4 w-4 rounded-full border border-hairline-strong" />
+                                  <span className="h-4 w-4 rounded-none border border-hairline-strong" />
                                 )}
                                 {pickText(level.title, i18n.language)}
                               </span>
@@ -140,8 +139,6 @@ export function Levels() {
 
         {data && data.length === 0 && <EmptyState className="mt-8">{t('levels.empty')}</EmptyState>}
       </main>
-
-      <Orb kind="ambient" size="lg" className="-bottom-40 right-0" />
     </div>
   )
 }

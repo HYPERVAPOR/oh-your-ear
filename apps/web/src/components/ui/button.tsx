@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils'
 const buttonVariants = cva(
   // A disabled control goes quiet rather than becoming a muddy version of the ink
   // pill: on a monochrome page, "greyed out" has to be legible as a state.
-  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full font-medium transition-colors disabled:pointer-events-none disabled:border-transparent disabled:bg-surface-strong disabled:text-muted-soft',
+  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-none font-medium transition-colors disabled:pointer-events-none disabled:border-transparent disabled:bg-surface-strong disabled:text-muted-soft',
   {
     variants: {
       variant: {

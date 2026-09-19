@@ -205,7 +205,7 @@ export function RhythmExercise({ onBack }: RhythmExerciseProps) {
               disabled={phase !== 'tapping'}
               onMouseDown={recordTap}
               aria-label={t('actions.tap')}
-              className="flex h-36 w-36 items-center justify-center rounded-full bg-primary text-on-primary transition-all active:scale-95 disabled:bg-surface-strong disabled:text-muted-soft"
+              className="flex h-36 w-36 items-center justify-center rounded-none bg-primary text-on-primary transition-all active:scale-95 disabled:bg-surface-strong disabled:text-muted-soft"
             >
               <Music className="h-12 w-12" />
             </button>

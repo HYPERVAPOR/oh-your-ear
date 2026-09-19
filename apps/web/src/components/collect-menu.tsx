@@ -80,7 +80,7 @@ export function CollectMenu({ levelSlug }: { levelSlug: string }) {
         aria-expanded={open}
         onClick={() => (user ? setOpen((prev) => !prev) : navigate('/login'))}
         className={cn(
-          'flex h-9 w-9 items-center justify-center rounded-full transition-colors hover:bg-surface-strong',
+          'flex h-9 w-9 items-center justify-center rounded-none transition-colors hover:bg-surface-strong',
           saved ? 'text-ink' : 'text-muted',
         )}
       >

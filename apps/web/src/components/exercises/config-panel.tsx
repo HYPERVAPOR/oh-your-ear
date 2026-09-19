@@ -113,7 +113,7 @@ export function ToggleGroup({
               aria-pressed={active}
               onClick={() => toggle(value)}
               className={cn(
-                'rounded-full border px-3.5 py-1.5 text-[14px] transition-colors',
+                'rounded-none border px-3.5 py-1.5 text-[14px] transition-colors',
                 // Twelve ink pills would be a wall of black: a multi-select uses the
                 // quiet fill for "on" and lets ink stay for the primary action.
                 active
@@ -146,7 +146,7 @@ export function Toggle({
       aria-pressed={checked}
       onClick={() => onChange(!checked)}
       className={cn(
-        'rounded-full border px-3.5 py-1.5 text-[14px] transition-colors',
+        'rounded-none border px-3.5 py-1.5 text-[14px] transition-colors',
         checked
           ? 'border-transparent bg-surface-strong text-ink'
           : 'border-hairline text-muted-soft hover:border-hairline-strong hover:text-ink',

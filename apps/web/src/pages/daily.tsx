@@ -69,7 +69,7 @@ export function Daily() {
             <Link
               to="/login"
               state={{ from: '/daily' }}
-              className="inline-flex h-10 items-center rounded-full bg-primary px-5 text-[15px] font-medium text-on-primary transition-opacity hover:opacity-90"
+              className="inline-flex h-10 items-center rounded-none bg-primary px-5 text-[15px] font-medium text-on-primary transition-opacity hover:opacity-90"
             >
               {t('actions.login')}
             </Link>
@@ -88,8 +88,8 @@ export function Daily() {
               {met && <p className="text-[15px] font-medium text-success-text">{t('daily.met')}</p>}
             </div>
 
-            <div className="mt-4 h-1 w-full overflow-hidden rounded-full bg-surface-strong">
-              <div className="h-full rounded-full bg-primary" style={{ width: `${percent}%` }} />
+            <div className="mt-4 h-1 w-full overflow-hidden rounded-none bg-surface-strong">
+              <div className="h-full rounded-none bg-primary" style={{ width: `${percent}%` }} />
             </div>
 
             <p className="badge-label mt-7 text-muted">{t('daily.focus')}</p>
