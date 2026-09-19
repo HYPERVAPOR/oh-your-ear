@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next'
 
 import { apiClient } from '@/api/client'
 import { ConfigRow, Toggle } from '@/components/exercises/config-panel'
+import { Link } from 'react-router-dom'
+
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/field'
@@ -95,11 +97,17 @@ export function StudyPlanForm() {
         </div>
       </div>
 
-      <div className="mt-6 flex items-center gap-3">
+      <div className="mt-6 flex flex-wrap items-center gap-4">
         <Button onClick={save} disabled={saving || !valid}>
           {t('plan.save')}
         </Button>
         {saved && <span className="text-[14px] text-success-text">{t('plan.saved')}</span>}
+        <Link
+          to="/daily"
+          className="text-[14px] text-muted underline underline-offset-4 hover:text-ink"
+        >
+          {t('plan.goToday')}
+        </Link>
       </div>
     </Card>
   )

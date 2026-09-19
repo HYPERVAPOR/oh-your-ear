@@ -5,6 +5,8 @@ import { Link } from 'react-router-dom'
 import { ExerciseShell } from '@/components/exercise-shell'
 import { Card } from '@/components/ui/card'
 import type { ExerciseKind } from '@/components/ui/orb'
+import { useQuery } from '@tanstack/react-query'
+
 import { apiClient } from '@/api/client'
 import { nextLevel, type Level } from '@/lib/levels'
 import type { RoundEntry } from '@/lib/round'
@@ -44,6 +46,18 @@ export function RoundSummary({
   const { t } = useTranslation('common')
   const user = useAuthStore((s) => s.user)
   const [saved, setSaved] = useState<{ passed: boolean; bestAccuracy: number } | null>(null)
+
+  // How today stands against the daily goal, so a round says where it left you.
+  const { data: plan } = useQuery({
+    queryKey: ['study-plan'],
+    enabled: !!user,
+    staleTime: 0,
+    refetchOnMount: 'always',
+    queryFn: async () => {
+      const { data } = await apiClient.GET('/me/plan')
+      return data
+    },
+  })
   const reported = useRef(false)
 
   const correct = entries.filter((entry) => entry.correct).length
@@ -102,6 +116,16 @@ export function RoundSummary({
                 {t('round.levelBest', { percent: Math.round(saved.bestAccuracy * 100) })}
               </span>
             )}
+          </p>
+        )}
+
+        {plan && (
+          <p className="mt-3 text-[15px] text-body">
+            {t('daily.afterRound', {
+              solved: plan.today.solved,
+              goal: plan.dailyGoal,
+              remaining: Math.max(plan.dailyGoal - plan.today.solved, 0),
+            })}
           </p>
         )}
 
