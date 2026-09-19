@@ -178,7 +178,9 @@
     "startCta": "从单音开始",
     "practiceHeading": "随机练习",
     "practiceHint": "无限出题、随机练习，没有轮次也没有目标；游客也能练全部基础题。",
-    "dailyHint": "设定每日题数与重点模块，按计划练完当天的量。"
+    "dailyHint": "设定每日题数与重点模块，按计划练完当天的量。",
+    "mistakesTile": "错题重练",
+    "mistakesHint": "从错题本抽题，专攻弱项。"
   },
   "settings": {
     "language": "语言",
