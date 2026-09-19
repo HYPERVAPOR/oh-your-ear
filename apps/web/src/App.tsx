@@ -27,7 +27,7 @@ function NotFound() {
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-5 px-6 text-center">
-      <h1 className="font-display text-[32px] font-light">404</h1>
+      <h1 className="font-display text-[32px] font-medium">404</h1>
       <p className="text-[15px] text-body">{t('notFound')}</p>
       <Button variant="outline" onClick={() => navigate('/')}>
         {t('actions.back')}

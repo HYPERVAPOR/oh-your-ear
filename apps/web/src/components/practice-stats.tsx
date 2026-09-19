@@ -13,7 +13,7 @@ function Stat({ label, value }: { label: string; value: string | number }) {
   return (
     <div>
       <p className="badge-label text-muted">{label}</p>
-      <p className="tabular mt-1.5 font-display text-[32px] font-light leading-none">{value}</p>
+      <p className="tabular mt-1.5 font-display text-[32px] font-medium leading-none">{value}</p>
     </div>
   )
 }
@@ -37,7 +37,7 @@ export function PracticeStats() {
   if (data.solved === 0) {
     return (
       <Card className="p-6 sm:p-7">
-        <h2 className="font-display text-[22px] font-light leading-tight">{t('stats.title')}</h2>
+        <h2 className="font-display text-[22px] font-medium leading-tight">{t('stats.title')}</h2>
         <p className="mt-3 text-[15px] text-muted">{t('stats.empty')}</p>
       </Card>
     )
@@ -50,7 +50,7 @@ export function PracticeStats() {
 
   return (
     <Card className="p-6 sm:p-7">
-      <h2 className="font-display text-[22px] font-light leading-tight">{t('stats.title')}</h2>
+      <h2 className="font-display text-[22px] font-medium leading-tight">{t('stats.title')}</h2>
 
       <div className="mt-6 grid grid-cols-2 gap-6 sm:grid-cols-4">
         <Stat label={t('stats.solved')} value={data.solved} />

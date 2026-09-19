@@ -60,7 +60,7 @@ export function Daily() {
       <AppHeader />
 
       <main className="mx-auto w-full max-w-[900px] flex-1 px-5 py-12 sm:px-6 sm:py-16">
-        <h1 className="text-[30px] font-light leading-tight sm:text-[36px]">{t('daily.title')}</h1>
+        <h1 className="text-[30px] font-medium leading-tight sm:text-[36px]">{t('daily.title')}</h1>
         <p className="mt-3 max-w-[54ch] text-[15px] text-body">{t('daily.intro')}</p>
 
         {!user && (
@@ -81,7 +81,7 @@ export function Daily() {
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
                 <p className="badge-label text-muted">{t('daily.today')}</p>
-                <p className="tabular mt-1.5 text-[32px] font-light leading-none">
+                <p className="tabular mt-1.5 text-[32px] font-medium leading-none">
                   {t('daily.progress', { solved, goal })}
                 </p>
               </div>

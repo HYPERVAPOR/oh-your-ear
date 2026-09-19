@@ -5,7 +5,7 @@ based-on: "ElevenLabs DESIGN.md (VoltAgent/awesome-design-md) — quiet editoria
 description: >
   A musician's practice workbook, not a dashboard. Off-white paper holds warm near-black ink;
   hairlines and one soft shadow tier separate surfaces; display type is a light editorial serif
-  while the interface runs Inter. The single saturated idea in the product is the five pastel
+  while the interface runs JetBrains Mono. The single saturated idea in the product is the five pastel
   gradient orbs, and they are not decoration: each of the five exercise modules owns one, so the
   palette itself is the module map. Everything else is ink on paper, and the only action colour
   is the ink pill.
@@ -63,8 +63,8 @@ typography:
 
 fonts:
   # One family for the whole product, deliberate revision — see "Why there is no display face".
-  display: "'Inter', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif"
-  ui: "'Inter', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif"
+  display: "'JetBrains Mono', 'Sarasa Mono SC', 'Noto Sans Mono CJK SC', 'Maple Mono CN', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif"
+  ui: "'JetBrains Mono', 'Sarasa Mono SC', 'Noto Sans Mono CJK SC', 'Maple Mono CN', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif"
 
 rounded: { xs: 4px, sm: 6px, md: 8px, lg: 12px, xl: 16px, xxl: 24px, pill: 9999px }
 
@@ -87,7 +87,7 @@ minutes a day while listening, where a loud interface would compete with the thi
 | Source | Here | Reason |
 | --- | --- | --- |
 | Waldenburg Light (licensed) | **no display face at all** | First pass used Newsreader 300 (EB Garamond, the doc's own suggestion, has no 300 weight). Reviewers read the result as two voices: a Latin serif over the platform's CJK serif, alternating line by line with sans body copy. A Latin serif cannot pair with a CJK serif convincingly, and shipping a Chinese webfont is megabytes, so the display voice now comes from *scale, weight 300 and tight tracking* in the same family as everything else. |
-| Inter (body) | Inter, self-hosted variable | Same family, no third-party runtime request, works offline. |
+| JetBrains Mono (everything) | Self-hosted variable, Latin subset (55KB) | Terminal/industrial register, one family everywhere, no third-party request, works offline. |
 | CJK | falls back to the OS | A Chinese webfont is megabytes; Songti/PingFang/YaHei are already on every device. |
 | Five orbs as brand atmosphere | Five orbs as **module identity** | The product has exactly five modules. Colour now carries information instead of mood. |
 | `semantic-success #16a34a` on paper | marks keep the hue, **text uses `#166534`** | The source green is 3.1:1 on paper — fine for a check mark, not for the word next to it. |
@@ -104,13 +104,13 @@ minutes a day while listening, where a loud interface would compete with the thi
 
 ## Typography
 
-- **One family, everywhere.** Display text is the same Inter stack as the body: the hierarchy is
-  carried by size, weight (300 display / 400–500 interface) and negative tracking, never by switching
+- **One family, everywhere.** Display text is the same mono stack as the body: the hierarchy is
+  carried by size and weight (500 display / 400 interface), never by switching
   typeface. CJK falls back to the platform's sans. See the note in the substitution table for why the
   serif pass was reverted.
 - Display is **always weight 300**, never bold. Negative tracking scales with size (-0.32px to -0.96px).
   Bolding display copy is the fastest way to make this look like consumer marketing instead of a workbook.
-- Interface text is Inter at 400/500 with +0.15–0.18px tracking — slightly loose, editorial.
+- Interface text is JetBrains Mono at 400/500 with no tracking adjustment — a monospaced grid, terminals aligned.
 - Numbers that sit in columns (stats, scores, counts) use tabular figures so they do not dance.
 - `badge` (12px/600, +0.96px, uppercase) is for **tags only** — module tags, status pills. Uppercase is
   not used as a decorative eyebrow above headings.

@@ -21,7 +21,7 @@ function Figure({ label, value }: { label: string; value: string | number }) {
   return (
     <div>
       <p className="badge-label text-muted">{label}</p>
-      <p className="tabular mt-1.5 text-[32px] font-light leading-none">{value}</p>
+      <p className="tabular mt-1.5 text-[32px] font-medium leading-none">{value}</p>
     </div>
   )
 }
@@ -102,7 +102,7 @@ export function RoundSummary({
       instruction={false}
     >
       <Card className="w-full p-6 sm:p-7">
-        <h2 className="text-[22px] font-light leading-tight">
+        <h2 className="text-[22px] font-medium leading-tight">
           {level
             ? t('round.levelTitle', { level: pickText(level.title, i18n.language) })
             : t('round.title')}
