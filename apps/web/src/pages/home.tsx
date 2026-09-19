@@ -5,7 +5,6 @@ import { Link } from 'react-router-dom'
 import { apiClient } from '@/api/client'
 import { AppHeader } from '@/components/app-header'
 import { modulePath } from '@/components/round-summary'
-import { PlayButton } from '@/components/play-button'
 import { TodayProgress } from '@/components/today-progress'
 import { buttonVariants } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -105,31 +104,33 @@ export function Home() {
       <AppHeader />
 
       <main className="flex-1">
-        {/* Hero: the first thing a visitor meets is the sound itself, and the one
-            action we want them to take. */}
-        <section className="px-6 pb-20 pt-24 sm:pb-28 sm:pt-32">
-          <div className="mx-auto flex max-w-[720px] flex-col items-center text-center">
-            <h1 className="max-w-[24ch] text-balance text-[40px] font-medium leading-[1.08] tracking-[-0.01em] sm:text-[60px]">
-              {t('tagline')}
-            </h1>
-            <p className="mt-6 text-[17px] leading-[1.7] text-body">
-              <span className="block">{t('home.heroLine1')}</span>
-              <span className="block">{t('home.heroLine2')}</span>
-            </p>
-
-            <Link
-              to="/exercise/single-note"
-              className={`${buttonVariants({ size: 'hero' })} mt-10`}
-            >
-              {t('home.startCta')}
-            </Link>
-
-            <div className="mt-9 flex items-center gap-3 text-muted">
-              <PlayButton note="C4" className="h-11 w-11" />
-              <span className="text-[15px]">{t('actions.playNote', { note: 'C4' })}</span>
+        {/* Hero: one screen, two columns, everything flush left. The pitch on the left,
+            the single action on the right. The play control that used to sit here was
+            decoration — a note you could already hear one click away. */}
+        <section className="flex min-h-[calc(100svh-65px)] scroll-mt-[65px] snap-start items-center px-6 py-16">
+          <div className="mx-auto grid w-full max-w-[1200px] gap-12 sm:grid-cols-[1.5fr_1fr] sm:items-end">
+            <div>
+              <h1 className="max-w-[24ch] text-[40px] font-medium leading-[1.1] tracking-[-0.01em] sm:text-[60px]">
+                {t('tagline')}
+              </h1>
+              <p className="mt-6 max-w-[46ch] text-[17px] leading-[1.7] text-body">
+                <span className="block">{t('home.heroLine1')}</span>
+                <span className="block">{t('home.heroLine2')}</span>
+              </p>
             </div>
 
-            {!user && <p className="mt-6 text-[14px] text-muted">{t('home.guestNote')}</p>}
+            <div className="flex flex-col items-start gap-4 sm:items-end sm:pb-1.5">
+              {/* A plain anchor, not a router link and not a scroll library: the browser
+                  already knows how to travel to an id, and CSS gives it the pull. */}
+              <a href="#practice" className={buttonVariants({ size: 'hero' })}>
+                {t('home.startCta')}
+              </a>
+              {!user && (
+                <p className="max-w-[38ch] text-[14px] text-muted sm:text-right">
+                  {t('home.guestNote')}
+                </p>
+              )}
+            </div>
           </div>
         </section>
 
@@ -142,7 +143,7 @@ export function Home() {
         )}
 
         {/* The five modules, each carrying the orb colour it owns everywhere else. */}
-        <section className="px-6 pb-24 sm:pb-32">
+        <section id="practice" className="snap-start px-6 pb-24 sm:pb-32">
           <div className="mx-auto max-w-[1200px]">
             <h2 className="text-[26px] font-medium sm:text-[32px]">{t('home.practiceHeading')}</h2>
             <p className="mt-3 max-w-[60ch] text-[14px] text-muted">{t('home.practiceHint')}</p>

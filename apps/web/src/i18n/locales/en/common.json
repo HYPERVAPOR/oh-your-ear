@@ -175,7 +175,7 @@
     "loginHeading": "Sign in for progress and the notebook",
     "heroLine1": "Five drills, ready whenever you are, no account needed.",
     "heroLine2": "Pitch, intervals, chords, melody, rhythm.",
-    "startCta": "Start with single note",
+    "startCta": "Get started",
     "practiceHeading": "Random practice",
     "practiceHint": "Endless random questions, no rounds and no goal; guests can practise everything.",
     "dailyHint": "Set a daily question goal and focus modules, then work through the day’s amount.",
@@ -183,8 +183,8 @@
     "mistakesHint": "Drawn from your mistake notebook."
   },
   "settings": {
-    "language": "Language",
-    "theme": "Theme"
+    "theme": "Theme",
+    "switchLanguage": "Switch to {{language}}"
   },
   "round": {
     "title": "Round complete",
