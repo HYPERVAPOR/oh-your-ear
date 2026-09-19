@@ -8,6 +8,7 @@ import { AppHeader } from '@/components/app-header'
 import { EmptyState } from '@/components/ui/card'
 import { Orb } from '@/components/ui/orb'
 import { ModuleSwatch, type ExerciseKind } from '@/components/ui/orb'
+import { useAuthStore } from '@/stores/auth-store'
 import { levelsFor } from '@/lib/levels'
 import { modulePath } from '@/components/round-summary'
 
@@ -19,9 +20,13 @@ const MODULES: ExerciseKind[] = ['singleNote', 'interval', 'chord', 'melody', 'r
  */
 export function Levels() {
   const { t } = useTranslation('common')
+  const user = useAuthStore((s) => s.user)
 
+  // Guests see the whole ladder — that is the invitation. Only their progress is
+  // unknown, and the endpoint answers 401, so it is not asked for.
   const { data } = useQuery({
     queryKey: ['level-progress'],
+    enabled: !!user,
     queryFn: async () => {
       const { data: progress } = await apiClient.GET('/me/levels')
       return progress
@@ -37,6 +42,19 @@ export function Levels() {
       <main className="mx-auto w-full max-w-[900px] flex-1 px-5 py-12 sm:px-6 sm:py-16">
         <h1 className="text-[30px] font-light leading-tight sm:text-[36px]">{t('levels.title')}</h1>
         <p className="mt-3 max-w-[52ch] text-[15px] text-body">{t('levels.intro')}</p>
+
+        {!user && (
+          <div className="mt-6 flex flex-wrap items-center gap-4 rounded-xl border border-hairline bg-surface px-5 py-4">
+            <p className="text-[15px] text-body">{t('levels.guestBanner')}</p>
+            <Link
+              to="/login"
+              state={{ from: '/levels' }}
+              className="inline-flex h-10 items-center rounded-full bg-primary px-5 text-[15px] font-medium text-on-primary transition-opacity hover:opacity-90"
+            >
+              {t('actions.login')}
+            </Link>
+          </div>
+        )}
 
         <div className="mt-10 space-y-10">
           {MODULES.map((kind) => {
@@ -54,7 +72,9 @@ export function Levels() {
                 <ol className="mt-4 grid gap-2.5 sm:grid-cols-2">
                   {chain.map((level, index) => {
                     const progress = progressById.get(level.id)
-                    const locked = openIndex !== -1 && index > openIndex
+                    // A lock means "pass the level before it"; a guest is stopped by
+                    // the sign-in step instead, so nothing is shown locked to them.
+                    const locked = Boolean(user) && openIndex !== -1 && index > openIndex
 
                     return (
                       <li key={level.id}>
@@ -70,7 +90,12 @@ export function Levels() {
                           </div>
                         ) : (
                           <Link
-                            to={`/exercise/${modulePath(kind)}?level=${level.id}`}
+                            to={user ? `/exercise/${modulePath(kind)}?level=${level.id}` : '/login'}
+                            state={
+                              user
+                                ? undefined
+                                : { from: `/exercise/${modulePath(kind)}?level=${level.id}` }
+                            }
                             className="flex items-center justify-between gap-4 rounded-xl border border-hairline bg-surface px-4 py-3.5 transition-colors hover:border-hairline-strong hover:bg-canvas-soft"
                           >
                             <span className="flex items-center gap-3 text-[15px] font-medium">
@@ -82,11 +107,13 @@ export function Levels() {
                               {t('levels.level', { number: index + 1 })}
                             </span>
                             <span className="tabular text-[13px] text-muted">
-                              {progress
-                                ? t('levels.best', {
-                                    percent: Math.round(progress.bestAccuracy * 100),
-                                  })
-                                : t('levels.questions', { count: level.questions })}
+                              {!user
+                                ? t('levels.questions', { count: level.questions })
+                                : progress
+                                  ? t('levels.best', {
+                                      percent: Math.round(progress.bestAccuracy * 100),
+                                    })
+                                  : t('levels.questions', { count: level.questions })}
                             </span>
                           </Link>
                         )}

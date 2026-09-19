@@ -210,6 +210,8 @@
     "best": "best {{percent}}%",
     "empty": "Nothing here yet. Start with level 1.",
     "entry": "Question sets",
-    "entryHint": "Work through each module by difficulty, with your best score kept per level."
+    "entryHint": "Work through each module by difficulty, with your best score kept per level.",
+    "guestBanner": "Question-set progress lives in your account. Sign in to start from level 1.",
+    "entryHintGuest": "Work through each module by difficulty; progress is saved to your account."
   }
 }

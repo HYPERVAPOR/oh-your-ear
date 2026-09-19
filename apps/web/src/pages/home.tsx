@@ -66,9 +66,17 @@ export function Home() {
         {/* The five modules, each carrying the orb colour it owns everywhere else. */}
         <section className="px-6 pb-24 sm:pb-32">
           <div className="mx-auto max-w-[1200px]">
-            <h2 className="font-display text-[26px] font-light sm:text-[32px]">
-              {t('home.modulesHeading')}
-            </h2>
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <h2 className="text-[26px] font-light sm:text-[32px]">{t('home.modulesHeading')}</h2>
+              {/* The other mode, beside the practice modules: shown to guests too,
+                  because the ladder is what makes signing in worth it. */}
+              <Link to="/levels" className={buttonVariants({ variant: 'outline' })}>
+                {t('levels.entry')}
+              </Link>
+            </div>
+            <p className="mt-3 max-w-[60ch] text-[14px] text-muted">
+              {user ? t('levels.entryHint') : t('levels.entryHintGuest')}
+            </p>
 
             {/* Five modules in rows of three: the second row is centred, so there is
                 no hole where a sixth card would have been. */}
@@ -103,16 +111,17 @@ export function Home() {
           </div>
         </section>
 
-        {user && (
-          <section className="px-6 pb-4">
-            <div className="mx-auto max-w-[1200px]">
-              <Link to="/levels" className={buttonVariants({ size: 'lg' })}>
-                {t('levels.entry')}
-              </Link>
-              <p className="mt-3 max-w-[46ch] text-[14px] text-muted">{t('levels.entryHint')}</p>
-            </div>
-          </section>
-        )}
+        {/* Shown to everyone: the ladder itself is the invitation to sign in. */}
+        <section className="px-6 pb-4">
+          <div className="mx-auto max-w-[1200px]">
+            <Link to="/levels" className={buttonVariants({ variant: 'outline', size: 'lg' })}>
+              {t('levels.entry')}
+            </Link>
+            <p className="mt-3 max-w-[46ch] text-[14px] text-muted">
+              {user ? t('levels.entryHint') : t('levels.entryHintGuest')}
+            </p>
+          </div>
+        </section>
 
         {!user && (
           <section className="px-6 pb-24 sm:pb-28">
