@@ -2,9 +2,10 @@ name: oh-your-ear
 
 # Optional TLS edge: podman compose -f compose/compose.yml -f compose/compose.tls.yml up -d
 #
-# Caddy obtains and renews Let's Encrypt certificates on its own, so there is no
-# certbot timer to babysit. Requires DOMAIN and ACME_EMAIL in .env, and both
-# 80 and 443 reachable from the internet (80 is used for the ACME challenge).
+# Caddy obtains and renews the API host's Let's Encrypt certificate on its own, so there
+# is no certbot timer to babysit. Requires DOMAIN (the API host, e.g. api.example.com) and
+# ACME_EMAIL in .env, and both 80 and 443 reachable from the internet (80 is used for the
+# ACME challenge). The front ends are on Vercel, which issues their certificates.
 services:
   caddy:
     image: caddy:2.10-alpine
@@ -19,7 +20,7 @@ services:
       - caddy-data:/data
       - caddy-config:/config
     depends_on:
-      - web
+      - api
     restart: unless-stopped
 
 volumes:

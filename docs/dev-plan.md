@@ -339,15 +339,12 @@
 - **depends on**: —
 
 ### 17.2 Cross-site preferences and session
-
 - **issue**: #76
-- **status**: 🔴 todo
-- **description**: Preferences must survive the hop between the two hosts (PRD 7.1.2). Done and verified in a browser across two origins: one cookie on the parent domain (never a per-site copy as well — the more specific host-only cookie reads first and would hide the other site's change), falling back to host-only only when the browser refuses the shared scope, which is what Chrome does on `localhost`. Still to do: the session. The refresh cookie is host-only today, so it needs a `COOKIE_DOMAIN` setting and a logout path that clears the same cookie — then logging in on the app is visible on the landing with no token in the URL. Local verification needs production-shaped hostnames; see `memory/2026-09-19-cross-site-preference-cookie.md`.
+- **status**: 🟢 done
+- **description**: Preferences cross the two hosts (PRD 7.1.2). One cookie on the parent domain — never a per-site copy as well, because the more specific host-only cookie reads first and would hide the other site's change — falling back to host-only when the browser refuses the shared scope, which is what Chrome does on `localhost`. Verified in a browser across two origins: the app writes, the landing (empty localStorage) reads, the landing writes, the app reads the new value despite its own stale copy. **The session needs no change at all**: because Vercel proxies `/api` for the app, every cookie in the auth flow (refresh, OAuth state) is set on the app's own host and stays host-only, so no `COOKIE_DOMAIN` was needed.
 - **depends on**: 17.1
-
 ### 17.3 Deployment: two hosts, one API
-
 - **issue**: #76
-- **status**: 🔴 todo
-- **description**: Build and serve the landing as its own static image, add a Caddy site block for the landing host alongside the app host, and turn the API's single `FRONTEND_URL` into a list (CORS origins, OAuth redirect allow-list) so both hosts can talk to it. Update `docs/deploy.md` with the two-host layout and the DNS/cert steps.
+- **status**: 🟢 done
+- **description**: Front ends on Vercel, API and Postgres on the VPS. The app's `/api` is a Vercel rewrite back to the origin (`apps/web/vercel.json`, with `no-store` so token responses are never edge-cached), which is what keeps the browser same-origin and let the API stay untouched: no CORS, no cross-site cookie, and the Google callback is registered on the app host so the OAuth state and refresh cookies land on the same origin. The API container stays the only thing Caddy fronts (one certificate, one host), the web image and its nginx config are gone, and `docs/deploy.md` now describes the topology, DNS records, the two Vercel projects and the env split.
 - **depends on**: 17.1, 17.2

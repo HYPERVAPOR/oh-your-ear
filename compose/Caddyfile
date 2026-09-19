@@ -1,9 +1,9 @@
 {$DOMAIN} {
 	tls {$ACME_EMAIL}
 
-	# Everything goes to nginx inside the web container, which serves the built
-	# SPA and proxies /api to the api container.
-	reverse_proxy web:80
+	# The API host. The front ends are on Vercel and reach this through the rewrite in
+	# apps/web/vercel.json, so this is the only certificate that has to exist here.
+	reverse_proxy api:8080
 
 	encode zstd gzip
 }

@@ -55,25 +55,24 @@
 
 ## 部署
 
-- **方式**：服务器自建 + Podman Compose
-- **容器文件**：`Containerfile`（Podman 原生，兼容 Docker）
-- **基础镜像**：
-  - 构建：`node:24.16.0-slim`、`golang:1.26.4-bookworm`
-  - 运行：`nginx:1.27.5-alpine`、`gcr.io/distroless/static-debian12`
-  - 数据库：`postgres:17.4-alpine`
-- **容器组成**：
-  - `web`：Nginx 托管构建后的静态页面
-  - `api`：Golang 后端服务
-  - `db`：PostgreSQL
-  - （可选）`redis`：Refresh Token 黑名单 / 限流
-- **网关 / HTTPS**：Caddy 或 Nginx 反向代理 + 自动 SSL
+两个前端是纯静态产物，放在 Vercel；后端与数据库自托管在一台 VPS 上。
+
+- **前端**：Vercel 两个项目，Root Directory 分别为 `apps/landing` 与 `apps/web`（Vercel 认 pnpm workspace，会从仓库根安装依赖，因此 `packages/shared` 可用）
+- **后端**：`golang:1.26.4-bookworm` 构建 → `gcr.io/distroless/static-debian12` 运行，二进制无外部依赖
+- **数据库**：`postgres:17.4-alpine`，只在 compose 网络内可达
+- **网关 / HTTPS**：Caddy 只为 API 主机签证书（Vercel 负责前端的证书）
+- **同源策略**：app 的 `/api` 由 Vercel 的 rewrite 代理回 VPS（`apps/web/vercel.json`），浏览器只与 app 域名交互 —— 刷新 cookie 保持 host-only、`SameSite` 用默认值、**API 不需要 CORS**，OAuth 回调也注册在 app 域名上
+
+容器组成只剩两个（`api`、`db`），加可选的 `caddy`。部署细节见 [`docs/deploy.md`](./deploy.md)。
 
 ## 本地开发
 
 - **环境**：Podman Compose
 - **开发服务**：
-  - `web`：`node:24.16.0-slim` + pnpm，跑 Vite 热更新
-  - `api`：`golang:1.26.4-bookworm`，跑 `go run`
+  - `install`：一次性安装工作区依赖（两个前端共享同一份 `node_modules`，避免并发安装）
+  - `web`：`node:24.16.0-slim` + pnpm，跑 Vite 热更新（5173）
+  - `landing`：同上，落地页（5174）
+  - `api`：`golang:1.26.4-bookworm`，跑 `go run`（8080）
   - `db`：`postgres:17.4-alpine`
 - **工作流**：编辑器在宿主机，服务在容器，源码通过 bind mount 同步
 
@@ -82,14 +81,20 @@
 ```
 oh-your-ear/
 ├── apps/
-│   ├── web/                # React 前端
+│   ├── landing/            # 落地页（独立站点，可单独部署）
+│   ├── web/                # app：练习、进度、题单
 │   └── api/                # Golang 后端
+├── packages/
+│   └── shared/             # 设计令牌、字体、偏好、i18n 引导（两个站点共用）
+├── scripts/
+│   └── check-i18n.mjs      # 两个站点的 i18n key 检查
 ├── compose/
-│   ├── compose.yml      # 生产部署
-│   └── compose.dev.yml  # 本地开发
+│   ├── compose.yml         # 生产：api + db
+│   └── compose.dev.yml     # 本地开发
 ├── docs/
 │   ├── prd.md
-│   └── tech-spec.md
+│   ├── tech-spec.md
+│   └── deploy.md
 ├── package.json            # pnpm workspace root
 ├── pnpm-workspace.yaml
 ├── turbo.json
@@ -105,5 +110,6 @@ oh-your-ear/
 | Tailwind CSS v4 | 新版 CSS-first 配置，减少配置文件，主题切换方便 |
 | Tone.js + Salamander | 真实钢琴采样，音质好，社区验证 |
 | Golang + Gin + PostgreSQL | 自研后端可控，性能稳定，适合长期维护 |
-| Podman Compose | 前后端+数据库一次拉起，部署和本地开发一致 |
-| Podman Compose 分离服务 | 开发环境与生产架构一致，web/api/db 独立容器 |
+| Podman Compose | 后端+数据库一次拉起，部署和本地开发一致 |
+| Vercel 托管两个前端 | 静态产物交给 CDN，省掉自建静态托管与证书；`/api` 用 rewrite 保同源，API 与 cookie 逻辑不用为跨源做任何妥协 |
+| landing 与 app 拆成两个应用 | 落地页不该为练习引擎付出首屏代价，两边的设计与文案演进节奏也不同（PRD 7.1.2） |

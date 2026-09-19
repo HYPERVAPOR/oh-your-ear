@@ -22,11 +22,12 @@ Train your ear with single notes, intervals, chords, melodies, and rhythms — o
 - **Music Theory**: tonal
 - **Backend**: Go + Gin + PostgreSQL
 - **Auth**: JWT + Google OAuth + email verification
-- **Deployment**: Self-hosted server + Podman Compose
+- **Deployment**: Front ends on Vercel, Go API + Postgres self-hosted
+- **Guides**: [`docs/deploy.md`](./docs/deploy.md)
 
 ## Live Demo
 
-> Coming soon — deployment instructions are in [`docs/tech-spec.md`](./docs/tech-spec.md).
+> Coming soon — see [`docs/deploy.md`](./docs/deploy.md) for the deployment runbook.
 
 ## Documentation
 
