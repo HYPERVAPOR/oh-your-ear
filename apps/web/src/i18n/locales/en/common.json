@@ -244,5 +244,21 @@
       "partial": "partly done",
       "none": "nothing"
     }
+  },
+  "collections": {
+    "title": "Collections",
+    "intro": "Keep the levels you want to repeat in folders — several of them, if you like — and a level can sit in more than one.",
+    "defaultName": "Saved",
+    "collect": "Collect",
+    "newFolder": "New folder",
+    "folderEmpty": "This folder is empty. Use the bookmark icon next to a level.",
+    "remove": "Remove",
+    "practise": "Practise",
+    "rename": "Folder name",
+    "deleteFolder": "Delete folder",
+    "empty": "No folders yet.",
+    "guestBanner": "Folders follow your account; sign in to use them.",
+    "openHint": "Your saved levels, in as many folders as you like.",
+    "open": "Open collections"
   }
 }

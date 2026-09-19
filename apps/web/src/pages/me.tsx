@@ -44,6 +44,19 @@ export function Me() {
           <PracticeStats />
 
           <Link
+            to="/bookmarks"
+            className="flex items-center justify-between rounded-xl border border-hairline bg-surface px-6 py-5 transition-colors hover:border-hairline-strong"
+          >
+            <div>
+              <h2 className="text-[20px] font-light leading-tight">{t('collections.title')}</h2>
+              <p className="mt-1 text-[14px] text-muted">{t('collections.openHint')}</p>
+            </div>
+            <span className="text-[15px] font-medium underline underline-offset-4">
+              {t('collections.open')}
+            </span>
+          </Link>
+
+          <Link
             to="/mistakes"
             className="flex items-center justify-between rounded-xl border border-hairline bg-surface px-6 py-5 transition-colors hover:border-hairline-strong"
           >

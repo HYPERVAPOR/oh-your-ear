@@ -266,8 +266,8 @@
 ### 14.5 Collections and folders
 
 - **issue**: #64
-- **status**: 🔴 todo
-- **description**: Any level can be collected. `collections` (owner, name, position, a default 「收藏」 folder) + `collection_items`, so a level can sit in several folders. API for listing, creating, renaming, deleting folders and adding/removing levels; UI for a collect control on every level and a bookmarks area. Signed-in only, synced.
+- **status**: 🟢 done
+- **description**: Any level can be collected. `collections` (owner, name, position, `is_default`) + `collection_items`, so a level can sit in several folders. API for listing, creating, renaming, deleting folders and adding/removing levels, with the default folder created lazily and protected from rename/delete; its name is empty and the client renders it in the reader's language. UI: a bookmark control on every level opening the folders as checkboxes (plus inline folder creation) and a bookmarks page listing each folder's levels with rename, delete and remove. Signed-in only, synced.
 - **depends on**: 14.4
 
 ---

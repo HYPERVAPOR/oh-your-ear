@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/HYPERVAPOR/oh-your-ear/apps/api/internal/auth"
 	"github.com/HYPERVAPOR/oh-your-ear/apps/api/internal/middleware"
@@ -228,6 +229,138 @@ func (s *Server) ListDailyHistory(c *gin.Context, params ListDailyHistoryParams)
 		CurrentStreak: history.CurrentStreak,
 		LongestStreak: history.LongestStreak,
 	})
+}
+
+// ListCollections handles GET /me/collections.
+func (s *Server) ListCollections(c *gin.Context) {
+	userID, ok := s.requireUser(c)
+	if !ok {
+		return
+	}
+
+	ctx := c.Request.Context()
+	if err := s.practice.EnsureDefaultCollection(ctx, userID); err != nil {
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "failed to prepare collections"})
+		return
+	}
+
+	collections, err := s.practice.ListCollections(ctx, userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "failed to load collections"})
+		return
+	}
+
+	payload := make([]Collection, 0, len(collections))
+	for _, entry := range collections {
+		levels := entry.LevelIDs
+		if levels == nil {
+			levels = []string{}
+		}
+		payload = append(payload, Collection{
+			Id:        entry.ID,
+			Name:      entry.Name,
+			IsDefault: entry.IsDefault,
+			Levels:    levels,
+		})
+	}
+
+	c.JSON(http.StatusOK, payload)
+}
+
+// CreateCollection handles POST /me/collections.
+func (s *Server) CreateCollection(c *gin.Context) {
+	userID, ok := s.requireUser(c)
+	if !ok {
+		return
+	}
+
+	var body CollectionRequest
+	if err := c.ShouldBindJSON(&body); err != nil || strings.TrimSpace(body.Name) == "" {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "a folder needs a name"})
+		return
+	}
+
+	if _, err := s.practice.CreateCollection(c.Request.Context(), userID, strings.TrimSpace(body.Name)); err != nil {
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "failed to create the folder"})
+		return
+	}
+
+	c.Status(http.StatusCreated)
+}
+
+// RenameCollection handles PATCH /me/collections/{id}.
+func (s *Server) RenameCollection(c *gin.Context, id openapi_types.UUID) {
+	userID, ok := s.requireUser(c)
+	if !ok {
+		return
+	}
+
+	var body CollectionRequest
+	if err := c.ShouldBindJSON(&body); err != nil || strings.TrimSpace(body.Name) == "" {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "a folder needs a name"})
+		return
+	}
+
+	renamed, err := s.practice.RenameCollection(c.Request.Context(), userID, uuid.UUID(id), strings.TrimSpace(body.Name))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "failed to rename the folder"})
+		return
+	}
+	if !renamed {
+		c.JSON(http.StatusNotFound, ErrorResponse{Error: "folder not found"})
+		return
+	}
+
+	c.Status(http.StatusNoContent)
+}
+
+// DeleteCollection handles DELETE /me/collections/{id}.
+func (s *Server) DeleteCollection(c *gin.Context, id openapi_types.UUID) {
+	userID, ok := s.requireUser(c)
+	if !ok {
+		return
+	}
+
+	deleted, err := s.practice.DeleteCollection(c.Request.Context(), userID, uuid.UUID(id))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "failed to delete the folder"})
+		return
+	}
+	if !deleted {
+		c.JSON(http.StatusNotFound, ErrorResponse{Error: "folder not found"})
+		return
+	}
+
+	c.Status(http.StatusNoContent)
+}
+
+// AddCollectionItem handles PUT /me/collections/{id}/levels/{levelId}.
+func (s *Server) AddCollectionItem(c *gin.Context, id openapi_types.UUID, levelId string) {
+	s.setCollectionItem(c, id, levelId, true)
+}
+
+// RemoveCollectionItem handles DELETE /me/collections/{id}/levels/{levelId}.
+func (s *Server) RemoveCollectionItem(c *gin.Context, id openapi_types.UUID, levelId string) {
+	s.setCollectionItem(c, id, levelId, false)
+}
+
+func (s *Server) setCollectionItem(c *gin.Context, id openapi_types.UUID, levelId string, present bool) {
+	userID, ok := s.requireUser(c)
+	if !ok {
+		return
+	}
+
+	done, err := s.practice.SetCollectionItem(c.Request.Context(), userID, uuid.UUID(id), levelId, present)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "failed to update the folder"})
+		return
+	}
+	if !done {
+		c.JSON(http.StatusNotFound, ErrorResponse{Error: "folder not found"})
+		return
+	}
+
+	c.Status(http.StatusNoContent)
 }
 
 // ListLevelSets handles GET /levels/sets.
