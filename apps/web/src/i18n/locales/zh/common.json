@@ -106,12 +106,13 @@
     "today": "今日进度",
     "solvedOfGoal": "{{solved}} / {{goal}} 题",
     "accuracy": "正确率 {{percent}}%",
-    "title": "学习计划",
-    "description": "设定每日目标题数，未勾选重点模块表示五个模块都练。",
+    "title": "每日练习设置",
+    "description": "设定每日题数与重点模块；每日练习按它生成当天要练的题。",
     "dailyGoal": "每日目标题数",
     "focus": "重点模块",
     "save": "保存计划",
-    "saved": "已保存"
+    "saved": "已保存",
+    "goToday": "去练今天的一组"
   },
   "stats": {
     "title": "练习统计",
@@ -175,8 +176,9 @@
     "heroLine1": "五组练习，随时开始，无需注册。",
     "heroLine2": "掌握音高、音程、和弦、旋律与节奏。",
     "startCta": "从单音开始",
-    "practiceHeading": "练习模式",
-    "practiceHint": "无限出题、随机练习，随时开始随时停；游客也能练全部基础题。"
+    "practiceHeading": "随机练习",
+    "practiceHint": "无限出题、随机练习，没有轮次也没有目标；游客也能练全部基础题。",
+    "dailyHint": "设定每日题数与重点模块，按计划练完当天的量。"
   },
   "settings": {
     "language": "语言",
@@ -218,5 +220,23 @@
     "startAt": "从第 {{number}} 关开始",
     "allPassed": "这条链已全部通关",
     "viewAll": "查看全部关卡"
+  },
+  "daily": {
+    "title": "每日练习",
+    "intro": "按你的计划生成今天的练习，练够每日题数就算达标。",
+    "guestBanner": "每日练习的进度与历史保存在账号里，登录后开始。",
+    "today": "今天",
+    "progress": "{{solved}} / {{goal}} 题",
+    "met": "今日已达标",
+    "focus": "重点模块（今天各练了多少）",
+    "start": "开始今日练习（{{count}} 题）",
+    "extraRound": "再来一轮",
+    "settingsLink": "调整每日计划",
+    "nextModule": "这一轮从「{{module}}」开始，练完可以继续下一个重点模块。",
+    "historySoon": "每日历史（日历热力图）在下一版加入。",
+    "entry": "今日练习",
+    "entryHint": "按计划出题，练够目标即达标。",
+    "entryHintGuest": "需要登录，进度与历史存在账号里。",
+    "afterRound": "今天 {{solved}} / {{goal}} 题，还差 {{remaining}} 题。"
   }
 }

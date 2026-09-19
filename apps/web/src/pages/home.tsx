@@ -174,7 +174,26 @@ export function Home() {
           </div>
         </section>
 
-        {/* The second mode is laid out here, not hidden behind a link: the five
+        {/* Daily practice: the plan's goal and today's progress, with the session
+            one click away. */}
+        <section className="px-6 pb-16">
+          <div className="mx-auto max-w-[1200px]">
+            <h2 className="text-[26px] font-light sm:text-[32px]">{t('daily.title')}</h2>
+            <p className="mt-3 max-w-[60ch] text-[14px] text-muted">{t('home.dailyHint')}</p>
+
+            <Link
+              to="/daily"
+              className="mt-8 block max-w-[520px] rounded-xl border border-hairline bg-surface px-6 py-5 transition-colors hover:border-hairline-strong"
+            >
+              <p className="text-[15px] font-medium">{t('daily.entry')}</p>
+              <p className="mt-1 text-[14px] text-muted">
+                {user ? t('daily.entryHint') : t('daily.entryHintGuest')}
+              </p>
+            </Link>
+          </div>
+        </section>
+
+        {/* The third mode is laid out here, not hidden behind a link: the five
             chains' current levels are the invitation. */}
         <section className="px-6 pb-4">
           <div className="mx-auto max-w-[1200px]">

@@ -292,7 +292,7 @@
 
 - **issue**: #62
 - **status**: 🔴 todo
-- **description**: The plan's settings (daily goal, focus modules) become the daily practice settings, so there is one place to set them and one place to act on them; 随机练习 is renamed from 练习模式; the home page lays out all three modes as bands.
+- **description**: The plan's settings became the daily practice settings (`/me` holds them, `/daily` acts on them, and each links to the other); 练习模式 is renamed 随机练习 everywhere; the home page lays out all three modes as bands. The calendar history is 15.2.
 - **depends on**: 15.1
 
 ---
