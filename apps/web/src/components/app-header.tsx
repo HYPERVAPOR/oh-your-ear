@@ -70,7 +70,7 @@ export function AppHeader() {
           </span>
           {/* On phones the mark carries the brand on its own: with the wordmark the
               header wraps to two rows at 390px. */}
-          <span className="font-display hidden text-[18px] leading-none tracking-tight sm:inline sm:text-[21px]">
+          <span className="font-display hidden text-[18px] leading-none tracking-normal sm:inline sm:text-[21px]">
             {t('appName')}
           </span>
         </Link>

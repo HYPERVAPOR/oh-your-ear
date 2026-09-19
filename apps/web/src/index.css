@@ -1,5 +1,32 @@
 @import 'tailwindcss';
 
+/* Self-hosted Latin face. @font-face cannot live inside @theme — Tailwind v4 only
+   allows custom properties and @keyframes there. */
+/* A terminal family, Latin only: the CJK glyphs stay on the platform stack below.
+   Self-hosted so there is no third-party runtime request and the PWA works offline. */
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 100 800;
+  font-display: swap;
+  src: url('/fonts/jetbrains-mono-latin.woff2') format('woff2');
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 100 800;
+  font-display: swap;
+  src: url('/fonts/jetbrains-mono-latin-ext.woff2') format('woff2');
+  unicode-range:
+    U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329,
+    U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F,
+    U+A720-A7FF;
+}
+
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme inline {
@@ -46,11 +73,14 @@
   --color-success-foreground: var(--on-primary);
   --color-primary-foreground: var(--on-primary);
 
-  /* One family for the whole product. A Latin display serif cannot pair with the
-     platform's CJK serif, and shipping a Chinese webfont is several megabytes, so
-     the character comes from scale, weight and tracking instead. */
+  /* One family for the whole product, monospaced where we have the glyphs. A Chinese
+     webfont is several megabytes, so CJK text stays on the platform fonts — a
+     monospaced CJK face first if the machine has one (Sarasa, Noto Sans Mono CJK,
+     Maple Mono), otherwise the platform's proportional CJK face. Result: Latin and
+     every numeral sit on a grid, Chinese reads as the reader's system font. */
   --font-sans:
-    'Inter', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif;
+    'JetBrains Mono', 'Sarasa Mono SC', 'Sarasa Fixed SC', 'Noto Sans Mono CJK SC', 'Maple Mono CN',
+    'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif;
   --font-display: var(--font-sans);
 
   /* Square corners: this is studio equipment, not a SaaS dashboard. */
@@ -63,8 +93,8 @@
   --shadow-soft: 0 4px 16px rgb(0 0 0 / 0.04);
   --shadow-lift: 0 8px 28px rgb(0 0 0 / 0.07);
 
-  --tracking-body: 0.16px;
-  --tracking-badge: 0.96px;
+  --tracking-body: 0;
+  --tracking-badge: 0.06em;
 }
 
 :root {
@@ -161,6 +191,7 @@
   line-height: 1.4;
   letter-spacing: var(--tracking-badge);
   text-transform: uppercase;
+  font-variant-numeric: slashed-zero;
 }
 
 @utility tabular {

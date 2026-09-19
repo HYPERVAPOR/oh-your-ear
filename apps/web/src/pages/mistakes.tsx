@@ -100,7 +100,7 @@ export function Mistakes() {
       <AppHeader />
 
       <main className="mx-auto w-full max-w-[900px] flex-1 px-5 py-12 sm:px-6 sm:py-16">
-        <h1 className="font-display text-[30px] font-light leading-tight sm:text-[36px]">
+        <h1 className="font-display text-[30px] font-medium leading-tight sm:text-[36px]">
           {t('mistakes.title')}
         </h1>
 

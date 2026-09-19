@@ -71,12 +71,12 @@ export function Login() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center px-6 py-16">
       <div className="relative w-full max-w-[440px]">
-        <Link to="/" className="font-display text-[21px] tracking-tight">
+        <Link to="/" className="font-display text-[21px] tracking-normal">
           {t('appName')}
         </Link>
 
         <Card className="mt-6 p-7">
-          <h1 className="font-display text-[28px] font-light leading-tight">{t('auth.title')}</h1>
+          <h1 className="font-display text-[28px] font-medium leading-tight">{t('auth.title')}</h1>
           <p className="mt-2 text-[15px] text-body">{t('auth.subtitle')}</p>
 
           <form className="mt-7 space-y-5" onSubmit={submit}>

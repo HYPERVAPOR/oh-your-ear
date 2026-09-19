@@ -55,7 +55,7 @@ function LevelCard({
         <div>
           <div className="flex items-center gap-2.5">
             <ModuleSwatch kind={kind} />
-            <h3 className="text-[21px] font-light leading-tight">{t(`modules.${kind}`)}</h3>
+            <h3 className="text-[21px] font-medium leading-tight">{t(`modules.${kind}`)}</h3>
           </div>
           <p className="mt-2 text-[15px] text-body">
             {chainComplete(sets, kind, progress)
@@ -109,7 +109,7 @@ export function Home() {
             action we want them to take. */}
         <section className="px-6 pb-20 pt-24 sm:pb-28 sm:pt-32">
           <div className="mx-auto flex max-w-[720px] flex-col items-center text-center">
-            <h1 className="max-w-[24ch] text-balance text-[40px] font-light leading-[1.08] tracking-[-0.03em] sm:text-[60px]">
+            <h1 className="max-w-[24ch] text-balance text-[40px] font-medium leading-[1.08] tracking-[-0.01em] sm:text-[60px]">
               {t('tagline')}
             </h1>
             <p className="mt-6 text-[17px] leading-[1.7] text-body">
@@ -144,7 +144,7 @@ export function Home() {
         {/* The five modules, each carrying the orb colour it owns everywhere else. */}
         <section className="px-6 pb-24 sm:pb-32">
           <div className="mx-auto max-w-[1200px]">
-            <h2 className="text-[26px] font-light sm:text-[32px]">{t('home.practiceHeading')}</h2>
+            <h2 className="text-[26px] font-medium sm:text-[32px]">{t('home.practiceHeading')}</h2>
             <p className="mt-3 max-w-[60ch] text-[14px] text-muted">{t('home.practiceHint')}</p>
 
             {/* A rack of panels: square, tightly packed, one per module, with the
@@ -198,7 +198,7 @@ export function Home() {
             one click away. */}
         <section className="px-6 pb-16">
           <div className="mx-auto max-w-[1200px]">
-            <h2 className="text-[26px] font-light sm:text-[32px]">{t('daily.title')}</h2>
+            <h2 className="text-[26px] font-medium sm:text-[32px]">{t('daily.title')}</h2>
             <p className="mt-3 max-w-[60ch] text-[14px] text-muted">{t('home.dailyHint')}</p>
 
             <Link
@@ -217,7 +217,7 @@ export function Home() {
             chains' current levels are the invitation. */}
         <section className="px-6 pb-4">
           <div className="mx-auto max-w-[1200px]">
-            <h2 className="text-[26px] font-light sm:text-[32px]">{t('levels.modeTitle')}</h2>
+            <h2 className="text-[26px] font-medium sm:text-[32px]">{t('levels.modeTitle')}</h2>
             <p className="mt-3 max-w-[60ch] text-[14px] text-muted">
               {user ? t('levels.modeHint') : t('levels.entryHintGuest')}
             </p>
@@ -251,7 +251,7 @@ export function Home() {
               <Card className="p-7 sm:p-9">
                 <div className="flex flex-wrap items-center justify-between gap-6">
                   <div>
-                    <h2 className="font-display text-[24px] font-light leading-tight">
+                    <h2 className="font-display text-[24px] font-medium leading-tight">
                       {t('home.loginHeading')}
                     </h2>
                     <p className="mt-2 max-w-[46ch] text-[15px] text-body">

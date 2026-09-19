@@ -66,7 +66,7 @@ export function Bookmarks() {
       <AppHeader />
 
       <main className="mx-auto w-full max-w-[900px] flex-1 px-5 py-12 sm:px-6 sm:py-16">
-        <h1 className="text-[30px] font-light leading-tight sm:text-[36px]">
+        <h1 className="text-[30px] font-medium leading-tight sm:text-[36px]">
           {t('collections.title')}
         </h1>
         <p className="mt-3 max-w-[54ch] text-[15px] text-body">{t('collections.intro')}</p>

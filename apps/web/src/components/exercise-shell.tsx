@@ -37,7 +37,7 @@ export function ExerciseShell({
             <Button variant="ghost" size="icon" onClick={onBack} aria-label={t('actions.back')}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <h1 className="font-display text-[21px] font-light leading-none">
+            <h1 className="font-display text-[21px] font-medium leading-none">
               {t(`modules.${kind}`)}
             </h1>
             <span className="badge-label hidden pt-1 text-muted sm:inline">

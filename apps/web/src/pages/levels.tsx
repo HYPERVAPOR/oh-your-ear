@@ -40,7 +40,9 @@ export function Levels() {
       <AppHeader />
 
       <main className="mx-auto w-full max-w-[900px] flex-1 px-5 py-12 sm:px-6 sm:py-16">
-        <h1 className="text-[30px] font-light leading-tight sm:text-[36px]">{t('levels.title')}</h1>
+        <h1 className="text-[30px] font-medium leading-tight sm:text-[36px]">
+          {t('levels.title')}
+        </h1>
         <p className="mt-3 max-w-[52ch] text-[15px] text-body">{t('levels.intro')}</p>
 
         {!user && (

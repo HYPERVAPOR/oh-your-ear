@@ -27,7 +27,7 @@ export function Me() {
         <header className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="badge-label text-muted">{t('auth.account')}</p>
-            <h1 className="mt-2 font-display text-[28px] font-light leading-tight sm:text-[32px]">
+            <h1 className="mt-2 font-display text-[28px] font-medium leading-tight sm:text-[32px]">
               {user?.name || t('auth.account')}
             </h1>
             <p className="mt-1.5 text-[15px] text-muted">{user?.email}</p>
@@ -48,7 +48,7 @@ export function Me() {
             className="flex items-center justify-between rounded-xl border border-hairline bg-surface px-6 py-5 transition-colors hover:border-hairline-strong"
           >
             <div>
-              <h2 className="text-[20px] font-light leading-tight">{t('collections.title')}</h2>
+              <h2 className="text-[20px] font-medium leading-tight">{t('collections.title')}</h2>
               <p className="mt-1 text-[14px] text-muted">{t('collections.openHint')}</p>
             </div>
             <span className="text-[15px] font-medium underline underline-offset-4">
@@ -61,7 +61,7 @@ export function Me() {
             className="flex items-center justify-between rounded-xl border border-hairline bg-surface px-6 py-5 transition-colors hover:border-hairline-strong"
           >
             <div>
-              <h2 className="font-display text-[20px] font-light leading-tight">
+              <h2 className="font-display text-[20px] font-medium leading-tight">
                 {t('mistakes.title')}
               </h2>
               <p className="mt-1 text-[14px] text-muted">{t('mistakes.openHint')}</p>

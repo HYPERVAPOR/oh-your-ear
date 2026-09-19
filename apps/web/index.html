@@ -3,6 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- Self-hosted face: preload it so the first paint is not the fallback font. -->
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      href="/fonts/jetbrains-mono-latin.woff2"
+      crossorigin
+    />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Oh Your Ear</title>
     <script>
