@@ -125,11 +125,15 @@ jobs:
           fi
 
   web:
-    name: Web checks
+    name: Web checks (${{ matrix.app }})
     runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [web, landing]
     defaults:
       run:
-        working-directory: apps/web
+        working-directory: apps/${{ matrix.app }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4.2.2

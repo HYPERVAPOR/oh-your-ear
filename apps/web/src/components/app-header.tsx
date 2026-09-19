@@ -1,45 +1,23 @@
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Ear, Languages, LogIn, LogOut, Monitor, Moon, SquareUser, Sun } from 'lucide-react'
+import { Ear, LogIn, LogOut, SquareUser } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
-import { useAppStore, type Language, type Theme } from '@/stores/app-store'
 import { useAuthStore } from '@/stores/auth-store'
-
-/** Every control in the header is the same 32px square as the brand mark: one row of
- *  key-caps on a panel. Icons carry the meaning, the tooltip and the label carry the
- *  wording, so nothing depends on recognising a glyph. */
-const iconControl =
-  'flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center border border-hairline-strong text-body transition-colors hover:border-ink hover:text-ink'
+import { LanguageKey, ThemeKey, iconKey } from '@oh-your-ear/shared/pref-controls'
 
 const icon = 'h-4 w-4'
 
-/** Theme is a three-position switch, so it cycles: no menu to open, no list to draw. */
-const THEME_CYCLE: Theme[] = ['system', 'light', 'dark']
-const THEME_ICON = { system: Monitor, light: Sun, dark: Moon } as const
-
-/** 64px nav shared by every screen: nameplate left, quiet icon keys right. */
+/** 64px nav shared by every screen: nameplate left, quiet icon keys right. The language
+ *  and theme keys come from the shared package, so the landing site offers the same two
+ *  switches — a reader should not be able to tell which of the two sites they are on
+ *  from the controls alone. */
 export function AppHeader() {
-  const { t, i18n } = useTranslation('common')
+  const { t } = useTranslation('common')
   const navigate = useNavigate()
   const location = useLocation()
-  const { theme, language, setTheme, setLanguage } = useAppStore()
   const user = useAuthStore((s) => s.user)
   const logout = useAuthStore((s) => s.logout)
-
-  const nextLanguage: Language = language === 'zh-CN' ? 'en' : 'zh-CN'
-  const languageName = nextLanguage === 'zh-CN' ? '中文' : 'English'
-  const ThemeIcon = THEME_ICON[theme]
-  const themeLabel = `${t('settings.theme')}: ${t(`theme.${theme}`)}`
-
-  function changeLanguage(next: Language) {
-    setLanguage(next)
-    i18n.changeLanguage(next)
-  }
-
-  function cycleTheme() {
-    setTheme(THEME_CYCLE[(THEME_CYCLE.indexOf(theme) + 1) % THEME_CYCLE.length])
-  }
 
   async function handleLogout() {
     await logout()
@@ -69,25 +47,8 @@ export function AppHeader() {
         </Link>
 
         <nav className="flex items-center gap-1.5">
-          <button
-            type="button"
-            className={iconControl}
-            aria-label={t('settings.switchLanguage', { language: languageName })}
-            title={t('settings.switchLanguage', { language: languageName })}
-            onClick={() => changeLanguage(nextLanguage)}
-          >
-            <Languages aria-hidden="true" className={icon} strokeWidth={1.75} />
-          </button>
-
-          <button
-            type="button"
-            className={iconControl}
-            aria-label={themeLabel}
-            title={themeLabel}
-            onClick={cycleTheme}
-          >
-            <ThemeIcon aria-hidden="true" className={icon} strokeWidth={1.75} />
-          </button>
+          <LanguageKey />
+          <ThemeKey />
 
           {user ? (
             /* The account page shows its own header actions: repeating them here is
@@ -96,7 +57,7 @@ export function AppHeader() {
               <>
                 <Link
                   to="/me"
-                  className={`${iconControl} no-underline`}
+                  className={`${iconKey} no-underline`}
                   aria-label={t('auth.account')}
                   title={t('auth.account')}
                 >
@@ -104,7 +65,7 @@ export function AppHeader() {
                 </Link>
                 <button
                   type="button"
-                  className={iconControl}
+                  className={iconKey}
                   aria-label={t('actions.logout')}
                   title={t('actions.logout')}
                   onClick={handleLogout}

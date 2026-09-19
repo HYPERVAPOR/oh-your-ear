@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="zh">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -12,14 +12,14 @@
       crossorigin
     />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="随时随地练耳：音高、音程、和弦、旋律与节奏。" />
     <title>Oh Your Ear</title>
     <script>
-      // Apply the stored theme before first paint, otherwise dark-mode users get a
-      // white flash while the React tree mounts. Keep in step with theme-provider.tsx.
+      // Apply the stored theme before first paint, otherwise dark-mode readers get a
+      // white flash while the React tree mounts. The cookie first: on this site it is
+      // the preference written by the app, and it is the copy both sites share. Keep in
+      // step with packages/shared/src/prefs.ts.
       try {
-        // The cookie first: on this site it is the preference the landing page wrote,
-        // and it is the copy both sites share. Keep in step with
-        // packages/shared/src/prefs.ts.
         const cookie = document.cookie.match(/(?:^|; )oye_prefs=([^;]*)/)
         const fromCookie = cookie ? cookie[1].split('|')[0] : null
         const stored = JSON.parse(localStorage.getItem('oye-app-storage') || '{}')

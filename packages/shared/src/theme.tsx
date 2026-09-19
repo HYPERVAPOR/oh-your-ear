@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
-import { useAppStore, type Theme } from '@/stores/app-store'
+
+import { useAppStore, type Theme } from './prefs'
 
 function applyTheme(theme: Theme) {
   const root = window.document.documentElement
@@ -14,6 +15,8 @@ function applyTheme(theme: Theme) {
   root.classList.add(theme)
 }
 
+/** Neither site renders a theme of its own: both mount this, and the preference it
+ *  reads is the shared one. */
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const theme = useAppStore((state) => state.theme)
 

@@ -1,0 +1,11 @@
+{
+  "settings": {
+    "theme": "主题",
+    "switchLanguage": "切换到 {{language}}"
+  },
+  "theme": {
+    "system": "跟随系统",
+    "light": "浅色",
+    "dark": "深色"
+  }
+}

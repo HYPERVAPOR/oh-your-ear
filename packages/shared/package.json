@@ -1,0 +1,31 @@
+{
+  "name": "@oh-your-ear/shared",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "exports": {
+    "./tokens.css": "./src/tokens.css",
+    "./prefs": "./src/prefs.ts",
+    "./theme": "./src/theme.tsx",
+    "./pref-controls": "./src/pref-controls.tsx",
+    "./button-variants": "./src/button-variants.ts",
+    "./i18n": "./src/i18n.ts",
+    "./cookie-domain": "./src/cookie-domain.ts"
+  },
+  "dependencies": {
+    "i18next": "26.4.2",
+    "i18next-browser-languagedetector": "8.2.1",
+    "lucide-react": "1.46.0",
+    "react": "19.3.0",
+    "react-i18next": "17.0.14",
+    "zustand": "5.0.15",
+    "class-variance-authority": "0.7.1"
+  },
+  "devDependencies": {
+    "@types/react": "19.3.0",
+    "typescript": "5.7.2"
+  },
+  "scripts": {
+    "test": "node --test src/*.test.ts"
+  }
+}

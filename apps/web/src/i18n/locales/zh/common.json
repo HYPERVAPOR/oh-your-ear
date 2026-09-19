@@ -1,6 +1,5 @@
 {
   "appName": "Oh Your Ear",
-  "tagline": "随时随地练耳。",
   "modules": {
     "singleNote": "单音",
     "interval": "音程",
@@ -97,11 +96,6 @@
     "wrong": "正确答案是 {{answer}}。"
   },
   "notFound": "页面不存在。",
-  "theme": {
-    "light": "浅色",
-    "dark": "深色",
-    "system": "跟随系统"
-  },
   "plan": {
     "today": "今日进度",
     "solvedOfGoal": "{{solved}} / {{goal}} 题",
@@ -173,18 +167,11 @@
     "guestNote": "未登录也能练全部基础题，成绩只留在本次会话。",
     "loginCtaHint": "学习计划、正确率趋势、错题重练、连续打卡与徽章。",
     "loginHeading": "登录解锁进度与错题本",
-    "heroLine1": "五组练习，随时开始，无需注册。",
-    "heroLine2": "掌握音高、音程、和弦、旋律与节奏。",
-    "startCta": "开始练习",
     "practiceHeading": "随机练习",
     "practiceHint": "无限出题、随机练习，没有轮次也没有目标；游客也能练全部基础题。",
     "dailyHint": "设定每日题数与重点模块，按计划练完当天的量。",
     "mistakesTile": "错题重练",
     "mistakesHint": "从错题本抽题，专攻弱项。"
-  },
-  "settings": {
-    "theme": "主题",
-    "switchLanguage": "切换到 {{language}}"
   },
   "round": {
     "title": "一轮结束",

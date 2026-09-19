@@ -324,8 +324,30 @@
 - **depends on**: 16.1
 
 ### 16.3 Home hero and per-module micro-visuals
-
 - **issue**: #69
 - **status**: 🟡 doing
-- **description**: Done: the module cards became a tight six-cell rack (8px gaps, 2 columns on phones and 3 on wider screens, a track-colour strip along each panel's top edge, and 错题重练 filling the sixth cell so the rectangle closes instead of leaving a gap). Still to do: the hero, whose centrepiece should be the play control, today's progress as an arc, and a micro-visual per module (single note = pulse dot, interval = two dots joined, chord = stacked peaks, melody = contour, rhythm = beat grid) plus its track colour. Bento-style sizing, but the 3+2 module grid must not leave a hole.
+- **description**: Done: the module cards became a tight six-cell rack (8px gaps, 2 columns on phones and 3 on wider screens, a track-colour strip along each panel's top edge, and 错题重练 filling the sixth cell so the rectangle closes instead of leaving a gap); the header controls became a row of 32px icon keys; the hero became one full screen, two columns, flush left, with a native scroll-snap pull towards the rack. The hero then moved out of the app entirely — see M17 — so what remains here is the per-module micro-visual (single note = pulse dot, interval = two dots joined, chord = stacked peaks, melody = contour, rhythm = beat grid).
 - **depends on**: 16.1
+
+## M17 Split the front end: landing site and app
+
+### 17.1 Workspace split: `packages/shared` + `apps/landing`, app home becomes the hub
+
+- **issue**: #76
+- **status**: 🟢 done
+- **description**: Two applications in one pnpm workspace, deployable to separate hosts later (PRD 7.1.2). Extracted the parts that must not drift — design tokens, fonts, base element styles, the button variants, the language/theme preference store and its application, the icon keys, the i18next bootstrap — into `packages/shared`, and created `apps/landing` with the hero that used to sit on the app home. The app home is now the practice hub (rack, today, daily, level chains, login card) and still serves guests. The i18n key check moved to `scripts/check-i18n.mjs` and runs for both sites in CI. Dev: landing on 5174, app unchanged on 5173.
+- **depends on**: —
+
+### 17.2 Cross-site preferences and session
+
+- **issue**: #76
+- **status**: 🔴 todo
+- **description**: Preferences must survive the hop between the two hosts (PRD 7.1.2). Done and verified in a browser across two origins: one cookie on the parent domain (never a per-site copy as well — the more specific host-only cookie reads first and would hide the other site's change), falling back to host-only only when the browser refuses the shared scope, which is what Chrome does on `localhost`. Still to do: the session. The refresh cookie is host-only today, so it needs a `COOKIE_DOMAIN` setting and a logout path that clears the same cookie — then logging in on the app is visible on the landing with no token in the URL. Local verification needs production-shaped hostnames; see `memory/2026-09-19-cross-site-preference-cookie.md`.
+- **depends on**: 17.1
+
+### 17.3 Deployment: two hosts, one API
+
+- **issue**: #76
+- **status**: 🔴 todo
+- **description**: Build and serve the landing as its own static image, add a Caddy site block for the landing host alongside the app host, and turn the API's single `FRONTEND_URL` into a list (CORS origins, OAuth redirect allow-list) so both hosts can talk to it. Update `docs/deploy.md` with the two-host layout and the DNS/cert steps.
+- **depends on**: 17.1, 17.2

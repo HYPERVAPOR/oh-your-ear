@@ -104,36 +104,6 @@ export function Home() {
       <AppHeader />
 
       <main className="flex-1">
-        {/* Hero: one screen, two columns, everything flush left. The pitch on the left,
-            the single action on the right. The play control that used to sit here was
-            decoration — a note you could already hear one click away. */}
-        <section className="flex min-h-[calc(100svh-65px)] scroll-mt-[65px] snap-start items-center px-6 py-16">
-          <div className="mx-auto grid w-full max-w-[1200px] gap-12 sm:grid-cols-[1.5fr_1fr] sm:items-end">
-            <div>
-              <h1 className="max-w-[24ch] text-[40px] font-medium leading-[1.1] tracking-[-0.01em] sm:text-[60px]">
-                {t('tagline')}
-              </h1>
-              <p className="mt-6 max-w-[46ch] text-[17px] leading-[1.7] text-body">
-                <span className="block">{t('home.heroLine1')}</span>
-                <span className="block">{t('home.heroLine2')}</span>
-              </p>
-            </div>
-
-            <div className="flex flex-col items-start gap-4 sm:items-end sm:pb-1.5">
-              {/* A plain anchor, not a router link and not a scroll library: the browser
-                  already knows how to travel to an id, and CSS gives it the pull. */}
-              <a href="#practice" className={buttonVariants({ size: 'hero' })}>
-                {t('home.startCta')}
-              </a>
-              {!user && (
-                <p className="max-w-[38ch] text-[14px] text-muted sm:text-right">
-                  {t('home.guestNote')}
-                </p>
-              )}
-            </div>
-          </div>
-        </section>
-
         {user && (
           <section className="px-6 pb-4">
             <div className="mx-auto max-w-[1200px]">
@@ -142,11 +112,14 @@ export function Home() {
           </section>
         )}
 
-        {/* The five modules, each carrying the orb colour it owns everywhere else. */}
-        <section id="practice" className="snap-start px-6 pb-24 sm:pb-32">
+        {/* The five modules, each carrying the orb colour it owns everywhere else.
+            No hero above them: the pitch lives on the landing site (PRD 7.1.2), and this
+            page is the hub a reader comes back to. */}
+        <section className="px-6 pb-24 pt-16 sm:pt-20">
           <div className="mx-auto max-w-[1200px]">
             <h2 className="text-[26px] font-medium sm:text-[32px]">{t('home.practiceHeading')}</h2>
             <p className="mt-3 max-w-[60ch] text-[14px] text-muted">{t('home.practiceHint')}</p>
+            {!user && <p className="mt-1 text-[14px] text-muted">{t('home.guestNote')}</p>}
 
             {/* A rack of panels: square, tightly packed, one per module, with the
                 module's track colour along the top edge. Six cells — five modules

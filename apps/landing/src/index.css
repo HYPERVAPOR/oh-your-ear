@@ -1,0 +1,8 @@
+@import 'tailwindcss';
+/* The design system, shared with the app: tokens, type face, base element styles.
+   Nothing visual is defined here that belongs there. */
+@import '@oh-your-ear/shared/tokens.css';
+
+/* Tailwind only scans a project's own sources by default, so it would miss the class
+   names inside the shared components (the 32px icon keys). */
+@source '../../../packages/shared/src';

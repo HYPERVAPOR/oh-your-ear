@@ -13,6 +13,9 @@ export default defineConfig({
   },
   server: {
     host: '0.0.0.0',
+    // Production-shaped hostnames for the cross-site preference path: see the
+    // note in packages/shared/src/prefs.ts for the --host-resolver-rules line.
+    allowedHosts: ['localhost', '.oye.test'],
     port: 5173,
     proxy: {
       '/api': {

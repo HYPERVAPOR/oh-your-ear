@@ -1,0 +1,11 @@
+{
+  "settings": {
+    "theme": "Theme",
+    "switchLanguage": "Switch to {{language}}"
+  },
+  "theme": {
+    "system": "System",
+    "light": "Light",
+    "dark": "Dark"
+  }
+}
