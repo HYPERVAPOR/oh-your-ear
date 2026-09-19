@@ -7,7 +7,7 @@ import { ExerciseShell, FeedbackNote } from '@/components/exercise-shell'
 import { ConfigPanel, NumberField, ToggleGroup } from '@/components/exercises/config-panel'
 import { Button } from '@/components/ui/button'
 import { recordAnswer } from '@/lib/practice'
-import { useActiveLevel } from '@/lib/levels'
+import { useActiveLevel, useLevelCatalog } from '@/lib/levels'
 import { useRound, useRoundSize } from '@/lib/round'
 import { RoundSummary } from '@/components/round-summary'
 import { useExerciseConfig } from '@/lib/exercise-config'
@@ -27,7 +27,8 @@ interface RhythmExerciseProps {
 export function RhythmExercise({ onBack }: RhythmExerciseProps) {
   const { t } = useTranslation('common')
   const { config, updateConfig, resetConfig } = useExerciseConfig('rhythm')
-  const level = useActiveLevel('rhythm')
+  const { data: catalog } = useLevelCatalog()
+  const level = useActiveLevel(catalog ?? [], 'rhythm')
   const active = useMemo(() => ({ ...config, ...level?.config }), [config, level])
   const beatDuration = useMemo(() => 60 / BPM, [])
   const [pattern, setPattern] = useState(() =>

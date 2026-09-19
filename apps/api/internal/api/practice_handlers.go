@@ -230,6 +230,45 @@ func (s *Server) ListDailyHistory(c *gin.Context, params ListDailyHistoryParams)
 	})
 }
 
+// ListLevelSets handles GET /levels/sets.
+func (s *Server) ListLevelSets(c *gin.Context) {
+	sets, err := s.practice.LevelCatalog(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "failed to load the catalog"})
+		return
+	}
+
+	payload := make([]LevelSet, 0, len(sets))
+	for _, set := range sets {
+		levels := make([]Level, 0, len(set.Levels))
+		for _, level := range set.Levels {
+			var config map[string]interface{}
+			if len(level.Config) > 0 {
+				_ = json.Unmarshal(level.Config, &config)
+			}
+
+			levels = append(levels, Level{
+				Slug:      level.Slug,
+				Position:  level.Position,
+				Title:     LocalizedText{Zh: level.Title.ZH, En: level.Title.EN},
+				Questions: level.Questions,
+				PassMark:  level.PassMark,
+				Config:    &config,
+			})
+		}
+
+		payload = append(payload, LevelSet{
+			Slug:        set.Slug,
+			Module:      ExerciseKind(set.Module),
+			Title:       LocalizedText{Zh: set.Title.ZH, En: set.Title.EN},
+			Description: &LocalizedText{Zh: set.Description.ZH, En: set.Description.EN},
+			Levels:      levels,
+		})
+	}
+
+	c.JSON(http.StatusOK, payload)
+}
+
 // ListLevelProgress handles GET /me/levels.
 func (s *Server) ListLevelProgress(c *gin.Context) {
 	userID, ok := s.requireUser(c)
@@ -278,6 +317,22 @@ func (s *Server) RecordLevelResult(c *gin.Context, id string) {
 	}
 	if id == "" || len(id) > 64 {
 		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "invalid level id"})
+		return
+	}
+
+	// Check the level exists first: the foreign key would otherwise turn a typo into
+	// a 500.
+	module, found, err := s.practice.LevelModule(c.Request.Context(), id)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "failed to look up level"})
+		return
+	}
+	if !found {
+		c.JSON(http.StatusNotFound, ErrorResponse{Error: "level not found"})
+		return
+	}
+	if ExerciseKind(module) != body.Module {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "level does not belong to that module"})
 		return
 	}
 

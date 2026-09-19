@@ -208,7 +208,6 @@
   "levels": {
     "title": "题单",
     "intro": "每个模块一条链，从易到难。过一关解锁下一关（正确率 ≥80%），进度跟着账号走。",
-    "level": "第 {{number}} 关",
     "questions": "{{count}} 题",
     "best": "最好 {{percent}}%",
     "empty": "还没有记录。从第一关开始吧。",
@@ -216,10 +215,10 @@
     "entryHintGuest": "按难度闯关，进度云端保存 —— 需要登录。",
     "modeTitle": "题单模式",
     "modeHint": "每个模块一条链，从易到难。过一关解锁下一关，进度跟着账号走。",
-    "continueAt": "继续第 {{number}} 关 · 最好 {{percent}}%",
-    "startAt": "从第 {{number}} 关开始",
+    "continueAt": "继续「{{level}}」· 最好 {{percent}}%",
     "allPassed": "这条链已全部通关",
-    "viewAll": "查看全部关卡"
+    "viewAll": "查看全部关卡",
+    "startAtName": "从「{{level}}」开始"
   },
   "daily": {
     "title": "每日练习",

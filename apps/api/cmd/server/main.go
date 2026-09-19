@@ -31,6 +31,9 @@ func run() error {
 	if err := db.Migrate(ctx, pool); err != nil {
 		return fmt.Errorf("failed to migrate database: %w", err)
 	}
+	if err := db.SeedLevels(ctx, pool); err != nil {
+		return fmt.Errorf("failed to seed the level catalog: %w", err)
+	}
 
 	authSvc := services.NewAuthService(pool)
 

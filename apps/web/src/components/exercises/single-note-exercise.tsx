@@ -10,7 +10,7 @@ import { PlayButton } from '@/components/play-button'
 import { Button } from '@/components/ui/button'
 import { buildSingleNotePool, useExerciseConfig } from '@/lib/exercise-config'
 import { recordAnswer } from '@/lib/practice'
-import { useActiveLevel } from '@/lib/levels'
+import { useActiveLevel, useLevelCatalog } from '@/lib/levels'
 import { useRound, useRoundSize } from '@/lib/round'
 import { RoundSummary } from '@/components/round-summary'
 
@@ -39,7 +39,8 @@ function createRound(seed: string | null, pool: string[]): SingleNoteRound {
 export function SingleNoteExercise({ onBack }: { onBack?: () => void }) {
   const { t } = useTranslation('common')
   const { config, updateConfig, resetConfig } = useExerciseConfig('singleNote')
-  const level = useActiveLevel('singleNote')
+  const { data: catalog } = useLevelCatalog()
+  const level = useActiveLevel(catalog ?? [], 'singleNote')
   // A question-set level pins the scope; otherwise the user's own settings apply.
   const active = useMemo(() => ({ ...config, ...level?.config }), [config, level])
   const notePool = useMemo(() => buildSingleNotePool(active), [active])

@@ -4,33 +4,42 @@ import { Link } from 'react-router-dom'
 
 import { apiClient } from '@/api/client'
 import { AppHeader } from '@/components/app-header'
+import { modulePath } from '@/components/round-summary'
 import { PlayButton } from '@/components/play-button'
 import { TodayProgress } from '@/components/today-progress'
 import { buttonVariants } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { ModuleSwatch, Orb, type ExerciseKind } from '@/components/ui/orb'
-import { chainComplete, currentLevel, levelsFor, type LevelProgressEntry } from '@/lib/levels'
+import {
+  chainComplete,
+  currentLevel,
+  pickText,
+  useLevelCatalog,
+  type LevelProgressEntry,
+  type LevelSet,
+} from '@/lib/levels'
 import { useAuthStore } from '@/stores/auth-store'
 
 const MODULES: ExerciseKind[] = ['singleNote', 'interval', 'chord', 'melody', 'rhythm']
 
 /** One module's chain as a card: continue where you left off, or start at level 1. */
 function LevelCard({
+  sets,
   kind,
   progress,
   signedIn,
 }: {
+  sets: LevelSet[]
   kind: ExerciseKind
   progress: Map<string, LevelProgressEntry>
   signedIn: boolean
 }) {
-  const { t } = useTranslation('common')
-  const level = currentLevel(kind, progress)
+  const { t, i18n } = useTranslation('common')
+  const level = currentLevel(sets, kind, progress)
   if (!level) return null
 
-  const number = levelsFor(kind).findIndex((item) => item.id === level.id) + 1
-  const entry = progress.get(level.id)
-  const target = `/exercise/${level.module}?level=${level.id}`
+  const entry = progress.get(level.slug)
+  const target = `/exercise/${modulePath(kind)}?level=${level.slug}`
 
   return (
     <Link
@@ -53,14 +62,14 @@ function LevelCard({
             <h3 className="text-[21px] font-light leading-tight">{t(`modules.${kind}`)}</h3>
           </div>
           <p className="mt-2 text-[15px] text-body">
-            {chainComplete(kind, progress)
+            {chainComplete(sets, kind, progress)
               ? t('levels.allPassed')
               : entry
                 ? t('levels.continueAt', {
-                    number,
+                    level: pickText(level.title, i18n.language),
                     percent: Math.round(entry.bestAccuracy * 100),
                   })
-                : t('levels.startAt', { number })}
+                : t('levels.startAtName', { level: pickText(level.title, i18n.language) })}
           </p>
         </div>
       </Card>
@@ -79,6 +88,8 @@ const modules = [
 export function Home() {
   const { t } = useTranslation('common')
   const user = useAuthStore((s) => s.user)
+
+  const { data: catalog } = useLevelCatalog()
 
   const { data: progress } = useQuery({
     queryKey: ['level-progress'],
@@ -204,7 +215,13 @@ export function Home() {
 
             <div className="mt-8 flex flex-wrap justify-center gap-5">
               {MODULES.map((kind) => (
-                <LevelCard key={kind} kind={kind} progress={progressById} signedIn={!!user} />
+                <LevelCard
+                  key={kind}
+                  sets={catalog ?? []}
+                  kind={kind}
+                  progress={progressById}
+                  signedIn={!!user}
+                />
               ))}
             </div>
 

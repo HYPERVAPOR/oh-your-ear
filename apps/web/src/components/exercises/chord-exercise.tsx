@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
 import { playChord } from '@/lib/audio'
 import { CHORD_TYPES, useExerciseConfig } from '@/lib/exercise-config'
 import { recordAnswer } from '@/lib/practice'
-import { useActiveLevel } from '@/lib/levels'
+import { useActiveLevel, useLevelCatalog } from '@/lib/levels'
 import { useRound, useRoundSize } from '@/lib/round'
 import { RoundSummary } from '@/components/round-summary'
 
@@ -56,7 +56,8 @@ function createRound(allowedTypes: string[]) {
 export function ChordExercise({ onBack }: { onBack?: () => void }) {
   const { t } = useTranslation('common')
   const { config, updateConfig, resetConfig } = useExerciseConfig('chord')
-  const level = useActiveLevel('chord')
+  const { data: catalog } = useLevelCatalog()
+  const level = useActiveLevel(catalog ?? [], 'chord')
   const active = useMemo(() => ({ ...config, ...level?.config }), [config, level])
   const allowedTypes = useMemo(
     () => (active.types.length > 0 ? active.types : [...CHORD_TYPES]),
