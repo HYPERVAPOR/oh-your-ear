@@ -7,6 +7,8 @@ import { ExerciseShell, FeedbackNote } from '@/components/exercise-shell'
 import { ConfigPanel, NumberField, ToggleGroup } from '@/components/exercises/config-panel'
 import { Button } from '@/components/ui/button'
 import { recordAnswer } from '@/lib/practice'
+import { useRound, useRoundSize } from '@/lib/round'
+import { RoundSummary } from '@/components/round-summary'
 import { useExerciseConfig } from '@/lib/exercise-config'
 import {
   BPM,
@@ -29,9 +31,9 @@ export function RhythmExercise({ onBack }: RhythmExerciseProps) {
     generatePattern(config.patternLength, config.durations),
   )
   const [phase, setPhase] = useState<'idle' | 'playing' | 'tapping' | 'result'>('idle')
+  const roundSize = useRoundSize()
+  const round = useRound(roundSize)
   const [roundScore, setRoundScore] = useState(0)
-  const [score, setScore] = useState(0)
-  const [total, setTotal] = useState(0)
 
   const clickSynthRef = useRef<Tone.MembraneSynth | null>(null)
   const tapSynthRef = useRef<Tone.MembraneSynth | null>(null)
@@ -125,9 +127,13 @@ export function RhythmExercise({ onBack }: RhythmExerciseProps) {
     const expected = getExpectedTimes(pattern, beatDuration)
     const matched = countMatches(expected, tapsRef.current, TAP_TOLERANCE)
     setRoundScore(matched)
-    setScore((prev) => prev + matched)
-    setTotal((prev) => prev + expected.length)
     setPhase('result')
+    round.record({
+      question: t('round.rhythmQuestion', { count: expected.length, bpm: BPM }),
+      chosen: `${matched}/${expected.length}`,
+      expected: `${expected.length}/${expected.length}`,
+      correct: matched === expected.length,
+    })
     // Rhythm is judged per round, not per answer: a round only counts when every
     // beat was hit.
     recordAnswer({
@@ -136,7 +142,7 @@ export function RhythmExercise({ onBack }: RhythmExerciseProps) {
       chosen: `${matched}/${expected.length}`,
       prompt: { pattern, bpm: BPM },
     })
-  }, [pattern, beatDuration])
+  }, [pattern, beatDuration, round, t])
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -149,8 +155,29 @@ export function RhythmExercise({ onBack }: RhythmExerciseProps) {
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [phase, recordTap])
 
+  // The round's next question is this screen's "new rhythm".
+  if (round.finished) {
+    return (
+      <RoundSummary
+        kind="rhythm"
+        entries={round.entries}
+        durationMs={round.durationMs}
+        onRestart={() => {
+          round.restart()
+          startRound()
+        }}
+        onBack={onBack}
+      />
+    )
+  }
+
   return (
-    <ExerciseShell kind="rhythm" onBack={onBack} score={{ correct: score, total }}>
+    <ExerciseShell
+      kind="rhythm"
+      onBack={onBack}
+      score={{ correct: round.correct, total: round.total }}
+      progress={roundSize > 0 ? { done: round.total, size: roundSize } : undefined}
+    >
       <Button size="hero" className="mb-10" onClick={handlePlay} disabled={phase === 'playing'}>
         {phase === 'playing' ? t('actions.playing') : t('actions.play')}
       </Button>

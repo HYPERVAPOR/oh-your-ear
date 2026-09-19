@@ -236,10 +236,32 @@
 
 ---
 
+## M14 Question Sets (登录独有)
+
+### 14.1 Rounds and the summary page
+
+- **status**: 🟢 done
+- **description**: A round is a fixed number of questions followed by a summary (correct count, accuracy, elapsed time, per-question review), reachable with `?round=N`. The summary offers another round or home, and nudges guests to sign in. This is the foundation the question-set mode stands on, and it is what makes the PRD's "round completion ≥80%" measurable.
+- **depends on**: M1–M6
+
+### 14.2 Level definitions and progress
+
+- **status**: 🔴 todo
+- **description**: A level is a *parameter set*, not an abstract difficulty score: pitch range, option count, playback mode, allowed intervals/chord types/durations, plus the round size and the pass mark. Progress lives in `level_progress` (user, module, level, passed at, best accuracy) so it follows the account across devices. Reporting a round result decides the pass and unlocks the next level.
+- **depends on**: 14.1
+
+### 14.3 Question-set UI
+
+- **status**: 🔴 todo
+- **description**: A question-set entry on the home page for signed-in users, listing the five module chains with passed / current / locked states and the best accuracy per level. Entering a level runs it with the level's parameters; the practice screens' own settings panel is replaced by a read-only line describing the level.
+- **depends on**: 14.2
+
+---
+
 ## M13 Random Test Mode & Exercise Configuration
 
 ### 13.1 Random test mode with per-exercise configuration
 
 - **status**: 🟢 done
-- **description**: Exercises are endless random tests with only in-session scoring; each exercise has configurable scope (white/black keys, allowed intervals/chord types, melody length, rhythm durations/length).
+- **description**: **练习模式**（Practice）is an endless random test with only in-session scoring; each exercise has configurable scope (white/black keys, allowed intervals/chord types, melody length, rhythm durations/length). The other half of the product, **题单模式**（Question sets）, is M14.
 - **depends on**: M1, M2–M6

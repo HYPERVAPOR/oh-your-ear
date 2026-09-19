@@ -10,6 +10,8 @@ import { Button } from '@/components/ui/button'
 import { playChord } from '@/lib/audio'
 import { CHORD_TYPES, useExerciseConfig } from '@/lib/exercise-config'
 import { recordAnswer } from '@/lib/practice'
+import { useRound, useRoundSize } from '@/lib/round'
+import { RoundSummary } from '@/components/round-summary'
 
 const ROOT_POOL = ['C3', 'D3', 'E3', 'F3', 'G3', 'A3', 'B3', 'C4', 'D4', 'E4', 'F4']
 
@@ -59,42 +61,68 @@ export function ChordExercise({ onBack }: { onBack?: () => void }) {
   )
 
   const seed = readSeed(useSearchParams()[0])
-  const [round, setRound] = useState(() => seed ?? createRound(allowedTypes))
-  const [options, setOptions] = useState(() => pickOptions(seed?.type ?? round.type, allowedTypes))
+  const roundSize = useRoundSize()
+  const round = useRound(roundSize)
+  const [question, setQuestion] = useState(() => seed ?? createRound(allowedTypes))
+  const [options, setOptions] = useState(() =>
+    pickOptions(seed?.type ?? question.type, allowedTypes),
+  )
   const [selected, setSelected] = useState<string | null>(null)
-  const [score, setScore] = useState(0)
-  const [total, setTotal] = useState(0)
 
-  const { type, notes } = round
+  const { type, notes } = question
   const isCorrect = selected ? selected === type : null
 
   const startRound = useCallback(() => {
     const pool = config.types.length > 0 ? config.types : [...CHORD_TYPES]
     const next = createRound(pool)
-    setRound(next)
+    setQuestion(next)
     setOptions(pickOptions(next.type, pool))
     setSelected(null)
   }, [config.types])
 
+  if (round.finished) {
+    return (
+      <RoundSummary
+        kind="chord"
+        entries={round.entries}
+        durationMs={round.durationMs}
+        onRestart={() => {
+          round.restart()
+          startRound()
+        }}
+        onBack={onBack}
+      />
+    )
+  }
+
   function handleGuess(guess: string) {
     if (selected) return
     setSelected(guess)
-    setTotal((prev) => prev + 1)
 
     const right = guess === type
-    if (right) setScore((prev) => prev + 1)
+    round.record({
+      question: notes.join(' '),
+      chosen: t(`chords.${guess}`),
+      expected: t(`chords.${type}`),
+      correct: right,
+    })
 
     recordAnswer({
       exercise: 'chord',
       correct: right,
       chosen: guess,
       expected: type,
-      prompt: { root: round.root, notes, type },
+      prompt: { root: question.root, notes, type },
     })
   }
 
   return (
-    <ExerciseShell kind="chord" onBack={onBack} score={{ correct: score, total }}>
+    <ExerciseShell
+      kind="chord"
+      onBack={onBack}
+      score={{ correct: round.correct, total: round.total }}
+      progress={roundSize > 0 ? { done: round.total, size: roundSize } : undefined}
+    >
       <Button size="hero" className="mb-10" onClick={() => playChord(notes)}>
         {t('actions.play')}
       </Button>

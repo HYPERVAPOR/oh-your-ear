@@ -180,5 +180,19 @@
   "settings": {
     "language": "语言",
     "theme": "主题"
+  },
+  "round": {
+    "title": "一轮结束",
+    "correct": "答对",
+    "accuracy": "正确率",
+    "duration": "用时",
+    "review": "逐题回顾",
+    "restart": "再来一轮",
+    "exit": "返回首页",
+    "progress": "{{done}} / {{size}}",
+    "answeredCorrect": "{{answer}} ✓",
+    "answeredWrong": "你选 {{chosen}}，应为 {{answer}}",
+    "guestHint": "登录后可查看详细统计与错题本。",
+    "rhythmQuestion": "{{count}} 拍 · {{bpm}} BPM"
   }
 }

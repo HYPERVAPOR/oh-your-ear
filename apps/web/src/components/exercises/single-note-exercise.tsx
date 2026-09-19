@@ -10,6 +10,8 @@ import { PlayButton } from '@/components/play-button'
 import { Button } from '@/components/ui/button'
 import { buildSingleNotePool, useExerciseConfig } from '@/lib/exercise-config'
 import { recordAnswer } from '@/lib/practice'
+import { useRound, useRoundSize } from '@/lib/round'
+import { RoundSummary } from '@/components/round-summary'
 
 function shuffle<T>(array: T[]): T[] {
   const copy = [...array]
@@ -40,51 +42,75 @@ export function SingleNoteExercise({ onBack }: { onBack?: () => void }) {
 
   // A notebook entry seeds the exact question it wants re-practised.
   const seededNote = useSearchParams()[0].get('note')
-  const [round, setRound] = useState(() => createRound(seededNote, notePool))
+  const roundSize = useRoundSize()
+  const round = useRound(roundSize)
+  const [question, setQuestion] = useState(() => createRound(seededNote, notePool))
   const [selected, setSelected] = useState<string | null>(null)
-  const [score, setScore] = useState(0)
-  const [total, setTotal] = useState(0)
 
-  const isCorrect = selected ? Note.midi(selected) === Note.midi(round.target) : null
+  const isCorrect = selected ? Note.midi(selected) === Note.midi(question.target) : null
 
   const handleGuess = useCallback(
     (guess: string) => {
       if (selected) return
       setSelected(guess)
-      setTotal((prev) => prev + 1)
 
-      const right = Note.midi(guess) === Note.midi(round.target)
-      if (right) setScore((prev) => prev + 1)
+      const right = Note.midi(guess) === Note.midi(question.target)
+      round.record({
+        question: question.target,
+        chosen: guess,
+        expected: question.target,
+        correct: right,
+      })
 
       recordAnswer({
         exercise: 'singleNote',
         correct: right,
         chosen: guess,
-        expected: round.target,
-        prompt: { note: round.target },
+        expected: question.target,
+        prompt: { note: question.target },
       })
     },
-    [selected, round.target],
+    [selected, question.target, round],
   )
 
   const startRound = useCallback(() => {
-    setRound(createRound(null, buildSingleNotePool(config)))
+    setQuestion(createRound(null, buildSingleNotePool(config)))
     setSelected(null)
   }, [config])
 
+  if (round.finished) {
+    return (
+      <RoundSummary
+        kind="singleNote"
+        entries={round.entries}
+        durationMs={round.durationMs}
+        onRestart={() => {
+          round.restart()
+          startRound()
+        }}
+        onBack={onBack}
+      />
+    )
+  }
+
   return (
-    <ExerciseShell kind="singleNote" onBack={onBack} score={{ correct: score, total }}>
-      <PlayButton note={round.target} label={t('actions.play')} className="mb-10" />
+    <ExerciseShell
+      kind="singleNote"
+      onBack={onBack}
+      score={{ correct: round.correct, total: round.total }}
+      progress={roundSize > 0 ? { done: round.total, size: roundSize } : undefined}
+    >
+      <PlayButton note={question.target} label={t('actions.play')} className="mb-10" />
 
       <div className="grid w-full grid-cols-4 gap-2.5">
-        {round.options.map((note) => (
+        {question.options.map((note) => (
           <OptionTile
             key={note}
             disabled={!!selected}
             onClick={() => handleGuess(note)}
             className="tabular h-16"
             state={
-              selected && Note.midi(note) === Note.midi(round.target)
+              selected && Note.midi(note) === Note.midi(question.target)
                 ? 'correct'
                 : selected === note && !isCorrect
                   ? 'wrong'
@@ -100,7 +126,7 @@ export function SingleNoteExercise({ onBack }: { onBack?: () => void }) {
       <div className="mt-6 flex min-h-[44px] items-center justify-center">
         {selected && (
           <FeedbackNote tone={isCorrect ? 'success' : 'error'}>
-            {isCorrect ? t('feedback.correct') : t('feedback.wrong', { answer: round.target })}
+            {isCorrect ? t('feedback.correct') : t('feedback.wrong', { answer: question.target })}
           </FeedbackNote>
         )}
       </div>

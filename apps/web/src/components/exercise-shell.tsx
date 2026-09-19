@@ -15,11 +15,17 @@ export function ExerciseShell({
   kind,
   onBack,
   score,
+  progress,
+  instruction = true,
   children,
 }: {
   kind: ExerciseKind
   onBack?: () => void
   score: { correct: number; total: number }
+  /** Questions done out of the round's size, when a round is running. */
+  progress?: { done: number; size: number }
+  /** Off for screens that are not asking a question, such as a round summary. */
+  instruction?: boolean
   children: ReactNode
 }) {
   const { t } = useTranslation('common')
@@ -42,12 +48,27 @@ export function ExerciseShell({
             </span>
           </div>
 
-          <p className="tabular text-[15px] text-muted">{t('score', score)}</p>
+          <p className="tabular text-[15px] text-muted">
+            {progress ? t('round.progress', progress) : t('score', score)}
+          </p>
         </div>
+
+        {/* The header's own rule is the progress track: it fills in from the left
+            as the round advances, so progress is visible without another element. */}
+        {progress && (
+          <div className="absolute inset-x-0 -bottom-px h-[3px] bg-hairline">
+            <div
+              className="h-full bg-primary transition-[width] duration-300"
+              style={{ width: `${Math.min(100, (progress.done / progress.size) * 100)}%` }}
+            />
+          </div>
+        )}
       </header>
 
       <main className="relative mx-auto flex w-full max-w-[600px] flex-1 flex-col items-center justify-center px-5 py-12 sm:py-16">
-        <p className="mb-7 text-center text-[15px] text-body">{t(`moduleHints.${kind}`)}</p>
+        {instruction && (
+          <p className="mb-7 text-center text-[15px] text-body">{t(`moduleHints.${kind}`)}</p>
+        )}
         {children}
       </main>
     </div>
