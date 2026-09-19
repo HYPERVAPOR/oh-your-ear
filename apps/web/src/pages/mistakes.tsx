@@ -112,7 +112,7 @@ export function Mistakes() {
               aria-pressed={filter === kind}
               onClick={() => setFilter(kind)}
               className={cn(
-                'rounded-full border px-3.5 py-1.5 text-[14px] transition-colors',
+                'rounded-none border px-3.5 py-1.5 text-[14px] transition-colors',
                 filter === kind
                   ? 'border-transparent bg-surface-strong font-medium text-ink'
                   : 'border-hairline text-muted-soft hover:border-hairline-strong hover:text-ink',

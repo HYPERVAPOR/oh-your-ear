@@ -42,8 +42,8 @@ export function TodayProgress() {
       </div>
 
       <div className="min-w-[180px] flex-1">
-        <div className="h-1 w-full overflow-hidden rounded-full bg-surface-strong">
-          <div className="h-full rounded-full bg-primary" style={{ width: `${percent}%` }} />
+        <div className="h-1 w-full overflow-hidden rounded-none bg-surface-strong">
+          <div className="h-full rounded-none bg-primary" style={{ width: `${percent}%` }} />
         </div>
         {solved > 0 && (
           <p className="mt-2 text-[13px] text-muted">{t('plan.accuracy', { percent: accuracy })}</p>

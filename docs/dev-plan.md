@@ -304,3 +304,28 @@
 - **status**: 🟢 done
 - **description**: **随机练习**（Random practice, formerly 练习模式）is endless and stateless: no rounds, no goal, only in-session scoring; each exercise has configurable scope (white/black keys, range, allowed intervals/chord types, melody length, rhythm durations/length). The other two modes are M14 (题单模式) and M15 (每日练习).
 - **depends on**: M1, M2–M6
+
+---
+
+## M16 Visual pass: recording-studio vocabulary
+
+### 16.1 Flatten: no gradient glows, square corners
+
+- **issue**: #69
+- **status**: 🟢 done
+- **description**: First step of the visual pass (PRD 7.1.1). Remove the radial glow orbs (`.orb`, its tokens, seven call sites) so surfaces are flat, and set the radius scale to zero so containers and controls are square; the module colour dots stay round because a dot is a marker, not a container. Module colours themselves stay — they carry module identity.
+- **depends on**: —
+
+### 16.2 Make the exercise screen feel like an instrument
+
+- **issue**: #69
+- **status**: 🔴 todo
+- **description**: The one control the whole product depends on is currently a flat circle. Give the play control key-cap tactility with a real press state, drive a waveform/level meter from the actual audio (an `AnalyserNode` on the Tone.js output — real data, not decoration, which also answers "is there sound coming out"), switch counters and readouts to monospace, and replace the flat progress box with an arc.
+- **depends on**: 16.1
+
+### 16.3 Home hero and per-module micro-visuals
+
+- **issue**: #69
+- **status**: 🔴 todo
+- **description**: Rebuild the home page hierarchy: a hero whose centrepiece is the play control, today's progress as an arc, and a compact module grid where each module gets its own micro-visual (single note = pulse dot, interval = two dots joined, chord = stacked peaks, melody = contour, rhythm = beat grid) plus its track colour. Bento-style sizing, but the 3+2 module grid must not leave a hole.
+- **depends on**: 16.1

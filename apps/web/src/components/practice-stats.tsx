@@ -100,9 +100,9 @@ export function PracticeStats() {
             <li key={kind} className="flex items-center gap-3 text-[15px]">
               <ModuleSwatch kind={kind} />
               <span className="w-20 shrink-0 whitespace-nowrap">{t(`modules.${kind}`)}</span>
-              <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-strong">
+              <span className="h-1.5 flex-1 overflow-hidden rounded-none bg-surface-strong">
                 <span
-                  className="block h-full rounded-full bg-primary"
+                  className="block h-full rounded-none bg-primary"
                   style={{ width: `${share}%` }}
                 />
               </span>
@@ -125,8 +125,8 @@ export function PracticeStats() {
             title={t(`achievements.${badge.id}.description`)}
             className={
               badge.achieved
-                ? 'inline-flex items-center gap-2 rounded-full bg-success/15 px-3.5 py-1.5 text-[14px] font-medium text-success-text'
-                : 'inline-flex items-center gap-2 rounded-full border border-hairline px-3.5 py-1.5 text-[14px] text-muted'
+                ? 'inline-flex items-center gap-2 rounded-none bg-success/15 px-3.5 py-1.5 text-[14px] font-medium text-success-text'
+                : 'inline-flex items-center gap-2 rounded-none border border-hairline px-3.5 py-1.5 text-[14px] text-muted'
             }
           >
             {badge.achieved && <Check className="h-3.5 w-3.5" />}

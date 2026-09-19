@@ -170,14 +170,14 @@ export function RoundSummary({
           <button
             type="button"
             onClick={onRestart}
-            className="inline-flex h-12 items-center rounded-full bg-primary px-7 text-[16px] font-medium text-on-primary transition-opacity hover:opacity-90"
+            className="inline-flex h-12 items-center rounded-none bg-primary px-7 text-[16px] font-medium text-on-primary transition-opacity hover:opacity-90"
           >
             {t('round.restart')}
           </button>
           {level && passed && next && (
             <Link
               to={`/exercise/${modulePath(kind)}?level=${next.slug}`}
-              className="inline-flex h-12 items-center rounded-full border border-hairline-strong px-6 text-[16px] font-medium transition-colors hover:bg-surface-strong"
+              className="inline-flex h-12 items-center rounded-none border border-hairline-strong px-6 text-[16px] font-medium transition-colors hover:bg-surface-strong"
             >
               {t('round.nextLevel')}
             </Link>
