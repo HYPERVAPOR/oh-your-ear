@@ -119,17 +119,71 @@ TRUSTED_PROXIES=10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
 
 ## 5. 上线
 
+**独占的机器**（80/443 空着）用 Caddy 自动签证书：
+
 ```bash
 dnf install -y podman podman-compose   # 或 apt install podman podman-compose
 git clone <repo> /srv/oh-your-ear && cd /srv/oh-your-ear
-```
-
-```bash
 podman compose --env-file .env -f compose/compose.yml -f compose/compose.tls.yml up -d --build
 curl -fsS http://127.0.0.1:8080/api/v1/health   # {"status":"ok"}
 ```
 
-不带 TLS overlay 也可以（`-f compose/compose.yml`），但那样 Vercel 的 rewrite 没有证书可用，必须由你自己的反代或隧道补上。
+### 变体：跑在已有 nginx 的共享服务器上（当前实际部署就是这样）
+
+如果这台机器已经在用宿主的 **nginx + certbot** 服务别的站点（80/443 被占），**不要用 TLS overlay** —— Caddy 会和 nginx 抢端口，把别的站点一起搞挂。改用宿主 nginx 顶在 API 前面：
+
+```bash
+git clone <repo> /opt/oh-your-ear && cd /opt/oh-your-ear   # 与机器上其他项目并排
+podman compose --env-file .env -f compose/compose.yml up -d --build   # 只起 api + db
+```
+
+`compose.yml` 里 api 已经只绑 `127.0.0.1:8080`、db 不发布端口，所以和别的站点不会撞端口（注意别和机器上已有的 5432/9090/3000 之类冲突）。
+
+然后加一个**独立**的 vhost（`/etc/nginx/sites-available/api-<domain>`），照这个形状：
+
+```nginx
+server {
+    listen 80;
+    server_name api.<domain>;
+    location /.well-known/acme-challenge/ { root /var/www/html; }
+    location / { return 301 https://$host$request_uri; }
+}
+
+server {
+    listen 443 ssl;
+    server_name api.<domain>;
+    ssl_certificate     /etc/letsencrypt/live/api.<domain>/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/api.<domain>/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    location / {
+        proxy_pass http://127.0.0.1:8080;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+顺序（每步都要安全）：
+
+```bash
+tar czf /root/nginx-backup-$(date +%s).tgz /etc/nginx          # 先备份整个 nginx 配置目录
+# 先只写 80 那块，让 ACME 挑战可达
+nginx -t && systemctl reload nginx
+certbot certonly --nginx -d api.<domain> --non-interactive --agree-tos   # certonly：只签发，不改你的配置
+# 再补上 443 那块
+nginx -t && systemctl reload nginx
+```
+
+要点：
+
+- **`certonly`，不是 `certbot --nginx`**：后者会去改 server block。签发和改配置分开，出问题好定位。
+- **每次 `reload` 前先 `nginx -t`**（`reload` 是平滑的，失败的配置不该有机会生效）；先有备份，出问题直接还原。
+- 续期复用机器上已有的 certbot 定时任务（`systemctl status certbot.timer` 或 `/etc/cron.d/certbot`），不需要额外配置。
+- `.env` 里**不要**填 `DOMAIN` / `ACME_EMAIL`（那是 Caddy overlay 用的）。
+
+**reload 后立刻用 curl 验证可能撞上窗口**：第一次可能会碰到旧 worker 还在服务（表现为证书不匹配）。等几秒再打一次即可，不是配置错。
 
 数据库结构在 api 启动时自动建表（`db.Migrate`），首次启动无需手工初始化。
 
@@ -196,6 +250,16 @@ curl -fsS http://127.0.0.1:8080/api/v1/health
 | 可信代理 | `TRUSTED_PROXIES` | 决定 `X-Forwarded-For` 是否可信，限流依赖它 |
 
 限流是**进程内**的：多实例部署时每个实例各算各的，届时应换 redis（技术方案里也这么写）。
+
+### 上线后必查的两项（都是「默认值造成的开放面」）
+
+```bash
+curl -o /dev/null -w '%{http_code}\n' -X POST https://api.<domain>/api/v1/auth/mock
+```
+
+**必须是 404。** `/auth/mock` 是开发用的免验证登录口，历史上它无条件注册、且 `MOCK_AUTH_EMAIL` 有默认值 —— 那样任何公网调用者一个 POST 就能拿到会话。现在它只在显式配置了该变量时才注册（见 issue #83），`.env` 里**不要设 `MOCK_AUTH_EMAIL`**。
+
+另一项看登录响应的 `Set-Cookie`：`refresh_token` 应当带 **`Secure`**（`FRONTEND_URL` 是 https 就自动带上）。
 
 ### Vercel 拓扑下限流会退化（已知，不是 bug）
 
