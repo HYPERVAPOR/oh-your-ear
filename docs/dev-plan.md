@@ -326,6 +326,6 @@
 ### 16.3 Home hero and per-module micro-visuals
 
 - **issue**: #69
-- **status**: 🔴 todo
-- **description**: Rebuild the home page hierarchy: a hero whose centrepiece is the play control, today's progress as an arc, and a compact module grid where each module gets its own micro-visual (single note = pulse dot, interval = two dots joined, chord = stacked peaks, melody = contour, rhythm = beat grid) plus its track colour. Bento-style sizing, but the 3+2 module grid must not leave a hole.
+- **status**: 🟡 doing
+- **description**: Done: the module cards became a tight six-cell rack (8px gaps, 2 columns on phones and 3 on wider screens, a track-colour strip along each panel's top edge, and 错题重练 filling the sixth cell so the rectangle closes instead of leaving a gap). Still to do: the hero, whose centrepiece should be the play control, today's progress as an arc, and a micro-visual per module (single note = pulse dot, interval = two dots joined, chord = stacked peaks, melody = contour, rhythm = beat grid) plus its track colour. Bento-style sizing, but the 3+2 module grid must not leave a hole.
 - **depends on**: 16.1

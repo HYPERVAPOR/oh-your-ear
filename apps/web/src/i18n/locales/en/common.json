@@ -178,7 +178,9 @@
     "startCta": "Start with single note",
     "practiceHeading": "Random practice",
     "practiceHint": "Endless random questions, no rounds and no goal; guests can practise everything.",
-    "dailyHint": "Set a daily question goal and focus modules, then work through the day’s amount."
+    "dailyHint": "Set a daily question goal and focus modules, then work through the day’s amount.",
+    "mistakesTile": "Mistake review",
+    "mistakesHint": "Drawn from your mistake notebook."
   },
   "settings": {
     "language": "Language",

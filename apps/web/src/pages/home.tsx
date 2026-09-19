@@ -9,7 +9,8 @@ import { PlayButton } from '@/components/play-button'
 import { TodayProgress } from '@/components/today-progress'
 import { buttonVariants } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { ModuleSwatch, type ExerciseKind } from '@/components/ui/orb'
+import { cn } from '@/lib/utils'
+import { MODULE_SWATCH, ModuleSwatch, type ExerciseKind } from '@/components/ui/orb'
 import {
   chainComplete,
   currentLevel,
@@ -146,30 +147,49 @@ export function Home() {
             <h2 className="text-[26px] font-light sm:text-[32px]">{t('home.practiceHeading')}</h2>
             <p className="mt-3 max-w-[60ch] text-[14px] text-muted">{t('home.practiceHint')}</p>
 
-            {/* Five modules in rows of three: the second row is centred, so there is
-                no hole where a sixth card would have been. */}
-            <div className="mt-8 flex flex-wrap justify-center gap-5">
+            {/* A rack of panels: square, tightly packed, one per module, with the
+                module's track colour along the top edge. Six cells — five modules
+                plus mistake review — so the rectangle closes on both the two-column
+                and three-column layouts instead of leaving a gap. */}
+            <div className="mt-8 grid grid-cols-2 gap-2 sm:grid-cols-3">
               {modules.map(({ key, route }) => (
-                <Link
-                  key={key}
-                  to={route}
-                  className="group block w-full sm:w-[calc(50%-10px)] lg:w-[calc(33.333%-14px)]"
-                >
+                <Link key={key} to={route} className="group block">
                   <Card
                     interactive
-                    className="relative h-full min-h-[132px] overflow-hidden p-5 transition-colors group-hover:border-hairline-strong"
+                    className="h-full min-h-[96px] gap-0 overflow-hidden p-0 transition-colors group-hover:border-hairline-strong"
                   >
-                    <div className="relative">
-                      <h3 className="font-display text-[24px] font-light leading-tight">
+                    <span
+                      aria-hidden="true"
+                      className={cn('block h-[3px] w-full', MODULE_SWATCH[key])}
+                    />
+                    <span className="block px-4 py-4">
+                      <span className="font-display block text-[19px] font-medium leading-tight">
                         {t(`modules.${key}`)}
-                      </h3>
-                      <p className="mt-2 max-w-[30ch] text-[15px] text-body">
+                      </span>
+                      <span className="mt-1.5 block text-[13px] leading-snug text-body">
                         {t(`moduleHints.${key}`)}
-                      </p>
-                    </div>
+                      </span>
+                    </span>
                   </Card>
                 </Link>
               ))}
+
+              <Link to="/mistakes" className="group block">
+                <Card
+                  interactive
+                  className="h-full min-h-[96px] gap-0 overflow-hidden p-0 transition-colors group-hover:border-hairline-strong"
+                >
+                  <span aria-hidden="true" className="block h-[3px] w-full bg-hairline-strong" />
+                  <span className="block px-4 py-4">
+                    <span className="font-display block text-[19px] font-medium leading-tight">
+                      {t('home.mistakesTile')}
+                    </span>
+                    <span className="mt-1.5 block text-[13px] leading-snug text-body">
+                      {t('home.mistakesHint')}
+                    </span>
+                  </span>
+                </Card>
+              </Link>
             </div>
           </div>
         </section>
