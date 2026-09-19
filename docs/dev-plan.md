@@ -256,6 +256,45 @@
 - **description**: `/levels` lists the five chains for signed-in users with per-level state (passed with best accuracy, open, locked) and an entry point on the home page. A level opens the normal practice screen with `?level=`, which pins the exercise scope and the round size, so there is no parallel code path. The pass verdict and the best accuracy come back from the API, and the summary links to the next level. NOTE: the practice screens still show their settings panel while a level runs — replacing it with a read-only level line is the remaining polish.
 - **depends on**: 14.2
 
+### 14.4 Level catalog in the database
+
+- **issue**: #63
+- **status**: 🔴 todo
+- **description**: Levels are product content that must grow and be curated, so they move out of `lib/levels.ts` into `level_sets` / `levels` (config as jsonb, bilingual titles, `slug` for stable URLs, `position`). Seed the current five chains so nothing is lost, and serve the catalog over the API (public read; progress attached when signed in). `level_progress.level_id` becomes the level's id.
+- **depends on**: 14.2
+
+### 14.5 Collections and folders
+
+- **issue**: #64
+- **status**: 🔴 todo
+- **description**: Any level can be collected. `collections` (owner, name, position, a default 「收藏」 folder) + `collection_items`, so a level can sit in several folders. API for listing, creating, renaming, deleting folders and adding/removing levels; UI for a collect control on every level and a bookmarks area. Signed-in only, synced.
+- **depends on**: 14.4
+
+---
+
+## M15 Daily Practice (登录独有)
+
+### 15.1 Daily practice session
+
+- **issue**: #60
+- **status**: 🔴 todo
+- **description**: The plan stops being a number that is only measured. A session is generated from it: work out how many questions are left today, draw them from the focus modules (rotating module per round), and run it on the existing round machinery. The summary shows progress against the daily goal and offers to continue with the next focus module. Guests see the mode and are asked to sign in.
+- **depends on**: 14.1
+
+### 15.2 Daily history
+
+- **issue**: #61
+- **status**: 🔴 todo
+- **description**: A calendar heatmap of roughly the last year built from `practice_records` aggregated by local day: three levels (goal met / practised / nothing), plus current and longest streak. Needs an endpoint returning daily buckets for a range and the grid component. This is the part that is meant to make people keep going.
+- **depends on**: 8.1
+
+### 15.3 Fold the study plan into daily practice
+
+- **issue**: #62
+- **status**: 🔴 todo
+- **description**: The plan's settings (daily goal, focus modules) become the daily practice settings, so there is one place to set them and one place to act on them; 随机练习 is renamed from 练习模式; the home page lays out all three modes as bands.
+- **depends on**: 15.1
+
 ---
 
 ## M13 Random Test Mode & Exercise Configuration
@@ -263,5 +302,5 @@
 ### 13.1 Random test mode with per-exercise configuration
 
 - **status**: 🟢 done
-- **description**: **练习模式**（Practice）is an endless random test with only in-session scoring; each exercise has configurable scope (white/black keys, allowed intervals/chord types, melody length, rhythm durations/length). The other half of the product, **题单模式**（Question sets）, is M14.
+- **description**: **随机练习**（Random practice, formerly 练习模式）is endless and stateless: no rounds, no goal, only in-session scoring; each exercise has configurable scope (white/black keys, range, allowed intervals/chord types, melody length, rhythm durations/length). The other two modes are M14 (题单模式) and M15 (每日练习).
 - **depends on**: M1, M2–M6
