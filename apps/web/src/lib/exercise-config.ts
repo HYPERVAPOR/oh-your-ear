@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react'
-import { Interval } from 'tonal'
+import { Interval, Note } from 'tonal'
 
 export type ExerciseType = 'singleNote' | 'interval' | 'chord' | 'melody' | 'rhythm'
 
@@ -34,6 +34,37 @@ export const CHORD_TYPES = [
 export interface SingleNoteConfig {
   whiteKeys: boolean
   blackKeys: boolean
+  /** Pitch range preset: narrow / medium / wide (see RANGES). */
+  range: string
+}
+
+/** Pitch ranges, as the lowest and highest note a level may use. */
+export const RANGES: Record<string, [string, string]> = {
+  narrow: ['C4', 'B4'],
+  medium: ['C4', 'C5'],
+  wide: ['C3', 'C5'],
+}
+
+const FALLBACK_POOL = ['C4', 'D4', 'E4', 'F4', 'G4']
+
+/**
+ * The notes an exercise may draw from: every semitone of the range that survives
+ * the white/black filter, spelled with sharps like the option labels are.
+ */
+export function buildRangePool(range: string, whiteKeys: boolean, blackKeys: boolean): string[] {
+  const [from, to] = RANGES[range] ?? RANGES.medium
+  const low = Note.midi(from)
+  const high = Note.midi(to)
+  if (low === null || high === null) return [...FALLBACK_POOL]
+
+  const notes: string[] = []
+  for (let midi = low; midi <= high; midi++) {
+    const name = Note.fromMidiSharps(midi)
+    const black = name.includes('#')
+    if (black ? blackKeys : whiteKeys) notes.push(name)
+  }
+
+  return notes.length > 0 ? notes : [...FALLBACK_POOL]
 }
 
 export interface IntervalConfig {
@@ -68,7 +99,7 @@ export interface ExerciseConfigMap {
 }
 
 export const defaultConfigs: ExerciseConfigMap = {
-  singleNote: { whiteKeys: true, blackKeys: true },
+  singleNote: { whiteKeys: true, blackKeys: true, range: 'medium' },
   interval: { intervals: [...INTERVAL_OPTIONS] },
   chord: { types: [...CHORD_TYPES] },
   melody: { length: 5, whiteKeys: true, blackKeys: true, speed: 'normal', range: 'medium' },
@@ -124,10 +155,7 @@ export function useExerciseConfig<T extends ExerciseType>(type: T) {
 }
 
 export function buildSingleNotePool(config: SingleNoteConfig): string[] {
-  const pool: string[] = []
-  if (config.whiteKeys) pool.push(...SINGLE_NOTE_WHITE_KEYS)
-  if (config.blackKeys) pool.push(...SINGLE_NOTE_BLACK_KEYS)
-  return pool.length > 0 ? pool : [...SINGLE_NOTE_WHITE_KEYS]
+  return buildRangePool(config.range, config.whiteKeys, config.blackKeys)
 }
 
 export function pickAllowedIntervalSemitones(config: IntervalConfig): number[] {

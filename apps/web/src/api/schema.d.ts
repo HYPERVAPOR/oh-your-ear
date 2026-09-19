@@ -162,6 +162,44 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/me/levels': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * Question-set progress for the current user
+     * @description Levels themselves are product content defined by the client; this returns
+     *     what the user has attempted and passed.
+     */
+    get: operations['listLevelProgress']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/me/levels/{id}': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /** Record a finished question-set level attempt */
+    post: operations['recordLevelResult']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/me/mistakes': {
     parameters: {
       query?: never
@@ -270,6 +308,27 @@ export interface components {
       prompt?: {
         [key: string]: unknown
       } | null
+    }
+    LevelProgress: {
+      /** @example singleNote-1 */
+      levelId: string
+      module: components['schemas']['ExerciseKind']
+      passed: boolean
+      /**
+       * Format: double
+       * @description Best fraction of correct answers across attempts, 0–1.
+       */
+      bestAccuracy: number
+    }
+    LevelResultRequest: {
+      module: components['schemas']['ExerciseKind']
+      correct: number
+      total: number
+      /**
+       * Format: double
+       * @description Accuracy needed to pass, 0–1. The server decides, not the client.
+       */
+      passMark: number
     }
     Mistake: {
       /** Format: uuid */
@@ -599,6 +658,55 @@ export interface operations {
           'application/json': components['schemas']['PracticeStats']
         }
       }
+      401: components['responses']['Unauthorized']
+    }
+  }
+  listLevelProgress: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description One entry per attempted level */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['LevelProgress'][]
+        }
+      }
+      401: components['responses']['Unauthorized']
+    }
+  }
+  recordLevelResult: {
+    parameters: {
+      query?: never
+      header?: never
+      path: {
+        id: string
+      }
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['LevelResultRequest']
+      }
+    }
+    responses: {
+      /** @description Stored progress for this level */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['LevelProgress']
+        }
+      }
+      400: components['responses']['BadRequest']
       401: components['responses']['Unauthorized']
     }
   }

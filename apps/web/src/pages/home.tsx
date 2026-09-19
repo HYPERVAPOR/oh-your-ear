@@ -103,6 +103,17 @@ export function Home() {
           </div>
         </section>
 
+        {user && (
+          <section className="px-6 pb-4">
+            <div className="mx-auto max-w-[1200px]">
+              <Link to="/levels" className={buttonVariants({ size: 'lg' })}>
+                {t('levels.entry')}
+              </Link>
+              <p className="mt-3 max-w-[46ch] text-[14px] text-muted">{t('levels.entryHint')}</p>
+            </div>
+          </section>
+        )}
+
         {!user && (
           <section className="px-6 pb-24 sm:pb-28">
             <div className="mx-auto max-w-[1200px]">

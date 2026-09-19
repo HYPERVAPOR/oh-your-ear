@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button'
 import { playChord } from '@/lib/audio'
 import { CHORD_TYPES, useExerciseConfig } from '@/lib/exercise-config'
 import { recordAnswer } from '@/lib/practice'
+import { useActiveLevel } from '@/lib/levels'
 import { useRound, useRoundSize } from '@/lib/round'
 import { RoundSummary } from '@/components/round-summary'
 
@@ -55,13 +56,16 @@ function createRound(allowedTypes: string[]) {
 export function ChordExercise({ onBack }: { onBack?: () => void }) {
   const { t } = useTranslation('common')
   const { config, updateConfig, resetConfig } = useExerciseConfig('chord')
+  const level = useActiveLevel('chord')
+  const active = useMemo(() => ({ ...config, ...level?.config }), [config, level])
   const allowedTypes = useMemo(
-    () => (config.types.length > 0 ? config.types : [...CHORD_TYPES]),
-    [config.types],
+    () => (active.types.length > 0 ? active.types : [...CHORD_TYPES]),
+    [active.types],
   )
 
   const seed = readSeed(useSearchParams()[0])
-  const roundSize = useRoundSize()
+  const urlRound = useRoundSize()
+  const roundSize = level?.questions ?? urlRound
   const round = useRound(roundSize)
   const [question, setQuestion] = useState(() => seed ?? createRound(allowedTypes))
   const [options, setOptions] = useState(() =>
@@ -73,17 +77,18 @@ export function ChordExercise({ onBack }: { onBack?: () => void }) {
   const isCorrect = selected ? selected === type : null
 
   const startRound = useCallback(() => {
-    const pool = config.types.length > 0 ? config.types : [...CHORD_TYPES]
+    const pool = active.types.length > 0 ? active.types : [...CHORD_TYPES]
     const next = createRound(pool)
     setQuestion(next)
     setOptions(pickOptions(next.type, pool))
     setSelected(null)
-  }, [config.types])
+  }, [active.types])
 
   if (round.finished) {
     return (
       <RoundSummary
         kind="chord"
+        level={level}
         entries={round.entries}
         durationMs={round.durationMs}
         onRestart={() => {

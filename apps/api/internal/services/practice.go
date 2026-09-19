@@ -88,6 +88,69 @@ func (s *PracticeService) clearMistake(ctx context.Context, userID uuid.UUID, an
 	return nil
 }
 
+// LevelProgress is what one user has done with one question-set level.
+type LevelProgress struct {
+	LevelID      string
+	Module       string
+	Passed       bool
+	BestAccuracy float64
+}
+
+// RecordLevelResult stores a finished level attempt, keeping the best accuracy and
+// never downgrading a pass. The pass decision is made here so the rule lives in one
+// place rather than in whatever client reported the round.
+func (s *PracticeService) RecordLevelResult(ctx context.Context, userID uuid.UUID, levelID, module string, correct, total int, passMark float64) (LevelProgress, error) {
+	accuracy := 0.0
+	if total > 0 {
+		accuracy = float64(correct) / float64(total)
+	}
+	passed := total > 0 && accuracy >= passMark
+
+	var progress LevelProgress
+	err := s.pool.QueryRow(ctx, `
+		INSERT INTO level_progress (user_id, level_id, module, passed, best_accuracy, passed_at)
+		VALUES ($1, $2, $3, $4, $5, CASE WHEN $4 THEN NOW() ELSE NULL END)
+		ON CONFLICT (user_id, level_id) DO UPDATE SET
+			passed = level_progress.passed OR EXCLUDED.passed,
+			best_accuracy = GREATEST(level_progress.best_accuracy, EXCLUDED.best_accuracy),
+			passed_at = COALESCE(level_progress.passed_at, EXCLUDED.passed_at),
+			updated_at = NOW()
+		RETURNING level_id, module, passed, best_accuracy
+	`, userID, levelID, module, passed, accuracy).Scan(
+		&progress.LevelID, &progress.Module, &progress.Passed, &progress.BestAccuracy,
+	)
+	if err != nil {
+		return LevelProgress{}, fmt.Errorf("failed to record level result: %w", err)
+	}
+
+	return progress, nil
+}
+
+// ListLevelProgress returns every level this user has attempted.
+func (s *PracticeService) ListLevelProgress(ctx context.Context, userID uuid.UUID) ([]LevelProgress, error) {
+	rows, err := s.pool.Query(ctx, `
+		SELECT level_id, module, passed, best_accuracy
+		FROM level_progress
+		WHERE user_id = $1
+		ORDER BY module, level_id
+	`, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list level progress: %w", err)
+	}
+	defer rows.Close()
+
+	progress := []LevelProgress{}
+	for rows.Next() {
+		var entry LevelProgress
+		if err := rows.Scan(&entry.LevelID, &entry.Module, &entry.Passed, &entry.BestAccuracy); err != nil {
+			return nil, fmt.Errorf("failed to read level progress: %w", err)
+		}
+		progress = append(progress, entry)
+	}
+
+	return progress, rows.Err()
+}
+
 // ListMistakes returns the open notebook entries, newest miss first.
 func (s *PracticeService) ListMistakes(ctx context.Context, userID uuid.UUID, exercise string) ([]models.Mistake, error) {
 	rows, err := s.pool.Query(ctx, `

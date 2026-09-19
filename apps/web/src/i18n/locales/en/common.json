@@ -193,6 +193,23 @@
     "answeredCorrect": "{{answer}} ✓",
     "answeredWrong": "you chose {{chosen}}, answer {{answer}}",
     "guestHint": "Sign in to keep detailed statistics and a mistake notebook.",
-    "rhythmQuestion": "{{count}} beats · {{bpm}} BPM"
+    "rhythmQuestion": "{{count}} beats · {{bpm}} BPM",
+    "levelTitle": "Level {{level}}",
+    "levelPassedNext": "Passed — the next level is open.",
+    "levelPassedEnd": "Passed — that is the end of this chain.",
+    "levelFailed": "Not passed: {{mark}}% accuracy is needed.",
+    "levelBest": "Best so far {{percent}}%.",
+    "nextLevel": "Next level",
+    "allLevels": "Question sets"
+  },
+  "levels": {
+    "title": "Question sets",
+    "intro": "One chain per module, easy to hard. Pass a level to open the next one (80% accuracy).",
+    "level": "Level {{number}}",
+    "questions": "{{count}} questions",
+    "best": "best {{percent}}%",
+    "empty": "Nothing here yet. Start with level 1.",
+    "entry": "Question sets",
+    "entryHint": "Work through each module by difficulty, with your best score kept per level."
   }
 }

@@ -17,6 +17,7 @@ import { playSequence } from '@/lib/audio'
 import { useExerciseConfig } from '@/lib/exercise-config'
 import { buildMelodyPool, makeMelodyQuestion, melodyGap, readMelodySeed } from '@/lib/melody'
 import { recordAnswer } from '@/lib/practice'
+import { useActiveLevel } from '@/lib/levels'
 import { useRound, useRoundSize } from '@/lib/round'
 import { RoundSummary } from '@/components/round-summary'
 
@@ -76,21 +77,24 @@ function MelodyRoll({ notes, scale }: { notes: string[]; scale: RollScale }) {
 export function MelodyExercise({ onBack }: { onBack?: () => void }) {
   const { t } = useTranslation('common')
   const { config, updateConfig, resetConfig } = useExerciseConfig('melody')
+  const level = useActiveLevel('melody')
+  const active = useMemo(() => ({ ...config, ...level?.config }), [config, level])
 
   // A notebook entry hands over the exact melody it wants re-practised.
   const seed = readMelodySeed(useSearchParams()[0].get('melody'))
   const newQuestion = useCallback(
-    (seeded?: string[]) => makeMelodyQuestion(config.length, buildMelodyPool(config), 4, seeded),
-    [config],
+    (seeded?: string[]) => makeMelodyQuestion(active.length, buildMelodyPool(active), 4, seeded),
+    [active],
   )
 
-  const roundSize = useRoundSize()
+  const urlRound = useRoundSize()
+  const roundSize = level?.questions ?? urlRound
   const round = useRound(roundSize)
   const [question, setQuestion] = useState(() => newQuestion(seed))
   const [selected, setSelected] = useState<number | null>(null)
   const [playing, setPlaying] = useState(false)
 
-  const gap = melodyGap(config)
+  const gap = melodyGap(active)
   const scale = useMemo(() => rollScale(question.options), [question])
   const isCorrect = selected === null ? null : selected === question.answerIndex
   const answer = question.notes.join(' ')
@@ -135,6 +139,7 @@ export function MelodyExercise({ onBack }: { onBack?: () => void }) {
     return (
       <RoundSummary
         kind="melody"
+        level={level}
         entries={round.entries}
         durationMs={round.durationMs}
         onRestart={() => {

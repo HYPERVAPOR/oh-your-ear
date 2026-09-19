@@ -7,6 +7,7 @@ import { ExerciseShell, FeedbackNote } from '@/components/exercise-shell'
 import { ConfigPanel, NumberField, ToggleGroup } from '@/components/exercises/config-panel'
 import { Button } from '@/components/ui/button'
 import { recordAnswer } from '@/lib/practice'
+import { useActiveLevel } from '@/lib/levels'
 import { useRound, useRoundSize } from '@/lib/round'
 import { RoundSummary } from '@/components/round-summary'
 import { useExerciseConfig } from '@/lib/exercise-config'
@@ -26,12 +27,15 @@ interface RhythmExerciseProps {
 export function RhythmExercise({ onBack }: RhythmExerciseProps) {
   const { t } = useTranslation('common')
   const { config, updateConfig, resetConfig } = useExerciseConfig('rhythm')
+  const level = useActiveLevel('rhythm')
+  const active = useMemo(() => ({ ...config, ...level?.config }), [config, level])
   const beatDuration = useMemo(() => 60 / BPM, [])
   const [pattern, setPattern] = useState(() =>
-    generatePattern(config.patternLength, config.durations),
+    generatePattern(active.patternLength, active.durations),
   )
   const [phase, setPhase] = useState<'idle' | 'playing' | 'tapping' | 'result'>('idle')
-  const roundSize = useRoundSize()
+  const urlRound = useRoundSize()
+  const roundSize = level?.questions ?? urlRound
   const round = useRound(roundSize)
   const [roundScore, setRoundScore] = useState(0)
 
@@ -50,11 +54,11 @@ export function RhythmExercise({ onBack }: RhythmExerciseProps) {
   )
 
   const startRound = useCallback(() => {
-    setPattern(generatePattern(config.patternLength, config.durations))
+    setPattern(generatePattern(active.patternLength, active.durations))
     tapsRef.current = []
     setRoundScore(0)
     setPhase('idle')
-  }, [config])
+  }, [active])
 
   const handlePlay = useCallback(async () => {
     await Tone.start()
@@ -160,6 +164,7 @@ export function RhythmExercise({ onBack }: RhythmExerciseProps) {
     return (
       <RoundSummary
         kind="rhythm"
+        level={level}
         entries={round.entries}
         durationMs={round.durationMs}
         onRestart={() => {

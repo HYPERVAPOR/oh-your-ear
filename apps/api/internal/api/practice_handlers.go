@@ -188,6 +188,73 @@ func (s *Server) ResolveMistake(c *gin.Context, id openapi_types.UUID) {
 	c.Status(http.StatusNoContent)
 }
 
+// ListLevelProgress handles GET /me/levels.
+func (s *Server) ListLevelProgress(c *gin.Context) {
+	userID, ok := s.requireUser(c)
+	if !ok {
+		return
+	}
+
+	progress, err := s.practice.ListLevelProgress(c.Request.Context(), userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "failed to load level progress"})
+		return
+	}
+
+	items := make([]LevelProgress, 0, len(progress))
+	for _, entry := range progress {
+		items = append(items, LevelProgress{
+			LevelId:      entry.LevelID,
+			Module:       ExerciseKind(entry.Module),
+			Passed:       entry.Passed,
+			BestAccuracy: entry.BestAccuracy,
+		})
+	}
+
+	c.JSON(http.StatusOK, items)
+}
+
+// RecordLevelResult handles POST /me/levels/{id}.
+func (s *Server) RecordLevelResult(c *gin.Context, id string) {
+	userID, ok := s.requireUser(c)
+	if !ok {
+		return
+	}
+
+	var body RecordLevelResultJSONRequestBody
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "invalid request body"})
+		return
+	}
+	if !body.Module.Valid() || body.Total < 0 || body.Correct < 0 || body.Correct > body.Total {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "invalid result"})
+		return
+	}
+	if body.PassMark < 0 || body.PassMark > 1 {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "passMark must be between 0 and 1"})
+		return
+	}
+	if id == "" || len(id) > 64 {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "invalid level id"})
+		return
+	}
+
+	progress, err := s.practice.RecordLevelResult(
+		c.Request.Context(), userID, id, string(body.Module), body.Correct, body.Total, body.PassMark,
+	)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "failed to record level result"})
+		return
+	}
+
+	c.JSON(http.StatusOK, LevelProgress{
+		LevelId:      progress.LevelID,
+		Module:       ExerciseKind(progress.Module),
+		Passed:       progress.Passed,
+		BestAccuracy: progress.BestAccuracy,
+	})
+}
+
 // GetPracticeStats handles GET /me/stats.
 func (s *Server) GetPracticeStats(c *gin.Context) {
 	userID, ok := s.requireUser(c)
