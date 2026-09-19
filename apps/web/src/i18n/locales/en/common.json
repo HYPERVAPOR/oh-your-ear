@@ -233,10 +233,17 @@
     "extraRound": "Another round",
     "settingsLink": "Adjust the plan",
     "nextModule": "This round starts with {{module}}; the next focus module follows afterwards.",
-    "historySoon": "The calendar history arrives in the next release.",
     "entry": "Today’s session",
     "entryHint": "Questions drawn from your plan until the goal is met.",
     "entryHintGuest": "Needs an account: progress and history are saved there.",
-    "afterRound": "Today {{solved}} / {{goal}} questions, {{remaining}} to go."
+    "afterRound": "Today {{solved}} / {{goal}} questions, {{remaining}} to go.",
+    "history": "Practice history (last year)",
+    "streaks": "{{current}}-day streak · longest {{longest}}",
+    "cellTitle": "{{date}}: {{solved}} / {{goal}} questions",
+    "tier": {
+      "met": "goal met",
+      "partial": "partly done",
+      "none": "nothing"
+    }
   }
 }

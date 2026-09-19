@@ -51,6 +51,16 @@ jti TEXT PRIMARY KEY,
 expires_at TIMESTAMPTZ NOT NULL
 );
 
+-- The daily goal in force on a given day, written whenever the plan is saved.
+-- Without it the calendar would have to judge past days against today's goal,
+-- which silently rewrites history every time the goal changes.
+CREATE TABLE IF NOT EXISTS daily_goals (
+user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+day DATE NOT NULL,
+goal INT NOT NULL,
+PRIMARY KEY (user_id, day)
+);
+
 -- Question-set progress: one row per level a signed-in user has attempted.
 -- Levels themselves are product content defined in the web client, so this table
 -- stores outcomes only.

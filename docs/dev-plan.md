@@ -285,7 +285,7 @@
 
 - **issue**: #61
 - **status**: 🔴 todo
-- **description**: A calendar heatmap of roughly the last year built from `practice_records` aggregated by local day: three levels (goal met / practised / nothing), plus current and longest streak. Needs an endpoint returning daily buckets for a range and the grid component. This is the part that is meant to make people keep going.
+- **description**: A calendar heatmap of the last year built from `practice_records` aggregated by local day: three tiers (goal met / partly done / nothing), plus current and longest streak. Each day is judged against the goal that was in force then — `daily_goals` records a row whenever the plan is saved, so changing the goal does not rewrite history. `GET /me/daily?days=371` returns the buckets.
 - **depends on**: 8.1
 
 ### 15.3 Fold the study plan into daily practice

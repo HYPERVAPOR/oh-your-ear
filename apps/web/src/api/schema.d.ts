@@ -162,6 +162,28 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/me/daily': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /**
+     * Per-day practice history for the calendar
+     * @description One bucket per local day, oldest first, including days with no practice.
+     *     Each day is judged against the goal that was in force then; days from
+     *     before goals were recorded fall back to the current goal.
+     */
+    get: operations['listDailyHistory']
+    put?: never
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/me/levels': {
     parameters: {
       query?: never
@@ -308,6 +330,22 @@ export interface components {
       prompt?: {
         [key: string]: unknown
       } | null
+    }
+    DailyBucket: {
+      /** Format: date */
+      date: string
+      solved: number
+      correct: number
+      /** @description The daily goal that applied that day. */
+      goal: number
+      /** @description Solved reached the goal. */
+      met: boolean
+    }
+    DailyHistory: {
+      days: components['schemas']['DailyBucket'][]
+      /** @description Consecutive days up to today (or yesterday) with any practice. */
+      currentStreak: number
+      longestStreak: number
     }
     LevelProgress: {
       /** @example singleNote-1 */
@@ -656,6 +694,29 @@ export interface operations {
         }
         content: {
           'application/json': components['schemas']['PracticeStats']
+        }
+      }
+      401: components['responses']['Unauthorized']
+    }
+  }
+  listDailyHistory: {
+    parameters: {
+      query?: {
+        days?: number
+      }
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Daily buckets and streaks */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['DailyHistory']
         }
       }
       401: components['responses']['Unauthorized']

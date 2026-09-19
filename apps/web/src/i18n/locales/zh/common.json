@@ -233,10 +233,17 @@
     "extraRound": "再来一轮",
     "settingsLink": "调整每日计划",
     "nextModule": "这一轮从「{{module}}」开始，练完可以继续下一个重点模块。",
-    "historySoon": "每日历史（日历热力图）在下一版加入。",
     "entry": "今日练习",
     "entryHint": "按计划出题，练够目标即达标。",
     "entryHintGuest": "需要登录，进度与历史存在账号里。",
-    "afterRound": "今天 {{solved}} / {{goal}} 题，还差 {{remaining}} 题。"
+    "afterRound": "今天 {{solved}} / {{goal}} 题，还差 {{remaining}} 题。",
+    "history": "练习历史（近一年）",
+    "streaks": "连续练习 {{current}} 天 · 最长 {{longest}} 天",
+    "cellTitle": "{{date}}：{{solved}} / {{goal}} 题",
+    "tier": {
+      "met": "达标",
+      "partial": "练了一部分",
+      "none": "没练"
+    }
   }
 }
