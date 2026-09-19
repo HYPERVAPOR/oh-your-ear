@@ -1,6 +1,23 @@
 name: oh-your-ear
 
 services:
+  # Installs the workspace once, then exits. The two front ends mount the same
+  # node_modules, so letting each of them run `pnpm install` on start meant three
+  # concurrent installs into one directory on a cold start (pnpm takes no directory
+  # lock), and the same work paid three times on every `up`.
+  install:
+    image: node:24.16.0-slim
+    working_dir: /workspace
+    volumes:
+      - ..:/workspace:cached
+    command:
+      - sh
+      - -c
+      - |
+        corepack enable
+        corepack prepare pnpm@10.15.0 --activate
+        pnpm install --config.confirmModulesPurge=false
+
   web:
     image: node:24.16.0-slim
     working_dir: /workspace
@@ -16,10 +33,12 @@ services:
       - |
         corepack enable
         corepack prepare pnpm@10.15.0 --activate
-        pnpm install --config.confirmModulesPurge=false
         pnpm --filter @oh-your-ear/web dev
     depends_on:
-      - api
+      install:
+        condition: service_completed_successfully
+      api:
+        condition: service_started
 
   landing:
     image: node:24.16.0-slim
@@ -34,8 +53,10 @@ services:
       - |
         corepack enable
         corepack prepare pnpm@10.15.0 --activate
-        pnpm install --config.confirmModulesPurge=false
         pnpm --filter @oh-your-ear/landing dev
+    depends_on:
+      install:
+        condition: service_completed_successfully
 
   api:
     image: golang:1.26.4-bookworm
