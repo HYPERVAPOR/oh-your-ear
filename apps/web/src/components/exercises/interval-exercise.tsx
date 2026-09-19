@@ -14,6 +14,7 @@ import {
   useExerciseConfig,
 } from '@/lib/exercise-config'
 import { recordAnswer } from '@/lib/practice'
+import { useActiveLevel } from '@/lib/levels'
 import { useRound, useRoundSize } from '@/lib/round'
 import { RoundSummary } from '@/components/round-summary'
 
@@ -89,11 +90,14 @@ function readSeed(params: URLSearchParams): { root: string; semitones: number } 
 export function IntervalExercise({ onBack }: { onBack?: () => void }) {
   const { t } = useTranslation('common')
   const { config, updateConfig, resetConfig } = useExerciseConfig('interval')
-  const allowedSemitones = useMemo(() => pickAllowedIntervalSemitones(config), [config])
-  const allowedIntervals = useMemo(() => config.intervals, [config.intervals])
+  const level = useActiveLevel('interval')
+  const active = useMemo(() => ({ ...config, ...level?.config }), [config, level])
+  const allowedSemitones = useMemo(() => pickAllowedIntervalSemitones(active), [active])
+  const allowedIntervals = useMemo(() => active.intervals, [active.intervals])
 
   const seed = readSeed(useSearchParams()[0])
-  const roundSize = useRoundSize()
+  const urlRound = useRoundSize()
+  const roundSize = level?.questions ?? urlRound
   const round = useRound(roundSize)
   const [question, setQuestion] = useState(() =>
     createRound(seed, allowedSemitones, allowedIntervals),
@@ -104,14 +108,15 @@ export function IntervalExercise({ onBack }: { onBack?: () => void }) {
   const isCorrect = selected ? selected === correctInterval : null
 
   const startRound = useCallback(() => {
-    setQuestion(createRound(null, pickAllowedIntervalSemitones(config), config.intervals))
+    setQuestion(createRound(null, pickAllowedIntervalSemitones(active), active.intervals))
     setSelected(null)
-  }, [config])
+  }, [active])
 
   if (round.finished) {
     return (
       <RoundSummary
         kind="interval"
+        level={level}
         entries={round.entries}
         durationMs={round.durationMs}
         onRestart={() => {

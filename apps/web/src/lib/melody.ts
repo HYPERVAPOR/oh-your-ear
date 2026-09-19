@@ -1,6 +1,11 @@
 import { Note } from 'tonal'
 
-import type { MelodyConfig } from '@/lib/exercise-config'
+import { buildRangePool, type MelodyConfig } from '@/lib/exercise-config'
+
+/** The notes a melody may use, honouring the range and the key filters. */
+export function buildMelodyPool(config: MelodyConfig): string[] {
+  return buildRangePool(config.range, config.whiteKeys, config.blackKeys)
+}
 
 /** Melody questions: one melody is played, several variants are offered. */
 export interface MelodyQuestion {
@@ -14,32 +19,6 @@ export const MELODY_SPEEDS: Record<string, number> = {
   slow: 0.7,
   normal: 0.45,
   fast: 0.28,
-}
-
-const MELODY_RANGES: Record<string, [string, string]> = {
-  narrow: ['C4', 'B4'],
-  medium: ['C4', 'C5'],
-  wide: ['C3', 'C5'],
-}
-
-const FALLBACK_POOL = ['C4', 'D4', 'E4', 'F4', 'G4']
-
-/** The notes a melody may use, honouring the range and the key filters. */
-export function buildMelodyPool(config: MelodyConfig): string[] {
-  const [from, to] = MELODY_RANGES[config.range] ?? MELODY_RANGES.medium
-  const low = Note.midi(from)
-  const high = Note.midi(to)
-  if (low === null || high === null) return [...FALLBACK_POOL]
-
-  const notes: string[] = []
-  for (let midi = low; midi <= high; midi++) {
-    // Sharps keep the spelling consistent with the single-note module.
-    const name = Note.fromMidiSharps(midi)
-    const black = name.includes('#')
-    if (black ? config.blackKeys : config.whiteKeys) notes.push(name)
-  }
-
-  return notes.length > 0 ? notes : [...FALLBACK_POOL]
 }
 
 /** Playback speed for this config, in seconds between notes. */

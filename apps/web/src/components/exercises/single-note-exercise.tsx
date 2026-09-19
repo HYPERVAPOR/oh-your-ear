@@ -10,6 +10,7 @@ import { PlayButton } from '@/components/play-button'
 import { Button } from '@/components/ui/button'
 import { buildSingleNotePool, useExerciseConfig } from '@/lib/exercise-config'
 import { recordAnswer } from '@/lib/practice'
+import { useActiveLevel } from '@/lib/levels'
 import { useRound, useRoundSize } from '@/lib/round'
 import { RoundSummary } from '@/components/round-summary'
 
@@ -38,11 +39,15 @@ function createRound(seed: string | null, pool: string[]): SingleNoteRound {
 export function SingleNoteExercise({ onBack }: { onBack?: () => void }) {
   const { t } = useTranslation('common')
   const { config, updateConfig, resetConfig } = useExerciseConfig('singleNote')
-  const notePool = useMemo(() => buildSingleNotePool(config), [config])
+  const level = useActiveLevel('singleNote')
+  // A question-set level pins the scope; otherwise the user's own settings apply.
+  const active = useMemo(() => ({ ...config, ...level?.config }), [config, level])
+  const notePool = useMemo(() => buildSingleNotePool(active), [active])
 
   // A notebook entry seeds the exact question it wants re-practised.
   const seededNote = useSearchParams()[0].get('note')
-  const roundSize = useRoundSize()
+  const urlRound = useRoundSize()
+  const roundSize = level?.questions ?? urlRound
   const round = useRound(roundSize)
   const [question, setQuestion] = useState(() => createRound(seededNote, notePool))
   const [selected, setSelected] = useState<string | null>(null)
@@ -74,14 +79,15 @@ export function SingleNoteExercise({ onBack }: { onBack?: () => void }) {
   )
 
   const startRound = useCallback(() => {
-    setQuestion(createRound(null, buildSingleNotePool(config)))
+    setQuestion(createRound(null, buildSingleNotePool(active)))
     setSelected(null)
-  }, [config])
+  }, [active])
 
   if (round.finished) {
     return (
       <RoundSummary
         kind="singleNote"
+        level={level}
         entries={round.entries}
         durationMs={round.durationMs}
         onRestart={() => {

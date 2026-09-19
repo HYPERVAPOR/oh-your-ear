@@ -51,6 +51,20 @@ jti TEXT PRIMARY KEY,
 expires_at TIMESTAMPTZ NOT NULL
 );
 
+-- Question-set progress: one row per level a signed-in user has attempted.
+-- Levels themselves are product content defined in the web client, so this table
+-- stores outcomes only.
+CREATE TABLE IF NOT EXISTS level_progress (
+user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+level_id TEXT NOT NULL,
+module TEXT NOT NULL,
+passed BOOLEAN NOT NULL DEFAULT FALSE,
+best_accuracy DOUBLE PRECISION NOT NULL DEFAULT 0,
+passed_at TIMESTAMPTZ,
+updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+PRIMARY KEY (user_id, level_id)
+);
+
 -- The mistake notebook. One row per distinct wrong question, kept until the
 -- user answers that same question correctly (or removes it by hand).
 CREATE TABLE IF NOT EXISTS mistakes (

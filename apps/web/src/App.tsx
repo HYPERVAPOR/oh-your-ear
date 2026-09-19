@@ -14,6 +14,7 @@ import { getPiano } from '@/lib/audio'
 import { restoreSession } from '@/lib/auth'
 import { useAppStore } from '@/stores/app-store'
 import { Home } from '@/pages/home'
+import { Levels } from '@/pages/levels'
 import { Login } from '@/pages/login'
 import { Me } from '@/pages/me'
 import { Mistakes } from '@/pages/mistakes'
@@ -58,6 +59,14 @@ export default function App() {
         element={
           <RequireAuth>
             <Me />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="/levels"
+        element={
+          <RequireAuth>
+            <Levels />
           </RequireAuth>
         }
       />

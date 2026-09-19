@@ -39,7 +39,14 @@ export function PlayButton({ note, className, duration = '8n', label }: PlayButt
   }
 
   return (
-    <Button type="button" size="hero" className={cn('gap-3', className)} onClick={handleClick}>
+    <Button
+      type="button"
+      size="hero"
+      // The label says "play"; only this says which note is about to sound.
+      aria-label={t('actions.playNote', { note })}
+      className={cn('gap-3', className)}
+      onClick={handleClick}
+    >
       <Volume2 className="h-5 w-5" />
       {label}
     </Button>

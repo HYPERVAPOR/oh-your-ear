@@ -1,11 +1,19 @@
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 
 import { ExerciseShell } from '@/components/exercise-shell'
 import { Card } from '@/components/ui/card'
 import type { ExerciseKind } from '@/components/ui/orb'
+import { apiClient } from '@/api/client'
+import { nextLevel, type Level } from '@/lib/levels'
 import type { RoundEntry } from '@/lib/round'
 import { useAuthStore } from '@/stores/auth-store'
+
+/** Route segment for a module, shared with the question-set page. */
+export function modulePath(module: ExerciseKind): string {
+  return module === 'singleNote' ? 'single-note' : module
+}
 
 function Figure({ label, value }: { label: string; value: string | number }) {
   return (
@@ -19,12 +27,15 @@ function Figure({ label, value }: { label: string; value: string | number }) {
 /** What a finished round shows: the numbers, then every question, in order. */
 export function RoundSummary({
   kind,
+  level,
   entries,
   durationMs,
   onRestart,
   onBack,
 }: {
   kind: ExerciseKind
+  /** Set when this round was a question-set level; the summary then judges it. */
+  level?: Level
   entries: RoundEntry[]
   durationMs: number
   onRestart: () => void
@@ -32,10 +43,39 @@ export function RoundSummary({
 }) {
   const { t } = useTranslation('common')
   const user = useAuthStore((s) => s.user)
+  const [saved, setSaved] = useState<{ passed: boolean; bestAccuracy: number } | null>(null)
+  const reported = useRef(false)
 
   const correct = entries.filter((entry) => entry.correct).length
   const accuracy = entries.length > 0 ? Math.round((correct / entries.length) * 100) : 0
   const seconds = Math.round(durationMs / 1000)
+  const passed = accuracy / 100 >= (level?.passMark ?? 1)
+  const next = level ? nextLevel(level.id) : undefined
+
+  // One report per finished round, and only for signed-in users: guests keep
+  // their progress nowhere, which is the point of the mode being an account feature.
+  useEffect(() => {
+    if (!level || !user || reported.current || entries.length === 0) return
+    reported.current = true
+
+    void (async () => {
+      try {
+        const { data } = await apiClient.POST('/me/levels/{id}', {
+          params: { path: { id: level.id } },
+          body: {
+            module: level.module,
+            correct,
+            total: entries.length,
+            passMark: level.passMark,
+          },
+        })
+        if (data) setSaved({ passed: data.passed, bestAccuracy: data.bestAccuracy })
+      } catch {
+        // Let a later render try again rather than losing the result.
+        reported.current = false
+      }
+    })()
+  }, [level, user, entries.length, correct])
 
   return (
     <ExerciseShell
@@ -45,7 +85,25 @@ export function RoundSummary({
       instruction={false}
     >
       <Card className="w-full p-6 sm:p-7">
-        <h2 className="text-[22px] font-light leading-tight">{t('round.title')}</h2>
+        <h2 className="text-[22px] font-light leading-tight">
+          {level ? t('round.levelTitle', { level: level.id.split('-')[1] }) : t('round.title')}
+        </h2>
+
+        {level && (
+          <p className="mt-2 text-[15px] text-body">
+            {passed
+              ? next
+                ? t('round.levelPassedNext')
+                : t('round.levelPassedEnd')
+              : t('round.levelFailed', { mark: Math.round(level.passMark * 100) })}
+            {saved && (
+              <span className="text-muted">
+                {' '}
+                {t('round.levelBest', { percent: Math.round(saved.bestAccuracy * 100) })}
+              </span>
+            )}
+          </p>
+        )}
 
         <div className="mt-6 grid grid-cols-3 gap-6">
           <Figure label={t('round.correct')} value={correct} />
@@ -87,6 +145,22 @@ export function RoundSummary({
           >
             {t('round.restart')}
           </button>
+          {level && passed && next && (
+            <Link
+              to={`/exercise/${modulePath(next.module)}?level=${next.id}`}
+              className="inline-flex h-12 items-center rounded-full border border-hairline-strong px-6 text-[16px] font-medium transition-colors hover:bg-surface-strong"
+            >
+              {t('round.nextLevel')}
+            </Link>
+          )}
+          {level && (
+            <Link
+              to="/levels"
+              className="text-[15px] text-muted underline underline-offset-4 hover:text-ink"
+            >
+              {t('round.allLevels')}
+            </Link>
+          )}
           <Link
             to="/"
             className="text-[15px] text-muted underline underline-offset-4 hover:text-ink"

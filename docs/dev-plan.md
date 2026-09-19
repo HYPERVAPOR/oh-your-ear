@@ -246,14 +246,14 @@
 
 ### 14.2 Level definitions and progress
 
-- **status**: 🔴 todo
+- **status**: 🟢 done
 - **description**: A level is a *parameter set*, not an abstract difficulty score: pitch range, option count, playback mode, allowed intervals/chord types/durations, plus the round size and the pass mark. Progress lives in `level_progress` (user, module, level, passed at, best accuracy) so it follows the account across devices. Reporting a round result decides the pass and unlocks the next level.
 - **depends on**: 14.1
 
 ### 14.3 Question-set UI
 
-- **status**: 🔴 todo
-- **description**: A question-set entry on the home page for signed-in users, listing the five module chains with passed / current / locked states and the best accuracy per level. Entering a level runs it with the level's parameters; the practice screens' own settings panel is replaced by a read-only line describing the level.
+- **status**: 🟢 done
+- **description**: `/levels` lists the five chains for signed-in users with per-level state (passed with best accuracy, open, locked) and an entry point on the home page. A level opens the normal practice screen with `?level=`, which pins the exercise scope and the round size, so there is no parallel code path. The pass verdict and the best accuracy come back from the API, and the summary links to the next level. NOTE: the practice screens still show their settings panel while a level runs — replacing it with a read-only level line is the remaining polish.
 - **depends on**: 14.2
 
 ---
