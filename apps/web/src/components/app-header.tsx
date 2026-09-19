@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, Ear } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { useAppStore, type Language, type Theme } from '@/stores/app-store'
@@ -62,11 +62,17 @@ export function AppHeader() {
   return (
     <header className="border-b border-hairline">
       <div className="mx-auto flex min-h-16 max-w-[1200px] flex-wrap items-center justify-between gap-x-3 gap-y-1.5 px-5 py-2 sm:px-6">
-        <Link
-          to="/"
-          className="font-display text-[18px] leading-none tracking-tight sm:text-[21px]"
-        >
-          {t('appName')}
+        {/* The mark sits in a hairline square, like a badge on a panel, so the
+            header keeps one vocabulary: square, hard-edged, no floating glyphs. */}
+        <Link to="/" className="group flex items-center gap-2.5">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center border border-hairline-strong text-ink transition-colors group-hover:border-ink">
+            <Ear aria-hidden="true" className="h-4 w-4" strokeWidth={1.75} />
+          </span>
+          {/* On phones the mark carries the brand on its own: with the wordmark the
+              header wraps to two rows at 390px. */}
+          <span className="font-display hidden text-[18px] leading-none tracking-tight sm:inline sm:text-[21px]">
+            {t('appName')}
+          </span>
         </Link>
 
         <nav className="flex items-center gap-1.5 sm:gap-2">
