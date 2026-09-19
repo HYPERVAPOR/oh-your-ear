@@ -170,8 +170,7 @@
   h2,
   h3 {
     font-family: var(--font-display);
-    font-weight: 300;
-    letter-spacing: -0.02em;
+    font-weight: 500;
   }
 
   :focus-visible {
