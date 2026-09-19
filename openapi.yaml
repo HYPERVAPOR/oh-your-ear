@@ -217,6 +217,24 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
+  /levels/sets:
+    get:
+      operationId: listLevelSets
+      summary: The question-set catalog
+      description: |
+        Official sets with their levels, ordered. Public: the catalog is product
+        content, and guests are meant to see what the ladder looks like. Progress
+        comes from /me/levels.
+      responses:
+        '200':
+          description: Level sets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LevelSet'
+
   /me/levels:
     get:
       operationId: listLevelProgress
@@ -505,6 +523,64 @@ components:
           description: Consecutive days up to today (or yesterday) with any practice.
         longestStreak:
           type: integer
+
+    LocalizedText:
+      type: object
+      required:
+        - zh
+        - en
+      properties:
+        zh:
+          type: string
+        en:
+          type: string
+
+    Level:
+      type: object
+      required:
+        - slug
+        - position
+        - title
+        - questions
+        - passMark
+      properties:
+        slug:
+          type: string
+          example: singleNote-1
+        position:
+          type: integer
+        title:
+          $ref: '#/components/schemas/LocalizedText'
+        questions:
+          type: integer
+        passMark:
+          type: number
+          format: double
+        config:
+          type: object
+          additionalProperties: true
+          description: The parameter set the exercise runs with.
+
+    LevelSet:
+      type: object
+      required:
+        - slug
+        - module
+        - title
+        - levels
+      properties:
+        slug:
+          type: string
+        module:
+          $ref: '#/components/schemas/ExerciseKind'
+        title:
+          $ref: '#/components/schemas/LocalizedText'
+        description:
+          $ref: '#/components/schemas/LocalizedText'
+        levels:
+          type: array
+          items:
+            $ref: '#/components/schemas/Level'
 
     LevelProgress:
       type: object

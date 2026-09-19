@@ -8,7 +8,7 @@ import type { ExerciseKind } from '@/components/ui/orb'
 import { useQuery } from '@tanstack/react-query'
 
 import { apiClient } from '@/api/client'
-import { nextLevel, type Level } from '@/lib/levels'
+import { pickText, useLevelCatalog, type Level } from '@/lib/levels'
 import type { RoundEntry } from '@/lib/round'
 import { useAuthStore } from '@/stores/auth-store'
 
@@ -43,7 +43,7 @@ export function RoundSummary({
   onRestart: () => void
   onBack?: () => void
 }) {
-  const { t } = useTranslation('common')
+  const { t, i18n } = useTranslation('common')
   const user = useAuthStore((s) => s.user)
   const [saved, setSaved] = useState<{ passed: boolean; bestAccuracy: number } | null>(null)
 
@@ -63,8 +63,11 @@ export function RoundSummary({
   const correct = entries.filter((entry) => entry.correct).length
   const accuracy = entries.length > 0 ? Math.round((correct / entries.length) * 100) : 0
   const seconds = Math.round(durationMs / 1000)
+  const { data: catalog } = useLevelCatalog()
   const passed = accuracy / 100 >= (level?.passMark ?? 1)
-  const next = level ? nextLevel(level.id) : undefined
+  const chain = level ? (catalog ?? []).find((set) => set.module === kind)?.levels : undefined
+  const next =
+    level && chain ? chain[chain.findIndex((item) => item.slug === level.slug) + 1] : undefined
 
   // One report per finished round, and only for signed-in users: guests keep
   // their progress nowhere, which is the point of the mode being an account feature.
@@ -75,9 +78,9 @@ export function RoundSummary({
     void (async () => {
       try {
         const { data } = await apiClient.POST('/me/levels/{id}', {
-          params: { path: { id: level.id } },
+          params: { path: { id: level.slug } },
           body: {
-            module: level.module,
+            module: kind,
             correct,
             total: entries.length,
             passMark: level.passMark,
@@ -89,7 +92,7 @@ export function RoundSummary({
         reported.current = false
       }
     })()
-  }, [level, user, entries.length, correct])
+  }, [level, kind, user, entries.length, correct])
 
   return (
     <ExerciseShell
@@ -100,7 +103,9 @@ export function RoundSummary({
     >
       <Card className="w-full p-6 sm:p-7">
         <h2 className="text-[22px] font-light leading-tight">
-          {level ? t('round.levelTitle', { level: level.id.split('-')[1] }) : t('round.title')}
+          {level
+            ? t('round.levelTitle', { level: pickText(level.title, i18n.language) })
+            : t('round.title')}
         </h2>
 
         {level && (
@@ -171,7 +176,7 @@ export function RoundSummary({
           </button>
           {level && passed && next && (
             <Link
-              to={`/exercise/${modulePath(next.module)}?level=${next.id}`}
+              to={`/exercise/${modulePath(kind)}?level=${next.slug}`}
               className="inline-flex h-12 items-center rounded-full border border-hairline-strong px-6 text-[16px] font-medium transition-colors hover:bg-surface-strong"
             >
               {t('round.nextLevel')}

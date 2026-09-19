@@ -17,7 +17,7 @@ import { playSequence } from '@/lib/audio'
 import { useExerciseConfig } from '@/lib/exercise-config'
 import { buildMelodyPool, makeMelodyQuestion, melodyGap, readMelodySeed } from '@/lib/melody'
 import { recordAnswer } from '@/lib/practice'
-import { useActiveLevel } from '@/lib/levels'
+import { useActiveLevel, useLevelCatalog } from '@/lib/levels'
 import { useRound, useRoundSize } from '@/lib/round'
 import { RoundSummary } from '@/components/round-summary'
 
@@ -77,7 +77,8 @@ function MelodyRoll({ notes, scale }: { notes: string[]; scale: RollScale }) {
 export function MelodyExercise({ onBack }: { onBack?: () => void }) {
   const { t } = useTranslation('common')
   const { config, updateConfig, resetConfig } = useExerciseConfig('melody')
-  const level = useActiveLevel('melody')
+  const { data: catalog } = useLevelCatalog()
+  const level = useActiveLevel(catalog ?? [], 'melody')
   const active = useMemo(() => ({ ...config, ...level?.config }), [config, level])
 
   // A notebook entry hands over the exact melody it wants re-practised.

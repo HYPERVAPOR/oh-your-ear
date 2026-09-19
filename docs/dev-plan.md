@@ -259,8 +259,8 @@
 ### 14.4 Level catalog in the database
 
 - **issue**: #63
-- **status**: 🔴 todo
-- **description**: Levels are product content that must grow and be curated, so they move out of `lib/levels.ts` into `level_sets` / `levels` (config as jsonb, bilingual titles, `slug` for stable URLs, `position`). Seed the current five chains so nothing is lost, and serve the catalog over the API (public read; progress attached when signed in). `level_progress.level_id` becomes the level's id.
+- **status**: 🟢 done
+- **description**: Levels are product content that must grow and be curated, so they moved out of `lib/levels.ts` into `level_sets` / `levels` (config as jsonb, bilingual titles, `slug` for stable URLs, `position`). The official catalog is seeded idempotently from Go (`db.SeedLevels`) and served by the public `GET /levels/sets`; the client fetches it and keeps only types and pure decisions. `level_progress.level_id` kept its slug as the key and gained a foreign key to `levels(slug)`, so no progress row had to move.
 - **depends on**: 14.2
 
 ### 14.5 Collections and folders

@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -86,6 +87,108 @@ func (s *PracticeService) clearMistake(ctx context.Context, userID uuid.UUID, an
 		return fmt.Errorf("failed to clear mistake: %w", err)
 	}
 	return nil
+}
+
+// LocalizedText is copy that exists in both languages.
+type LocalizedText struct {
+	ZH string
+	EN string
+}
+
+// Level is one question-set level: a parameter set plus the round it runs.
+type Level struct {
+	Slug      string
+	Position  int
+	Title     LocalizedText
+	Questions int
+	PassMark  float64
+	Config    []byte
+}
+
+// LevelSet is a named group of levels for one module.
+type LevelSet struct {
+	Slug        string
+	Module      string
+	Title       LocalizedText
+	Description LocalizedText
+	Position    int
+	Levels      []Level
+}
+
+// LevelCatalog returns the official catalog, ordered, with each set's levels.
+func (s *PracticeService) LevelCatalog(ctx context.Context) ([]LevelSet, error) {
+	sets := []LevelSet{}
+	rows, err := s.pool.Query(ctx, `
+		SELECT slug, module, title_zh, title_en,
+		       COALESCE(description_zh, ''), COALESCE(description_en, ''), position
+		FROM level_sets
+		WHERE is_official
+		ORDER BY position, slug
+	`)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list level sets: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var set LevelSet
+		if err := rows.Scan(&set.Slug, &set.Module, &set.Title.ZH, &set.Title.EN,
+			&set.Description.ZH, &set.Description.EN, &set.Position); err != nil {
+			return nil, fmt.Errorf("failed to read level set: %w", err)
+		}
+		set.Levels = []Level{}
+		sets = append(sets, set)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("failed to list level sets: %w", err)
+	}
+
+	for index := range sets {
+		levelRows, err := s.pool.Query(ctx, `
+			SELECT slug, position, title_zh, title_en, questions, pass_mark, config
+			FROM levels
+			WHERE set_id = (SELECT id FROM level_sets WHERE slug = $1)
+			ORDER BY position
+		`, sets[index].Slug)
+		if err != nil {
+			return nil, fmt.Errorf("failed to list levels: %w", err)
+		}
+
+		for levelRows.Next() {
+			var level Level
+			if err := levelRows.Scan(&level.Slug, &level.Position, &level.Title.ZH, &level.Title.EN,
+				&level.Questions, &level.PassMark, &level.Config); err != nil {
+				levelRows.Close()
+				return nil, fmt.Errorf("failed to read level: %w", err)
+			}
+			sets[index].Levels = append(sets[index].Levels, level)
+		}
+		if err := levelRows.Err(); err != nil {
+			levelRows.Close()
+			return nil, fmt.Errorf("failed to list levels: %w", err)
+		}
+		levelRows.Close()
+	}
+
+	return sets, nil
+}
+
+// LevelModule returns the module a level belongs to, and whether it exists.
+func (s *PracticeService) LevelModule(ctx context.Context, slug string) (string, bool, error) {
+	var module string
+	err := s.pool.QueryRow(ctx, `
+		SELECT level_sets.module FROM levels
+		JOIN level_sets ON level_sets.id = levels.set_id
+		WHERE levels.slug = $1
+	`, slug).Scan(&module)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return "", false, nil
+		}
+		return "", false, fmt.Errorf("failed to look up level: %w", err)
+	}
+
+	return module, true, nil
 }
 
 // LevelProgress is what one user has done with one question-set level.

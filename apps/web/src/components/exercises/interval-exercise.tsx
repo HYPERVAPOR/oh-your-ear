@@ -14,7 +14,7 @@ import {
   useExerciseConfig,
 } from '@/lib/exercise-config'
 import { recordAnswer } from '@/lib/practice'
-import { useActiveLevel } from '@/lib/levels'
+import { useActiveLevel, useLevelCatalog } from '@/lib/levels'
 import { useRound, useRoundSize } from '@/lib/round'
 import { RoundSummary } from '@/components/round-summary'
 
@@ -90,7 +90,8 @@ function readSeed(params: URLSearchParams): { root: string; semitones: number } 
 export function IntervalExercise({ onBack }: { onBack?: () => void }) {
   const { t } = useTranslation('common')
   const { config, updateConfig, resetConfig } = useExerciseConfig('interval')
-  const level = useActiveLevel('interval')
+  const { data: catalog } = useLevelCatalog()
+  const level = useActiveLevel(catalog ?? [], 'interval')
   const active = useMemo(() => ({ ...config, ...level?.config }), [config, level])
   const allowedSemitones = useMemo(() => pickAllowedIntervalSemitones(active), [active])
   const allowedIntervals = useMemo(() => active.intervals, [active.intervals])

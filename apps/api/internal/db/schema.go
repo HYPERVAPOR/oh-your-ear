@@ -61,12 +61,42 @@ goal INT NOT NULL,
 PRIMARY KEY (user_id, day)
 );
 
--- Question-set progress: one row per level a signed-in user has attempted.
--- Levels themselves are product content defined in the web client, so this table
--- stores outcomes only.
+-- The question-set catalog. Levels used to be a hardcoded array in the web client;
+-- they are product content that has to grow and be curated, so they live here now.
+CREATE TABLE IF NOT EXISTS level_sets (
+id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+slug TEXT NOT NULL UNIQUE,
+module TEXT NOT NULL,
+title_zh TEXT NOT NULL,
+title_en TEXT NOT NULL,
+description_zh TEXT,
+description_en TEXT,
+is_official BOOLEAN NOT NULL DEFAULT TRUE,
+owner_id UUID REFERENCES users(id) ON DELETE CASCADE,
+position INT NOT NULL DEFAULT 0,
+created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS levels (
+id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+set_id UUID NOT NULL REFERENCES level_sets(id) ON DELETE CASCADE,
+slug TEXT NOT NULL UNIQUE,
+position INT NOT NULL,
+title_zh TEXT NOT NULL,
+title_en TEXT NOT NULL,
+questions INT NOT NULL,
+pass_mark DOUBLE PRECISION NOT NULL DEFAULT 0.8,
+config JSONB NOT NULL,
+created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+UNIQUE (set_id, position)
+);
+
+-- Question-set progress. The key stays the level's slug: those are the ids the
+-- client has always used, so existing rows keep working, and the foreign key still
+-- gives referential integrity.
 CREATE TABLE IF NOT EXISTS level_progress (
 user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-level_id TEXT NOT NULL,
+level_id TEXT NOT NULL REFERENCES levels(slug) ON DELETE CASCADE,
 module TEXT NOT NULL,
 passed BOOLEAN NOT NULL DEFAULT FALSE,
 best_accuracy DOUBLE PRECISION NOT NULL DEFAULT 0,
@@ -74,6 +104,20 @@ passed_at TIMESTAMPTZ,
 updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 PRIMARY KEY (user_id, level_id)
 );
+
+-- level_progress predates the catalog, and CREATE TABLE IF NOT EXISTS cannot add a
+-- constraint to an existing table. There is no migration versioning here yet, so
+-- structural changes to existing tables are done with idempotent blocks like this.
+DO $$
+BEGIN
+	IF NOT EXISTS (
+		SELECT 1 FROM pg_constraint WHERE conname = 'level_progress_level_id_fkey'
+	) THEN
+		ALTER TABLE level_progress
+			ADD CONSTRAINT level_progress_level_id_fkey
+			FOREIGN KEY (level_id) REFERENCES levels(slug) ON DELETE CASCADE;
+	END IF;
+END $$;
 
 -- The mistake notebook. One row per distinct wrong question, kept until the
 -- user answers that same question correctly (or removes it by hand).
