@@ -25,21 +25,32 @@ export interface MeterCanvas {
 }
 
 export interface MeterContext {
-  fillStyle: unknown
+  strokeStyle: unknown
+  lineWidth: number
+  lineJoin: CanvasLineJoin
+  lineCap: CanvasLineCap
   setTransform(a: number, b: number, c: number, d: number, e: number, f: number): void
   clearRect(x: number, y: number, w: number, h: number): void
-  fillRect(x: number, y: number, w: number, h: number): void
+  beginPath(): void
+  moveTo(x: number, y: number): void
+  lineTo(x: number, y: number): void
+  stroke(): void
 }
 
-/** Paint the meter: square bars standing on the floor of the strip, in the theme's ink.
- *  A bar of no height is not drawn at all, so silence leaves the strip empty rather than
- *  drawing a row of nothing. */
+/** Paint the meter: the signal as one continuous trace, the way a spectrum analyser draws
+ *  it, rather than a row of bars.
+ *
+ *  Straight segments between the points. A smoothed curve is prettier and lies about where
+ *  the peaks are — the point of a folded line is that every sample is a corner you can see.
+ *  The trace is inset a pixel from the top and the bottom so it neither clips nor sits on
+ *  the cell's rule, and a flat line at the bottom is what silence looks like. */
 export function drawMeter(
   context: MeterContext,
   canvas: MeterCanvas,
   heights: number[],
   ink: string,
   ratio = 1,
+  weight = 1.5,
 ) {
   const width = canvas.clientWidth
   const height = canvas.clientHeight
@@ -49,11 +60,16 @@ export function drawMeter(
   }
   context.setTransform(ratio, 0, 0, ratio, 0, 0)
   context.clearRect(0, 0, width, height)
-  context.fillStyle = ink
-  const gap = 1
-  const bar = (width - gap * (heights.length - 1)) / heights.length
+  context.strokeStyle = ink
+  context.lineWidth = weight
+  context.lineJoin = 'miter'
+  context.lineCap = 'butt'
+  context.beginPath()
   heights.forEach((value, index) => {
-    const tall = Math.round(value * height)
-    if (tall > 0) context.fillRect(index * (bar + gap), height - tall, bar, tall)
+    const x = (index / Math.max(1, heights.length - 1)) * width
+    const y = height - 1 - value * (height - 2)
+    if (index === 0) context.moveTo(x, y)
+    else context.lineTo(x, y)
   })
+  context.stroke()
 }
