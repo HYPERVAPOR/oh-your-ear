@@ -2,8 +2,6 @@ import { useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Dices, Play, RotateCcwSquare, Square } from 'lucide-react'
 
-import { iconGroup } from '@oh-your-ear/shared/pref-controls'
-
 import { audioMeter, audioNow, createBus, frequencyOf, playNote } from '@/lib/keys'
 import { bars, drawMeter } from '@/lib/meter'
 import {
@@ -276,7 +274,7 @@ export function PianoRoll() {
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-2">
       <div
         role="group"
         aria-label={t('chart')}
@@ -388,60 +386,63 @@ export function PianoRoll() {
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
-        {/* The three transport keys are welded together, the way the header's controls are:
-            one outline round the group, one rule between neighbours. */}
-        <div className={iconGroup}>
-          <button
-            type="button"
-            aria-label={playing ? t('rollStop') : t('rollPlay')}
-            title={playing ? t('rollStop') : t('rollPlay')}
-            onClick={togglePlay}
-            className="flex size-8 items-center justify-center text-ink hover:bg-surface-strong"
-          >
-            {/* Hollow, not solid: the key is one of three welded together, and a filled
-                triangle sits heavier than its neighbours' outline glyphs. */}
-            {playing ? (
-              <Square aria-hidden="true" className="size-4" strokeWidth={1.75} />
-            ) : (
-              <Play aria-hidden="true" className="size-4" strokeWidth={1.75} />
-            )}
-          </button>
+      {/* The transport is one object, not three things that happen to share a line: a single
+          32px hairline bar cut into cells by rules — the keys, then the spectrum, then the
+          readout. One outline, one height, one set of rules, and every cell keeps the same
+          8px rhythm inside it. */}
+      <div className="flex items-stretch divide-x divide-hairline-strong border border-hairline-strong">
+        <button
+          type="button"
+          aria-label={playing ? t('rollStop') : t('rollPlay')}
+          title={playing ? t('rollStop') : t('rollPlay')}
+          onClick={togglePlay}
+          className="flex size-8 shrink-0 items-center justify-center text-ink hover:bg-surface-strong"
+        >
+          {/* Hollow, not solid: in a row of outline glyphs a filled triangle is the only
+              heavy thing on the bar and pulls the eye off the balance. */}
+          {playing ? (
+            <Square aria-hidden="true" className="size-4" strokeWidth={1.75} />
+          ) : (
+            <Play aria-hidden="true" className="size-4" strokeWidth={1.75} />
+          )}
+        </button>
 
-          <button
-            type="button"
-            aria-label={t('rollShuffle')}
-            title={t('rollShuffle')}
-            onClick={() => {
-              commit(withIds(randomBar()))
-              setSelected(null)
-            }}
-            className="flex size-8 items-center justify-center text-ink hover:bg-surface-strong"
-          >
-            <Dices aria-hidden="true" className="size-4" strokeWidth={1.75} />
-          </button>
+        <button
+          type="button"
+          aria-label={t('rollShuffle')}
+          title={t('rollShuffle')}
+          onClick={() => {
+            commit(withIds(randomBar()))
+            setSelected(null)
+          }}
+          className="flex size-8 shrink-0 items-center justify-center text-ink hover:bg-surface-strong"
+        >
+          <Dices aria-hidden="true" className="size-4" strokeWidth={1.75} />
+        </button>
 
-          <button
-            type="button"
-            aria-label={t('rollReset')}
-            title={t('rollReset')}
-            onClick={() => {
-              commit(withIds(OPENING_BAR))
-              setSelected(null)
-            }}
-            className="flex size-8 items-center justify-center text-ink hover:bg-surface-strong"
-          >
-            <RotateCcwSquare aria-hidden="true" className="size-4" strokeWidth={1.75} />
-          </button>
+        <button
+          type="button"
+          aria-label={t('rollReset')}
+          title={t('rollReset')}
+          onClick={() => {
+            commit(withIds(OPENING_BAR))
+            setSelected(null)
+          }}
+          className="flex size-8 shrink-0 items-center justify-center text-ink hover:bg-surface-strong"
+        >
+          <RotateCcwSquare aria-hidden="true" className="size-4" strokeWidth={1.75} />
+        </button>
+
+        {/* Its own cell with padding, so the bars never touch a rule and silence is an empty
+            strip inside the bar rather than a hole in it. */}
+        <div className="flex min-w-0 flex-1 items-center px-3">
+          <canvas ref={meter} aria-hidden="true" className="h-6 w-full text-ink" />
         </div>
 
-        {/* The spectrum. Bare, so silence is an empty strip rather than a widget that is
-            switched off, and it takes the width between the keys and the readout. */}
-        <canvas ref={meter} aria-hidden="true" className="h-8 min-w-0 flex-1 text-ink" />
-
-        <span className="tabular ml-auto text-[11px] text-muted-soft">
+        {/* The readout is a cell of the same bar, right-aligned tabular numerals as before. */}
+        <div className="tabular flex shrink-0 items-center px-3 text-[11px] text-muted">
           {notes.length} · 4/4 · {BPM} bpm
-        </span>
+        </div>
       </div>
     </div>
   )
