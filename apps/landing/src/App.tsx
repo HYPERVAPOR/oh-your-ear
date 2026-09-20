@@ -2,7 +2,7 @@ import { Ear } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { buttonVariants } from '@oh-your-ear/shared/button-variants'
-import { LanguageKey, ThemeKey } from '@oh-your-ear/shared/pref-controls'
+import { LanguageKey, ThemeKey, iconGroup } from '@oh-your-ear/shared/pref-controls'
 
 /** Where "开始练习" goes. Configurable because the two sites live on different hosts in
  *  production and on different ports in development. */
@@ -30,7 +30,7 @@ export default function App() {
             </span>
           </div>
 
-          <nav className="flex items-center gap-1.5">
+          <nav className={iconGroup}>
             <LanguageKey />
             <ThemeKey />
           </nav>

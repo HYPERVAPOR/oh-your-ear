@@ -4,7 +4,7 @@ import { Ear, LogIn, LogOut, SquareUser } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { useAuthStore } from '@/stores/auth-store'
-import { LanguageKey, ThemeKey, iconKey } from '@oh-your-ear/shared/pref-controls'
+import { LanguageKey, ThemeKey, iconGroup, iconKey } from '@oh-your-ear/shared/pref-controls'
 
 const icon = 'h-4 w-4'
 
@@ -46,7 +46,8 @@ export function AppHeader() {
           </span>
         </Link>
 
-        <nav className="flex items-center gap-1.5">
+        {/* One welded piece rather than a row of loose squares: see iconGroup. */}
+        <nav className={iconGroup}>
           <LanguageKey />
           <ThemeKey />
 

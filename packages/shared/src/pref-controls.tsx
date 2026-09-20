@@ -8,7 +8,13 @@ import { useAppStore, type Language, type Theme } from './prefs'
  *  the app must offer exactly the same switch — a visitor should not be able to tell
  *  which of the two sites they are looking at from the controls. */
 export const iconKey =
-  'flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center border border-hairline-strong text-body transition-colors hover:border-ink hover:text-ink'
+  'relative flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center text-body transition-colors hover:bg-surface-strong hover:text-ink focus-visible:z-10 focus-visible:-outline-offset-2'
+
+/** The keys are welded into one piece: a single outline around the group, and one rule
+ *  between neighbours instead of two side by side. Keys carry no border of their own, so
+ *  a pointer landing on a boundary cannot make it jump a pixel wider. */
+export const iconGroup =
+  'inline-flex items-stretch divide-x divide-hairline-strong border border-hairline-strong'
 
 const icon = 'h-4 w-4'
 
