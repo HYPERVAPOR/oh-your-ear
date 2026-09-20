@@ -2,6 +2,8 @@ import { useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Dices, Play, RotateCcw, Square } from 'lucide-react'
 
+import { iconGroup } from '@oh-your-ear/shared/pref-controls'
+
 import { audioNow, frequencyOf, playNote } from '@/lib/keys'
 import {
   HIGH,
@@ -334,49 +336,53 @@ export function PianoRoll() {
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          aria-label={playing ? t('rollStop') : t('rollPlay')}
-          title={playing ? t('rollStop') : t('rollPlay')}
-          onClick={togglePlay}
-          className="flex size-8 items-center justify-center text-ink hover:bg-surface-strong"
-        >
-          {playing ? (
-            <Square aria-hidden="true" className="size-4 fill-current" strokeWidth={0} />
-          ) : (
-            <Play aria-hidden="true" className="size-4 fill-current" strokeWidth={0} />
-          )}
-        </button>
+        {/* The three transport keys are welded together, the way the header's controls are:
+            one outline round the group, one rule between neighbours. */}
+        <div className={iconGroup}>
+          <button
+            type="button"
+            aria-label={playing ? t('rollStop') : t('rollPlay')}
+            title={playing ? t('rollStop') : t('rollPlay')}
+            onClick={togglePlay}
+            className="flex size-8 items-center justify-center text-ink hover:bg-surface-strong"
+          >
+            {playing ? (
+              <Square aria-hidden="true" className="size-4 fill-current" strokeWidth={0} />
+            ) : (
+              <Play aria-hidden="true" className="size-4 fill-current" strokeWidth={0} />
+            )}
+          </button>
 
-        <button
-          type="button"
-          aria-label={t('rollShuffle')}
-          title={t('rollShuffle')}
-          onClick={() => {
-            commit(withIds(randomBar()))
-            setSelected(null)
-          }}
-          className="flex size-8 items-center justify-center text-ink hover:bg-surface-strong"
-        >
-          <Dices aria-hidden="true" className="size-4" strokeWidth={1.75} />
-        </button>
+          <button
+            type="button"
+            aria-label={t('rollShuffle')}
+            title={t('rollShuffle')}
+            onClick={() => {
+              commit(withIds(randomBar()))
+              setSelected(null)
+            }}
+            className="flex size-8 items-center justify-center text-ink hover:bg-surface-strong"
+          >
+            <Dices aria-hidden="true" className="size-4" strokeWidth={1.75} />
+          </button>
+
+          <button
+            type="button"
+            aria-label={t('rollReset')}
+            title={t('rollReset')}
+            onClick={() => {
+              commit(withIds(OPENING_BAR))
+              setSelected(null)
+            }}
+            className="flex size-8 items-center justify-center text-ink hover:bg-surface-strong"
+          >
+            <RotateCcw aria-hidden="true" className="size-4" strokeWidth={1.75} />
+          </button>
+        </div>
 
         <span className="tabular ml-auto text-[11px] text-muted-soft">
           {notes.length} · 4/4 · 120 bpm
         </span>
-
-        <button
-          type="button"
-          aria-label={t('rollReset')}
-          title={t('rollReset')}
-          onClick={() => {
-            commit(withIds(OPENING_BAR))
-            setSelected(null)
-          }}
-          className="flex size-8 items-center justify-center text-ink hover:bg-surface-strong"
-        >
-          <RotateCcw aria-hidden="true" className="size-4" strokeWidth={1.75} />
-        </button>
       </div>
     </div>
   )
