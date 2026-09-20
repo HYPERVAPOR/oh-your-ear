@@ -39,9 +39,42 @@ export function resizeNote(note: Note, edge: 'start' | 'end', steps: number): No
   return { ...note, step, length: note.step + note.length - step }
 }
 
-/** True when the note would sit on a (step, midi) a note already occupies. */
-export function overlaps(notes: Note[], candidate: { step: number; midi: number }): boolean {
-  return notes.some((note) => note.step === candidate.step && note.midi === candidate.midi)
+/** Ableton's rule, and the reason a roll never looks like a pile: two notes on the same
+ *  pitch cannot overlap. The later one wins and cuts the earlier one at its own start; an
+ *  earlier note that is swallowed whole disappears. Different pitches are free to overlap —
+ *  that is what a chord is.
+ *
+ *  `priority` is the note the reader is holding. It wins in both directions: the note
+ *  before it is cut, the note after it is pushed along, and nothing is lost silently
+ *  unless there is no room left in the bar. */
+export function normalize(notes: Note[], priority?: string): Note[] {
+  const result: Note[] = []
+  for (const midi of new Set(notes.map((note) => note.midi))) {
+    const row = notes
+      .filter((note) => note.midi === midi)
+      .sort((a, b) => a.step - b.step || a.length - b.length)
+    const kept: Note[] = []
+    for (const note of row) {
+      const last = kept[kept.length - 1]
+      if (!last || last.step + last.length <= note.step) {
+        kept.push(note)
+        continue
+      }
+      if (last.id === priority) {
+        // what was moved outranks what was already there: push the neighbour along
+        const step = last.step + last.length
+        if (step < STEPS) kept.push({ ...note, step, length: Math.min(note.length, STEPS - step) })
+        continue
+      }
+      // otherwise the later note cuts the earlier one, at the later note's own start
+      const length = note.step - last.step
+      if (length > 0) kept[kept.length - 1] = { ...last, length }
+      else kept.pop()
+      kept.push(note)
+    }
+    result.push(...kept)
+  }
+  return result.sort((a, b) => a.step - b.step || a.midi - b.midi)
 }
 
 /** One bar of music, so a reader has something to hear the moment the page loads: a

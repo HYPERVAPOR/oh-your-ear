@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 
-import { HIGH, LOW, STEPS, moveNote, overlaps, randomBar, resizeNote, type Note } from './roll.ts'
+import { HIGH, LOW, STEPS, moveNote, normalize, randomBar, resizeNote, type Note } from './roll.ts'
 
 const bar = (over: Partial<Note> = {}): Note => ({ id: 'n', midi: 64, step: 4, length: 2, ...over })
 
@@ -56,9 +56,80 @@ test('the random bar is playable: inside the bar, no duplicates, never empty', (
   }
 })
 
-test('overlaps finds a note on the same step and pitch only', () => {
-  const notes = [bar({ step: 4, midi: 64 })]
-  assert.equal(overlaps(notes, { step: 4, midi: 64 }), true)
-  assert.equal(overlaps(notes, { step: 4, midi: 65 }), false)
-  assert.equal(overlaps(notes, { step: 5, midi: 64 }), false)
+test('a later note cuts an earlier one on the same pitch', () => {
+  const notes = normalize([
+    { id: 'a', midi: 64, step: 0, length: 8 },
+    { id: 'b', midi: 64, step: 4, length: 4 },
+  ])
+  assert.deepEqual(
+    notes.map((note) => [note.id, note.step, note.length]),
+    [
+      ['a', 0, 4],
+      ['b', 4, 4],
+    ],
+  )
+})
+
+test('a note written over another one replaces it', () => {
+  // same start is the only way to swallow one whole, and then the longer draw wins
+  const notes = normalize([
+    { id: 'short', midi: 64, step: 4, length: 2 },
+    { id: 'long', midi: 64, step: 4, length: 6 },
+  ])
+  assert.deepEqual(
+    notes.map((note) => note.id),
+    ['long'],
+  )
+})
+
+test('different pitches overlap freely — that is a chord', () => {
+  const notes = normalize([
+    { id: 'a', midi: 64, step: 2, length: 4 },
+    { id: 'b', midi: 67, step: 2, length: 4 },
+    { id: 'c', midi: 71, step: 3, length: 4 },
+  ])
+  assert.equal(notes.length, 3)
+})
+
+test('the note being held wins in both directions', () => {
+  const held = normalize(
+    [
+      { id: 'before', midi: 64, step: 0, length: 6 },
+      { id: 'held', midi: 64, step: 4, length: 4 },
+      { id: 'after', midi: 64, step: 6, length: 4 },
+    ],
+    'held',
+  )
+  const byId = Object.fromEntries(held.map((note) => [note.id, note]))
+  assert.equal(byId.before.step + byId.before.length, 4, 'the note before is cut at the held note')
+  assert.equal(byId.after.step, 8, 'the note after is pushed past the held note')
+  assert.equal(byId.held.length, 4, 'the held note keeps its length')
+})
+
+test('normalize never lets a note leave the bar', () => {
+  for (let seed = 0; seed < 300; seed += 1) {
+    let n = seed * 7919
+    const random = () => {
+      n = (n * 1103515245 + 12345) % 2147483648
+      return n / 2147483648
+    }
+    // valid notes to begin with — staying inside the bar is moveNote's job, not this one's
+    const messy: Note[] = Array.from({ length: 12 }, (_, index) => {
+      const step = Math.floor(random() * STEPS)
+      return {
+        id: `x${index}`,
+        midi: LOW + Math.floor(random() * (HIGH - LOW + 1)),
+        step,
+        length: 1 + Math.floor(random() * (STEPS - step)),
+      }
+    })
+    const tidy = normalize(messy)
+    for (const note of tidy) {
+      assert.ok(note.step >= 0 && note.step + note.length <= STEPS, `seed ${seed} left the bar`)
+      assert.ok(note.length >= 1, `seed ${seed} has a zero-length note`)
+    }
+    // and no two notes share a pitch AND a step once it is done
+    const spans = tidy.map((note) => `${note.midi}:${note.step}-${note.step + note.length}`)
+    assert.equal(new Set(spans).size, spans.length, `seed ${seed} left a duplicate span`)
+  }
 })

@@ -396,6 +396,6 @@
 ### 19.2 Playback and a playhead
 
 - **issue**: #91
-- **status**: ⚪ backlog
-- **description**: A play button that sounds the whole bar with a moving playhead. Needs `playNote(frequency, when)` for scheduling and a short requestAnimationFrame loop that stops when the bar ends — the landing page otherwise runs no loop at all.
+- **status**: 🟢 done
+- **description**: A play button that sounds the whole bar with a playhead moving across it. `playNote(frequency, when)` schedules every note on the audio clock up front, so no timer decides when a note lands; one requestAnimationFrame loop moves the playhead and stops itself at the end of the bar plus the `audioNow()` export it reads the clock from. Also: the left-hand keys are buttons that audition their own note. Known limit — pressing stop cancels the scheduling and the playhead, but notes already queued ring out their tails (up to 1.2s); silencing them instantly needs a master gain node.
 - **depends on**: 19.1

@@ -13,13 +13,21 @@ export function frequencyOf(midi: number): number {
   return 440 * 2 ** ((midi - 69) / 12)
 }
 
-export function playNote(frequency: number): void {
+/** The audio clock, for anything that has to line up with scheduled notes. Null until the
+ *  first note has been played, since the context is created lazily on a gesture. */
+export function audioNow(): number | null {
+  return context?.currentTime ?? null
+}
+
+/** `when` is an absolute time on the audio clock: scheduling ahead is how a bar is played
+ *  without a timer deciding when a note lands. */
+export function playNote(frequency: number, when?: number): void {
   const audio = (context ??= new AudioContext())
   // A context created outside a gesture starts suspended, and one suspended by the
   // browser after backgrounding stays that way until something resumes it.
   if (audio.state === 'suspended') void audio.resume()
 
-  const now = audio.currentTime
+  const now = when ?? audio.currentTime
   const envelope = audio.createGain()
   envelope.gain.setValueAtTime(0, now)
   envelope.gain.linearRampToValueAtTime(0.4, now + 0.006)

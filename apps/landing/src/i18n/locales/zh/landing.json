@@ -8,5 +8,7 @@
   "github": "GitHub",
   "license": "Apache-2.0",
   "chart": "音高柱状图",
-  "rollShuffle": "随机一小节"
+  "rollShuffle": "随机一小节",
+  "rollPlay": "播放",
+  "rollStop": "停止"
 }

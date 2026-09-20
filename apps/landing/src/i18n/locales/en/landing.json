@@ -8,5 +8,7 @@
   "github": "GitHub",
   "license": "Apache-2.0",
   "chart": "Pitch chart",
-  "rollShuffle": "Random bar"
+  "rollShuffle": "Random bar",
+  "rollPlay": "Play",
+  "rollStop": "Stop"
 }
