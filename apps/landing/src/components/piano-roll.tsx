@@ -4,7 +4,7 @@ import { Dices, Play, RotateCcwSquare, Square } from 'lucide-react'
 
 import { iconGroup } from '@oh-your-ear/shared/pref-controls'
 
-import { audioNow, frequencyOf, playNote } from '@/lib/keys'
+import { audioNow, createBus, frequencyOf, playNote } from '@/lib/keys'
 import {
   HIGH,
   LOW,
@@ -74,6 +74,8 @@ export function PianoRoll() {
   const drag = useRef<Drag | null>(null)
   const head = useRef<HTMLSpanElement | null>(null)
   const frame = useRef(0)
+  /** The bus the current bar is playing through, so Stop can drop it. */
+  const bus = useRef<GainNode | null>(null)
   const [playing, setPlaying] = useState(false)
 
   const play = (midi: number) => playNote(frequencyOf(midi))
@@ -90,12 +92,18 @@ export function PianoRoll() {
     if (playing) {
       cancelAnimationFrame(frame.current)
       frame.current = 0
+      // Dropping the bus is what makes Stop a stop: the notes of the bar are already on
+      // the audio clock, so nothing short of disconnecting them silences them.
+      bus.current?.disconnect()
+      bus.current = null
       setPlaying(false)
       return
     }
     const start = (audioNow() ?? 0) + 0.06
+    const through = createBus()
+    bus.current = through
     for (const note of notes) {
-      playNote(frequencyOf(note.midi), start + note.step * SIXTEENTH)
+      playNote(frequencyOf(note.midi), start + note.step * SIXTEENTH, through)
     }
     setPlaying(true)
     const tick = () => {

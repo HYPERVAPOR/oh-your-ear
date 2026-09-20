@@ -19,9 +19,24 @@ export function audioNow(): number | null {
   return context?.currentTime ?? null
 }
 
+/** A bus to play a bar through, so the whole bar can be silenced at once.
+ *
+ *  Every note of the bar is scheduled on the audio clock up front — that is how the bar
+ *  keeps time without a timer deciding where a note lands — which means cancelling the
+ *  timer would leave the notes that are already queued still sounding. Route them through
+ *  a bus instead and dropping the bus is a stop that actually stops. */
+export function createBus(): GainNode {
+  const audio = (context ??= new AudioContext())
+  if (audio.state === 'suspended') void audio.resume()
+  const bus = audio.createGain()
+  bus.connect(audio.destination)
+  return bus
+}
+
 /** `when` is an absolute time on the audio clock: scheduling ahead is how a bar is played
- *  without a timer deciding when a note lands. */
-export function playNote(frequency: number, when?: number): void {
+ *  without a timer deciding when a note lands. `bus` is where the note comes out — the
+ *  destination when nothing is playing it as part of a bar. */
+export function playNote(frequency: number, when?: number, bus?: GainNode | null): void {
   const audio = (context ??= new AudioContext())
   // A context created outside a gesture starts suspended, and one suspended by the
   // browser after backgrounding stays that way until something resumes it.
@@ -37,7 +52,7 @@ export function playNote(frequency: number, when?: number): void {
   tone.type = 'lowpass'
   tone.frequency.value = 3400
   envelope.connect(tone)
-  tone.connect(audio.destination)
+  tone.connect(bus ?? audio.destination)
 
   for (const [multiple, level] of [
     [1, 1],
