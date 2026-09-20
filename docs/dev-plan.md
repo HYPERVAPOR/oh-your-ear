@@ -384,3 +384,18 @@
 - **description**: The landing page ships an empty HTML shell and renders in the browser, so a crawler that does not execute JavaScript sees no copy at all. Prerendering (or SSG) would put the headline, the description and the links into the first response. Not done now because search engines do execute JS and the page is a single screen; revisit when the page grows or when organic traffic is being measured.
 - **depends on**: 18.2
 
+## M19 The hero's instrument
+
+### 19.1 Editable piano roll
+
+- **issue**: #91
+- **status**: 🟢 done
+- **description**: The landing page's right column becomes a one-bar piano roll you can edit, the way a DAW's is edited: 4/4 in sixteen steps, twelve pitch rows with the black keys shaded, click to select, double click to write or remove a note, drag the body to move, drag an edge to change the length, everything snapped to the grid, chords allowed, and a button that writes a random bar. Pure DOM 2D — the 3D take was dropped because a hairline inside a 3D transform comes back dotted (see `memory/2026-09-20-thin-lines-inside-css-3d-go-dotted.md`). Drags never enter React state: the dragged element is moved directly and committed on release. The snapping, clamping and the random bar live in `apps/landing/src/lib/roll.ts` and are covered by `node --test`. It opens on a transposed transcription of the intro's second bar of *Never Gonna Give You Up* rather than an empty grid, the transport is three welded 32px icon keys (play, random, reset), and the bar plays at 60bpm so each step is audible.
+- **depends on**: —
+
+### 19.2 Playback and a playhead
+
+- **issue**: #91
+- **status**: 🟢 done
+- **description**: A play button that sounds the whole bar with a playhead moving across it. `playNote(frequency, when)` schedules every note on the audio clock up front, so no timer decides when a note lands; one requestAnimationFrame loop moves the playhead and stops itself at the end of the bar plus the `audioNow()` export it reads the clock from. Also: the left-hand keys are buttons that audition their own note. Stop is a real stop: every playback routes through its own bus (`createBus()`), so dropping the bus silences the notes already queued on the audio clock — cancelling the timer alone only moved the playhead. See `memory/2026-09-21-scheduled-audio-needs-a-bus-to-stop.md`.
+- **depends on**: 19.1
