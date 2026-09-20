@@ -100,8 +100,10 @@ export function PitchChart2D() {
                   onKeyDown={(event) => onKeyDown(event, note)}
                   className="relative cursor-pointer border-r border-hairline last:border-r-0 hover:bg-surface-strong/60"
                 >
+                  {/* Solid, not outlined: an outlined bar reads as an empty box at a glance,
+                      and the whole point of the plot is the shape the fills draw. */}
                   <span
-                    className={`absolute inset-x-0 bottom-0 mx-auto w-2.5 border ${isPlayed ? 'border-swatch-singleNote bg-swatch-singleNote/15' : 'border-ink bg-ink/5'}`}
+                    className={`absolute inset-x-0 bottom-0 mx-auto w-2.5 ${isPlayed ? 'bg-swatch-singleNote' : 'bg-ink'}`}
                     style={{ height: `${percent(hz)}%` }}
                   />
                   {/* the value sits on top of its own bar, the way a readout would */}
