@@ -16,7 +16,8 @@
     "check:i18n": "turbo run check:i18n",
     "format:check": "turbo run format:check",
     "clean": "turbo run clean",
-    "test": "turbo run test"
+    "test": "turbo run test",
+    "format:write": "turbo run format:write"
   },
   "devDependencies": {
     "turbo": "2.10.13"

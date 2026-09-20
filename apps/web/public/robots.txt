@@ -1,0 +1,4 @@
+# The application, not the pitch: app.ohyourear.com is a login-shaped interface and
+# duplicate content next to ohyourear.com, so nothing here should be crawled.
+User-agent: *
+Disallow: /

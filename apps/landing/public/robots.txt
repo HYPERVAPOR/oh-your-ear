@@ -1,0 +1,6 @@
+# The landing site is the one that should be in an index; the app lives on its own host
+# and disallows crawling there.
+User-agent: *
+Allow: /
+
+Sitemap: https://ohyourear.com/sitemap.xml

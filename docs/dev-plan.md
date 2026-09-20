@@ -346,3 +346,34 @@
 - **status**: 🟢 done
 - **description**: Front ends on Vercel, API and Postgres on the VPS. The app's `/api` is a Vercel rewrite back to the origin (`apps/web/vercel.json`, with `no-store` so token responses are never edge-cached), which is what keeps the browser same-origin and let the API stay untouched: no CORS, no cross-site cookie, and the Google callback is registered on the app host so the OAuth state and refresh cookies land on the same origin. The API container stays the only thing Caddy fronts (one certificate, one host), the web image and its nginx config are gone, and `docs/deploy.md` now describes the topology, DNS records, the two Vercel projects and the env split.
 - **depends on**: 17.1, 17.2
+
+## M18 SEO: the landing site's search and share surface
+
+### 18.1 Adaptive favicon and share image
+
+- **issue**: #86
+- **status**: 🟡 doing
+- **description**: The brand ear mark as a favicon with a backing plate, switching with the reader's colour scheme (black glyph on white in light, white on black in dark) from a single SVG whose own `@media (prefers-color-scheme: dark)` rule does the switching. Plus a 1200×630 share image in the product's vocabulary for `og:image` / `twitter:image`, referenced by absolute URL.
+- **depends on**: —
+
+### 18.2 Metadata, robots.txt, llms.txt, sitemap.xml
+
+- **issue**: #86
+- **status**: 🟡 doing
+- **description**: Title and description sized not to be truncated, canonical URL, Open Graph and Twitter card tags, light/dark `theme-color`, JSON-LD describing the application, a robots.txt that points at a sitemap, and an llms.txt in the llmstxt.org shape so a model reading the site gets the product in one file.
+- **depends on**: —
+
+### 18.3 Keep the app out of the index
+
+- **issue**: #86
+- **status**: 🟡 doing
+- **description**: `app.<domain>` is a login-shaped application and duplicate content next to the landing page: give it `<meta name="robots" content="noindex">` and a `robots.txt` that disallows everything, so search engines index the pitch and not the practice screens.
+- **depends on**: —
+
+### 18.4 Prerender the landing page
+
+- **issue**: #86
+- **status**: ⚪ backlog
+- **description**: The landing page ships an empty HTML shell and renders in the browser, so a crawler that does not execute JavaScript sees no copy at all. Prerendering (or SSG) would put the headline, the description and the links into the first response. Not done now because search engines do execute JS and the page is a single screen; revisit when the page grows or when organic traffic is being measured.
+- **depends on**: 18.2
+
