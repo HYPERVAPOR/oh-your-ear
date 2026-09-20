@@ -11,9 +11,11 @@
           --screenshot=apps/landing/public/og.png \
           http://localhost:5174/og-card.html
 
-      The card is English on purpose: it rides along with the title, the description and
-      llms.txt, all of which a crawler or a link preview reads. Keep the copy in step with
-      apps/landing/src/i18n/locales/en/landing.json and the palette in
+      Three things and nothing else: the mark, the name, the call to action. A share card
+      is shown small, so anything else turns into grey mush in a feed.
+
+      English on purpose: it rides with the title, the description and llms.txt, all of
+      which a crawler or a link preview reads. Keep the palette in step with
       packages/shared/src/tokens.css.
     -->
     <style>
@@ -40,78 +42,41 @@
         font-family: 'JetBrains Mono', ui-monospace, 'DejaVu Sans Mono', monospace;
         font-feature-settings: 'zero' 1;
         -webkit-font-smoothing: antialiased;
+        display: flex;
       }
-      /* The card is framed like everything else in the product: one hairline, inset. */
+      /* Framed like everything else in the product: one hairline, inset. */
       .frame {
         position: absolute;
         inset: 28px;
         border: 1px solid #3b332e;
       }
-      .pad {
-        position: absolute;
-        left: 72px;
-        right: 72px;
+      .stack {
+        margin: auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 44px;
       }
       .mark {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-      .mark svg {
-        width: 46px;
-        height: 46px;
+        width: 96px;
+        height: 96px;
+        padding: 18px;
         border: 1px solid #3b332e;
-        padding: 9px;
+        color: #fafaf9;
       }
-      .wordmark {
-        font-size: 23px;
+      .name {
+        font-size: 76px;
         font-weight: 500;
-        letter-spacing: 0.06em;
-      }
-      .tagline {
-        font-size: 60px;
-        font-weight: 500;
-        letter-spacing: -0.02em;
-      }
-      .lines {
-        color: #a8a29e;
-        font-size: 21px;
-        line-height: 38px;
-      }
-      /* The progress bar: the app's own motif — a track, and the part already heard. */
-      .track {
-        position: relative;
-        width: 1020px;
-        height: 54px;
-        background: #211d1b;
-        border: 1px solid #3b332e;
-      }
-      .track::before {
-        content: '';
-        position: absolute;
-        left: -1px;
-        top: -4px;
-        width: 194px;
-        height: 4px;
-        background: #6fd3b4;
-      }
-      .bottom {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-      }
-      .url {
-        color: #a8a29e;
-        font-size: 17px;
+        letter-spacing: 0.02em;
       }
       .cta {
         display: flex;
         align-items: center;
-        height: 49px;
-        padding: 0 20px;
+        height: 64px;
+        padding: 0 34px;
         background: #fafaf9;
         color: #0c0a09;
-        font-size: 19px;
+        font-size: 26px;
         font-weight: 500;
       }
     </style>
@@ -119,35 +84,17 @@
   <body>
     <div class="frame"></div>
 
-    <div class="pad mark" style="top: 72px">
-      <svg
-        viewBox="0 0 32 32"
-        fill="none"
-        stroke="#fafaf9"
-        stroke-width="2"
-        stroke-linecap="square"
-        stroke-linejoin="round"
-      >
-        <g transform="translate(5.5 5.5) scale(0.875)">
-          <path d="M6 8.5a6.5 6.5 0 1 1 13 0c0 6-6 6-6 10a3.5 3.5 0 1 1-7 0" />
-          <path d="M15 8.5a2.5 2.5 0 0 0-5 0v1a2 2 0 1 1 0 4" />
-        </g>
+    <div class="stack">
+      <!-- lucide's ear, cropped to its own bounding box so the glyph fills the plate
+           instead of floating small in the middle of a 32-unit frame. -->
+      <svg class="mark" viewBox="5 1 16 25" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="square" stroke-linejoin="round">
+        <path d="M6 8.5a6.5 6.5 0 1 1 13 0c0 6-6 6-6 10a3.5 3.5 0 1 1-7 0" />
+        <path d="M15 8.5a2.5 2.5 0 0 0-5 0v1a2 2 0 1 1 0 4" />
       </svg>
-      <span class="wordmark">OH YOUR EAR</span>
-    </div>
 
-    <div class="pad tagline" style="top: 161px">Train your ear, anywhere.</div>
+      <div class="name">OH YOUR EAR</div>
 
-    <div class="pad lines" style="top: 262px">
-      Five drills, whenever you feel like it. An account? After you've practised.<br />
-      Pitch, intervals, chords, melody, rhythm — and a bit more confidence at karaoke.
-    </div>
-
-    <div class="pad" style="top: 400px"><div class="track"></div></div>
-
-    <div class="pad bottom" style="top: 509px">
-      <span class="url">ohyourear.com</span>
-      <span class="cta">Practice -&gt;</span>
+      <div class="cta">Practice -&gt;</div>
     </div>
   </body>
 </html>
