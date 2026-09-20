@@ -99,73 +99,77 @@ export function Mistakes() {
     <div className="flex min-h-screen flex-col">
       <AppHeader />
 
-      <main className="mx-auto w-full max-w-[900px] flex-1 px-5 py-12 sm:px-6 sm:py-16">
-        <h1 className="font-display text-[30px] font-medium leading-tight sm:text-[36px]">
-          {t('mistakes.title')}
-        </h1>
+      <main className="flex-1 px-6 py-12 sm:py-16">
+        {/* Gutter outside the 1200px box and the same width as the header: with the
+            padding inside, this column sat 300px inboard of the bar above it. */}
+        <div className="mx-auto w-full max-w-[1200px]">
+          <h1 className="font-display text-[30px] font-medium leading-tight sm:text-[36px]">
+            {t('mistakes.title')}
+          </h1>
 
-        <div className="mt-7 flex flex-wrap gap-2">
-          {FILTERS.map((kind) => (
-            <button
-              key={kind}
-              type="button"
-              aria-pressed={filter === kind}
-              onClick={() => setFilter(kind)}
-              className={cn(
-                'rounded-none border px-3.5 py-1.5 text-[14px] transition-colors',
-                filter === kind
-                  ? 'border-transparent bg-surface-strong font-medium text-ink'
-                  : 'border-hairline text-muted-soft hover:border-hairline-strong hover:text-ink',
-              )}
-            >
-              {kind === 'all' ? t('mistakes.filterAll') : t(`modules.${kind}`)}
-            </button>
-          ))}
-        </div>
-
-        {data && data.length === 0 && (
-          <EmptyState className="mt-10">{t('mistakes.empty')}</EmptyState>
-        )}
-
-        {data && data.length > 0 && (
-          <Card className="mt-8 divide-y divide-hairline overflow-hidden">
-            {data.map((mistake) => (
-              <div
-                key={mistake.id}
-                className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 px-5 py-4"
+          <div className="mt-7 flex flex-wrap gap-2">
+            {FILTERS.map((kind) => (
+              <button
+                key={kind}
+                type="button"
+                aria-pressed={filter === kind}
+                onClick={() => setFilter(kind)}
+                className={cn(
+                  'rounded-none border px-3.5 py-1.5 text-[14px] transition-colors',
+                  filter === kind
+                    ? 'border-transparent bg-surface-strong font-medium text-ink'
+                    : 'border-hairline text-muted-soft hover:border-hairline-strong hover:text-ink',
+                )}
               >
-                <div className="min-w-0">
-                  <p className="flex items-center gap-2.5 text-[16px] font-medium">
-                    <ModuleSwatch kind={mistake.exercise as ExerciseKind} />
-                    <span className="tabular truncate">{questionLabel(mistake)}</span>
-                  </p>
-                  {/* Indented to the question label, so the swatch reads as a bullet. */}
-                  <p className="mt-1 flex flex-wrap gap-x-3 pl-[20px] text-[14px] text-muted">
-                    <span>{t('mistakes.answer', { answer: answerLabel(mistake) })}</span>
-                    <span>{t('mistakes.wrongCount', { count: mistake.wrongCount })}</span>
-                  </p>
-                </div>
-
-                <div className="flex shrink-0 items-center gap-2">
-                  <Link
-                    to={practiceLink(mistake)}
-                    className="text-[15px] font-medium underline underline-offset-4"
-                  >
-                    {t('mistakes.practice')}
-                  </Link>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => remove.mutate(mistake.id)}
-                    disabled={remove.isPending}
-                  >
-                    {t('mistakes.remove')}
-                  </Button>
-                </div>
-              </div>
+                {kind === 'all' ? t('mistakes.filterAll') : t(`modules.${kind}`)}
+              </button>
             ))}
-          </Card>
-        )}
+          </div>
+
+          {data && data.length === 0 && (
+            <EmptyState className="mt-10">{t('mistakes.empty')}</EmptyState>
+          )}
+
+          {data && data.length > 0 && (
+            <Card className="mt-8 divide-y divide-hairline overflow-hidden">
+              {data.map((mistake) => (
+                <div
+                  key={mistake.id}
+                  className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 px-5 py-4"
+                >
+                  <div className="min-w-0">
+                    <p className="flex items-center gap-2.5 text-[16px] font-medium">
+                      <ModuleSwatch kind={mistake.exercise as ExerciseKind} />
+                      <span className="tabular truncate">{questionLabel(mistake)}</span>
+                    </p>
+                    {/* Indented to the question label, so the swatch reads as a bullet. */}
+                    <p className="mt-1 flex flex-wrap gap-x-3 pl-[20px] text-[14px] text-muted">
+                      <span>{t('mistakes.answer', { answer: answerLabel(mistake) })}</span>
+                      <span>{t('mistakes.wrongCount', { count: mistake.wrongCount })}</span>
+                    </p>
+                  </div>
+
+                  <div className="flex shrink-0 items-center gap-2">
+                    <Link
+                      to={practiceLink(mistake)}
+                      className="text-[15px] font-medium underline underline-offset-4"
+                    >
+                      {t('mistakes.practice')}
+                    </Link>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => remove.mutate(mistake.id)}
+                      disabled={remove.isPending}
+                    >
+                      {t('mistakes.remove')}
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </Card>
+          )}
+        </div>
       </main>
     </div>
   )

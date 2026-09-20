@@ -39,107 +39,115 @@ export function Levels() {
     <div className="flex min-h-screen flex-col">
       <AppHeader />
 
-      <main className="mx-auto w-full max-w-[900px] flex-1 px-5 py-12 sm:px-6 sm:py-16">
-        <h1 className="text-[30px] font-medium leading-tight sm:text-[36px]">
-          {t('levels.title')}
-        </h1>
-        <p className="mt-3 max-w-[52ch] text-[15px] text-body">{t('levels.intro')}</p>
+      <main className="flex-1 px-6 py-12 sm:py-16">
+        {/* Gutter outside the 1200px box and the same width as the header: with the
+            padding inside, this column sat 300px inboard of the bar above it. */}
+        <div className="mx-auto w-full max-w-[1200px]">
+          <h1 className="text-[30px] font-medium leading-tight sm:text-[36px]">
+            {t('levels.title')}
+          </h1>
+          <p className="mt-3 max-w-[52ch] text-[15px] text-body">{t('levels.intro')}</p>
 
-        {!user && (
-          <div className="mt-6 flex flex-wrap items-center gap-4 rounded-xl border border-hairline bg-surface px-5 py-4">
-            <p className="text-[15px] text-body">{t('levels.guestBanner')}</p>
-            <Link
-              to="/login"
-              state={{ from: '/levels' }}
-              className="inline-flex h-10 items-center rounded-none bg-primary px-5 text-[15px] font-medium text-on-primary transition-opacity hover:opacity-90"
-            >
-              {t('actions.login')}
-            </Link>
-          </div>
-        )}
+          {!user && (
+            <div className="mt-6 flex flex-wrap items-center gap-4 rounded-xl border border-hairline bg-surface px-5 py-4">
+              <p className="text-[15px] text-body">{t('levels.guestBanner')}</p>
+              <Link
+                to="/login"
+                state={{ from: '/levels' }}
+                className="inline-flex h-10 items-center rounded-none bg-primary px-5 text-[15px] font-medium text-on-primary transition-opacity hover:opacity-90"
+              >
+                {t('actions.login')}
+              </Link>
+            </div>
+          )}
 
-        <div className="mt-10 space-y-10">
-          {(catalog ?? []).map((set) => {
-            const kind = set.module
-            const chain: Level[] = set.levels
-            // A level is open when it is the first, or the one before it is passed.
-            const openIndex = chain.findIndex((level) => !progressById.get(level.slug)?.passed)
+          <div className="mt-10 space-y-10">
+            {(catalog ?? []).map((set) => {
+              const kind = set.module
+              const chain: Level[] = set.levels
+              // A level is open when it is the first, or the one before it is passed.
+              const openIndex = chain.findIndex((level) => !progressById.get(level.slug)?.passed)
 
-            return (
-              <section key={set.slug}>
-                <div className="flex items-center gap-3">
-                  <ModuleSwatch kind={kind} />
-                  <h2 className="text-[20px] font-medium">{pickText(set.title, i18n.language)}</h2>
-                  <span className="text-[14px] text-muted">{t(`modules.${kind}`)}</span>
-                </div>
+              return (
+                <section key={set.slug}>
+                  <div className="flex items-center gap-3">
+                    <ModuleSwatch kind={kind} />
+                    <h2 className="text-[20px] font-medium">
+                      {pickText(set.title, i18n.language)}
+                    </h2>
+                    <span className="text-[14px] text-muted">{t(`modules.${kind}`)}</span>
+                  </div>
 
-                <ol className="mt-4 grid gap-2.5 sm:grid-cols-2">
-                  {chain.map((level, index) => {
-                    const progress = progressById.get(level.slug)
-                    // A lock means "pass the level before it"; a guest is stopped by
-                    // the sign-in step instead, so nothing is shown locked to them.
-                    const locked = Boolean(user) && openIndex !== -1 && index > openIndex
+                  <ol className="mt-4 grid gap-2.5 sm:grid-cols-2">
+                    {chain.map((level, index) => {
+                      const progress = progressById.get(level.slug)
+                      // A lock means "pass the level before it"; a guest is stopped by
+                      // the sign-in step instead, so nothing is shown locked to them.
+                      const locked = Boolean(user) && openIndex !== -1 && index > openIndex
 
-                    return (
-                      <li key={level.slug}>
-                        {locked ? (
-                          <div className="flex items-center justify-between gap-4 rounded-xl border border-hairline px-4 py-3.5 text-muted-soft">
-                            <span className="flex items-center gap-3 text-[15px]">
-                              <Lock className="h-4 w-4" />
-                              {pickText(level.title, i18n.language)}
-                            </span>
-                            <span className="text-[13px]">
-                              {t('levels.questions', { count: level.questions })}
-                            </span>
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-1">
-                            <Link
-                              to={
-                                user
-                                  ? `/exercise/${modulePath(kind)}?level=${level.slug}`
-                                  : '/login'
-                              }
-                              state={
-                                user
-                                  ? undefined
-                                  : { from: `/exercise/${modulePath(kind)}?level=${level.slug}` }
-                              }
-                              className="flex flex-1 items-center justify-between gap-4 rounded-xl border border-hairline bg-surface px-4 py-3.5 transition-colors hover:border-hairline-strong hover:bg-canvas-soft"
-                            >
-                              <span className="flex items-center gap-3 text-[15px] font-medium">
-                                {progress?.passed ? (
-                                  <Check className="h-4 w-4 text-success-text" />
-                                ) : (
-                                  <span className="h-4 w-4 rounded-none border border-hairline-strong" />
-                                )}
+                      return (
+                        <li key={level.slug}>
+                          {locked ? (
+                            <div className="flex items-center justify-between gap-4 rounded-xl border border-hairline px-4 py-3.5 text-muted-soft">
+                              <span className="flex items-center gap-3 text-[15px]">
+                                <Lock className="h-4 w-4" />
                                 {pickText(level.title, i18n.language)}
                               </span>
-                              <span className="flex items-center gap-2">
-                                <span className="tabular text-[13px] text-muted">
-                                  {!user
-                                    ? t('levels.questions', { count: level.questions })
-                                    : progress
-                                      ? t('levels.best', {
-                                          percent: Math.round(progress.bestAccuracy * 100),
-                                        })
-                                      : t('levels.questions', { count: level.questions })}
-                                </span>
+                              <span className="text-[13px]">
+                                {t('levels.questions', { count: level.questions })}
                               </span>
-                            </Link>
-                            <CollectMenu levelSlug={level.slug} />
-                          </div>
-                        )}
-                      </li>
-                    )
-                  })}
-                </ol>
-              </section>
-            )
-          })}
-        </div>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-1">
+                              <Link
+                                to={
+                                  user
+                                    ? `/exercise/${modulePath(kind)}?level=${level.slug}`
+                                    : '/login'
+                                }
+                                state={
+                                  user
+                                    ? undefined
+                                    : { from: `/exercise/${modulePath(kind)}?level=${level.slug}` }
+                                }
+                                className="flex flex-1 items-center justify-between gap-4 rounded-xl border border-hairline bg-surface px-4 py-3.5 transition-colors hover:border-hairline-strong hover:bg-canvas-soft"
+                              >
+                                <span className="flex items-center gap-3 text-[15px] font-medium">
+                                  {progress?.passed ? (
+                                    <Check className="h-4 w-4 text-success-text" />
+                                  ) : (
+                                    <span className="h-4 w-4 rounded-none border border-hairline-strong" />
+                                  )}
+                                  {pickText(level.title, i18n.language)}
+                                </span>
+                                <span className="flex items-center gap-2">
+                                  <span className="tabular text-[13px] text-muted">
+                                    {!user
+                                      ? t('levels.questions', { count: level.questions })
+                                      : progress
+                                        ? t('levels.best', {
+                                            percent: Math.round(progress.bestAccuracy * 100),
+                                          })
+                                        : t('levels.questions', { count: level.questions })}
+                                  </span>
+                                </span>
+                              </Link>
+                              <CollectMenu levelSlug={level.slug} />
+                            </div>
+                          )}
+                        </li>
+                      )
+                    })}
+                  </ol>
+                </section>
+              )
+            })}
+          </div>
 
-        {data && data.length === 0 && <EmptyState className="mt-8">{t('levels.empty')}</EmptyState>}
+          {data && data.length === 0 && (
+            <EmptyState className="mt-8">{t('levels.empty')}</EmptyState>
+          )}
+        </div>
       </main>
     </div>
   )
