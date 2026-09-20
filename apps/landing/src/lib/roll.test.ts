@@ -144,20 +144,31 @@ test('normalize never lets a note leave the bar', () => {
   }
 })
 
-test('the opening bar is the intro pedal: one pitch, eight eighths', () => {
-  assert.equal(OPENING_BAR.length, 8)
+test('the opening bar is the intro transcribed: a stab and the arpeggio', () => {
+  assert.equal(OPENING_BAR.length, 10)
   for (const note of OPENING_BAR) {
     assert.ok(note.step >= 0 && note.step + note.length <= STEPS)
     assert.ok(note.midi >= LOW && note.midi <= HIGH)
   }
-  assert.equal(
-    normalize(OPENING_BAR.map((note, index) => ({ ...note, id: `o${index}` }))).length,
-    8,
-  )
-  // the tonic, eight eighths: the intro's bass pedal            and nothing else
+  // the B♭ minor stab opens the bar, one chord on beat one
   assert.deepEqual(
-    OPENING_BAR.map((note) => note.step),
-    [0, 2, 4, 6, 8, 10, 12, 14],
+    OPENING_BAR.filter((note) => note.step === 0).map((note) => note.midi),
+    [61, 65, 70],
   )
-  assert.deepEqual([...new Set(OPENING_BAR.map((note) => note.midi))], [70], 'B♭4, the tonic')
+  // and the A♭ arpeggio walks up and back down through the rest of it
+  assert.deepEqual(
+    OPENING_BAR.filter((note) => note.step >= 6).map((note) => [note.step, note.midi]),
+    [
+      [6, 68],
+      [8, 60],
+      [9, 63],
+      [10, 68],
+      [12, 63],
+      [13, 60],
+      [14, 68],
+    ],
+  )
+  // nothing on the same pitch collides, so normalize has nothing to trim
+  const ids = OPENING_BAR.map((note, index) => ({ ...note, id: `o${index}` }))
+  assert.equal(normalize(ids).length, OPENING_BAR.length)
 })

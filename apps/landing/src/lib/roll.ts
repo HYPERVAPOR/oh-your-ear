@@ -16,18 +16,35 @@ export interface Note {
 
 export type NoteInput = Omit<Note, 'id'>
 
-/** The bar the roll opens on: the first bar of "Never Gonna Give You Up" — which is the
- *  intro's bass pedal and nothing else.
+/** The bar the roll opens on: the second bar of "Never Gonna Give You Up" — the one the
+ *  intro's harmony lands on, and the bar with the riff people actually remember.
  *
- *  The song is in B♭ minor and opens on the tonic: Sound On Sound's account of the session
- *  describes the DX7 bass "doing eighths", and a transcription of the intro bears that out —
- *  the first bar is B♭ repeated before the harmony arrives on bar two. Written up three
- *  octaves, B♭1 → B♭4, to land inside the roll's one-octave register. */
-export const OPENING_BAR: NoteInput[] = Array.from({ length: 8 }, (_, index) => ({
-  midi: 70,
-  step: index * 2,
-  length: 2,
-}))
+ *  Transcribed from the intro's note events (the song is in Bb minor, tempo ~113): a Bb
+ *  minor stab on beat one, then the bass arpeggio that walks up through Ab and back down.
+ *  The arpeggio spans exactly an octave (G#2–G#3), so it is transposed up 24 semitones —
+ *  intervals untouched — while the stab already sits inside the roll's register:
+ *
+ *    step  0  Bbm stab    Db  F   Bb
+ *    step  6  Ab arpeggio Ab            (G#2 + 24)
+ *    step  8              C             (C3  + 24)
+ *    step  9              Eb            (D#3 + 24)
+ *    step 10              Ab
+ *    step 12              Eb            the descent
+ *    step 13              C
+ *    step 14              Ab
+ */
+export const OPENING_BAR: NoteInput[] = [
+  { midi: 61, step: 0, length: 2 },
+  { midi: 65, step: 0, length: 2 },
+  { midi: 70, step: 0, length: 2 },
+  { midi: 68, step: 6, length: 2 },
+  { midi: 60, step: 8, length: 1 },
+  { midi: 63, step: 9, length: 1 },
+  { midi: 68, step: 10, length: 2 },
+  { midi: 63, step: 12, length: 1 },
+  { midi: 60, step: 13, length: 1 },
+  { midi: 68, step: 14, length: 2 },
+]
 
 export function clamp(value: number, low: number, high: number): number {
   return Math.min(high, Math.max(low, value))
