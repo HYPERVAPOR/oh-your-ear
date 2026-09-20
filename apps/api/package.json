@@ -9,5 +9,6 @@
     "lint": "test -z \"$(gofmt -l .)\" || { gofmt -l .; exit 1; }",
     "typecheck": "go vet ./...",
     "clean": "rm -rf bin"
-  }
+  },
+  "license": "Apache-2.0"
 }

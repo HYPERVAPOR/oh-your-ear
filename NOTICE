@@ -1,0 +1,12 @@
+Oh Your Ear
+Copyright 2026 HYPERVAPOR
+
+This product includes software developed by third parties:
+
+  JetBrains Mono — Copyright 2020 The JetBrains Mono Project Authors,
+  licensed under the SIL Open Font License 1.1. The two subset files shipped
+  in each site's public/fonts directory are covered by that licence; its text
+  and the subsetting notes live in the same directory (LICENSES.md).
+
+  Lucide icons — ISC Licence. Used as a dependency; the GitHub mark inlined in
+  packages/shared/src/pref-controls.tsx is the octicon, MIT licensed.
