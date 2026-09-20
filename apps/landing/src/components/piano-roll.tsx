@@ -34,8 +34,8 @@ const MIN_STEP = 1
 const BPM = 60
 const SIXTEENTH = 60 / BPM / 4
 const BAR = STEPS * SIXTEENTH
-/** Bars in the meter, and how long it keeps drawing after the sound stops. */
-const BARS = 20
+/** How long the meter keeps drawing after the sound stops, in frames. Its bar count is not
+ *  fixed: it is one bar per ~4px of whatever width the row gives it. */
 const METER_TAIL = 40
 
 let nextId = 0
@@ -102,16 +102,19 @@ export function PianoRoll() {
     if (!canvas || !context) return
     const ink = getComputedStyle(canvas).color
     let data: Uint8Array | null = null
+    // a fresh run starts quiet: the counter means "frames since the sound stopped", and
+    // carrying the last run's total over would end this one on its first silent frame
+    quiet.current = 0
     const tick = () => {
       const analyser = audioMeter()
-      if (!analyser) {
-        drawing.current = 0
-        return
+      if (analyser) {
+        data ??= new Uint8Array(analyser.frequencyBinCount)
+        analyser.getByteFrequencyData(data)
+        // a bar of about 3px at whatever width the row hands out, plus the 1px gap
+        const count = Math.max(12, Math.round(canvas.clientWidth / 4))
+        drawMeter(context, canvas, bars(data, count), ink, window.devicePixelRatio || 1)
       }
-      data ??= new Uint8Array(analyser.frequencyBinCount)
-      analyser.getByteFrequencyData(data)
-      drawMeter(context, canvas, bars(data, BARS), ink, window.devicePixelRatio || 1)
-      quiet.current = data.some((value) => value > 12) ? 0 : quiet.current + 1
+      quiet.current = (data?.some((value) => value > 12) ?? false) ? 0 : quiet.current + 1
       if (quiet.current > METER_TAIL) {
         drawing.current = 0
         return
@@ -433,8 +436,8 @@ export function PianoRoll() {
         </div>
 
         {/* The spectrum. Bare, so silence is an empty strip rather than a widget that is
-            switched off, and the row does not move when the sound comes and goes. */}
-        <canvas ref={meter} aria-hidden="true" className="h-8 w-16 text-ink" />
+            switched off, and it takes the width between the keys and the readout. */}
+        <canvas ref={meter} aria-hidden="true" className="h-8 min-w-0 flex-1 text-ink" />
 
         <span className="tabular ml-auto text-[11px] text-muted-soft">
           {notes.length} · 4/4 · {BPM} bpm
