@@ -144,7 +144,7 @@ test('normalize never lets a note leave the bar', () => {
   }
 })
 
-test('the opening bar is a valid bar: inside it, eight eighths, no collisions', () => {
+test('the opening bar is the intro pedal: one pitch, eight eighths', () => {
   assert.equal(OPENING_BAR.length, 8)
   for (const note of OPENING_BAR) {
     assert.ok(note.step >= 0 && note.step + note.length <= STEPS)
@@ -154,9 +154,10 @@ test('the opening bar is a valid bar: inside it, eight eighths, no collisions', 
     normalize(OPENING_BAR.map((note, index) => ({ ...note, id: `o${index}` }))).length,
     8,
   )
-  // the syllables land on every other sixteenth, so the phrase fills exactly one bar
+  // the tonic, eight eighths: the intro's bass pedal            and nothing else
   assert.deepEqual(
     OPENING_BAR.map((note) => note.step),
     [0, 2, 4, 6, 8, 10, 12, 14],
   )
+  assert.deepEqual([...new Set(OPENING_BAR.map((note) => note.midi))], [70], 'B♭4, the tonic')
 })

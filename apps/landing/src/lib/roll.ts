@@ -16,14 +16,15 @@ export interface Note {
 
 export type NoteInput = Omit<Note, 'id'>
 
-/** The bar the roll opens on: the first vocal bar of "Never Gonna Give You Up" —
- *  "We're no stran-gers to love" — one eighth note per syllable.
+/** The bar the roll opens on: the first bar of "Never Gonna Give You Up" — which is the
+ *  intro's bass pedal and nothing else.
  *
- *  The song is in F# minor and that phrase spans A4–E5, which does not fit the roll's one
- *  octave, so it is transposed down a minor sixth (A4 → C4). The intervals are untouched:
- *  what you hear is the line, in a key the instrument can play. */
-export const OPENING_BAR: NoteInput[] = [62, 64, 65, 65, 67, 64, 62, 60].map((midi, index) => ({
-  midi,
+ *  The song is in B♭ minor and opens on the tonic: Sound On Sound's account of the session
+ *  describes the DX7 bass "doing eighths", and a transcription of the intro bears that out —
+ *  the first bar is B♭ repeated before the harmony arrives on bar two. Written up three
+ *  octaves, B♭1 → B♭4, to land inside the roll's one-octave register. */
+export const OPENING_BAR: NoteInput[] = Array.from({ length: 8 }, (_, index) => ({
+  midi: 70,
   step: index * 2,
   length: 2,
 }))
