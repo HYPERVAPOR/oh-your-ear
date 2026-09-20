@@ -1,19 +1,27 @@
-import { Ear } from 'lucide-react'
+import { Ear, Play } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { Play } from 'lucide-react'
 
 import { buttonVariants } from '@oh-your-ear/shared/button-variants'
 import { GITHUB_URL, LICENSE_URL } from '@oh-your-ear/shared/links'
 import { GitHubKey, LanguageKey, ThemeKey, iconGroup } from '@oh-your-ear/shared/pref-controls'
 
+import { PitchChart2D } from '@/components/pitch-chart-2d'
+import { PitchChart3 } from '@/components/pitch-chart-3'
+
 /** Where "开始练习" goes. Configurable because the two sites live on different hosts in
  *  production and on different ports in development. */
 const APP_URL = import.meta.env.VITE_APP_URL ?? 'http://localhost:5173'
 
-/** The landing page: one screen, two columns, everything flush left. The pitch on the
- *  left, the single action on the right. Nothing here loads a practice screen — the
- *  whole point of the split (PRD 7.1.2) is that a visitor who is not ready to practise
- *  pays for a headline and a button, not for an audio engine. */
+/** The landing page: one screen, everything flush left. The pitch and the one action in
+ *  the left column, a keyboard to play with in the right — nothing here loads a practice
+ *  screen, because the whole point of the site split (PRD 7.1.2) is that a visitor who is
+ *  not ready to practise pays for a headline, a button and a few lines of Web Audio
+ *  rather than for an audio engine. */
+/** Which chart to draw: the piano roll by default, the bar chart when asked. */
+function chartVariant(): string {
+  return new URLSearchParams(window.location.search).get('chart') ?? 'roll'
+}
+
 export default function App() {
   const { t } = useTranslation()
 
@@ -44,7 +52,9 @@ export default function App() {
 
       <main className="flex-1">
         <section className="flex min-h-[calc(100svh-65px)] items-center px-6 py-16">
-          <div className="mx-auto grid w-full max-w-[1200px] gap-12 sm:grid-cols-[1.5fr_1fr] sm:items-end">
+          {/* Side by side only from lg: in between, the keyboard needs the whole row to
+              stay wide enough to hit. */}
+          <div className="mx-auto grid w-full max-w-[1200px] gap-12 lg:grid-cols-[1.4fr_1fr] lg:items-end">
             <div>
               <h1 className="max-w-[24ch] text-[40px] font-medium leading-[1.1] tracking-[-0.01em] sm:text-[60px]">
                 {t('tagline')}
@@ -53,19 +63,20 @@ export default function App() {
                 <span className="block">{t('line1')}</span>
                 <span className="block">{t('line2')}</span>
               </p>
+
+              <div className="mt-10 flex flex-col items-start gap-3">
+                <a href={APP_URL} className={buttonVariants({ size: 'hero' })}>
+                  {t('cta')}
+                  {/* Solid, not stroked: a play glyph has to read at 15px, and the outline
+                      version turns into a squiggle. */}
+                  <Play aria-hidden="true" className="size-4 fill-current" strokeWidth={0} />
+                </a>
+                <p className="max-w-[38ch] text-[14px] text-muted">{t('guestNote')}</p>
+              </div>
             </div>
 
-            <div className="flex flex-col items-start gap-4 sm:items-end sm:pb-1.5">
-              <a href={APP_URL} className={buttonVariants({ size: 'hero' })}>
-                {t('cta')}
-                {/* Solid, not stroked: a play glyph has to read at 15px, and the outline
-                    version turns into a squiggle. */}
-                <Play aria-hidden="true" className="size-4 fill-current" strokeWidth={0} />
-              </a>
-              <p className="max-w-[38ch] self-end text-right text-[14px] text-muted">
-                {t('guestNote')}
-              </p>
-            </div>
+            {/* ?chart=2d brings back the bar chart; the piano roll is the current take. */}
+            {chartVariant() === '2d' ? <PitchChart2D /> : <PitchChart3 />}
           </div>
         </section>
       </main>
