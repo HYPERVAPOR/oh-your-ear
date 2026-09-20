@@ -24,6 +24,9 @@
     },
     "check:i18n": {},
     "format:check": {},
-    "test": {}
+    "test": {},
+    "format:write": {
+      "cache": false
+    }
   }
 }

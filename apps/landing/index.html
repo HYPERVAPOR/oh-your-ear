@@ -12,8 +12,70 @@
       crossorigin
     />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="随时随地练耳：音高、音程、和弦、旋律与节奏。" />
-    <title>Oh Your Ear</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Oh Your Ear · 随时随地练耳</title>
+    <meta
+      name="description"
+      content="在浏览器里练耳：单音、音程、和弦、旋律、节奏五组练习。游客打开即练，无需注册；登录后保存进度、错题本与连续打卡。中英双语，明暗主题。"
+    />
+    <link rel="canonical" href="https://ohyourear.com/" />
+
+    <!-- The tab strip and the platform chrome follow the reader's colour scheme. -->
+    <meta name="theme-color" content="#f5f5f5" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#12100f" media="(prefers-color-scheme: dark)" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Oh Your Ear" />
+    <meta property="og:locale" content="zh_CN" />
+    <meta property="og:locale:alternate" content="en_US" />
+    <meta property="og:url" content="https://ohyourear.com/" />
+    <meta property="og:title" content="Oh Your Ear · 随时随地练耳" />
+    <meta
+      property="og:description"
+      content="单音、音程、和弦、旋律、节奏五组练习。游客打开即练，无需注册。"
+    />
+    <!-- Absolute URL: social platforms do not resolve relative image paths. -->
+    <meta property="og:image" content="https://ohyourear.com/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Oh Your Ear · 随时随地练耳" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Oh Your Ear · 随时随地练耳" />
+    <meta
+      name="twitter:description"
+      content="单音、音程、和弦、旋律、节奏五组练习。游客打开即练，无需注册。"
+    />
+    <meta name="twitter:image" content="https://ohyourear.com/og.png" />
+
+    <!-- Structured data: what this is, in the vocabulary a crawler already knows. -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Oh Your Ear",
+        "alternateName": "随时随地练耳",
+        "url": "https://ohyourear.com/",
+        "applicationCategory": "EducationalApplication",
+        "operatingSystem": "Web",
+        "inLanguage": ["zh-CN", "en"],
+        "description": "浏览器里的练耳应用：单音、音程、和弦、旋律、节奏五组练习。游客可直接开始，登录后可保存进度、错题本与连续打卡。",
+        "featureList": [
+          "单音练习",
+          "音程练习",
+          "和弦练习",
+          "旋律练习",
+          "节奏练习",
+          "错题本",
+          "每日练习",
+          "题单闯关"
+        ],
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "CNY" }
+      }
+    </script>
+
     <script>
       // Apply the stored theme before first paint, otherwise dark-mode readers get a
       // white flash while the React tree mounts. The cookie first: on this site it is
