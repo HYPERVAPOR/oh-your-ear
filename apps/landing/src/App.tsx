@@ -1,5 +1,6 @@
 import { Ear } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { Play } from 'lucide-react'
 
 import { buttonVariants } from '@oh-your-ear/shared/button-variants'
 import { GITHUB_URL, LICENSE_URL } from '@oh-your-ear/shared/links'
@@ -57,6 +58,9 @@ export default function App() {
             <div className="flex flex-col items-start gap-4 sm:items-end sm:pb-1.5">
               <a href={APP_URL} className={buttonVariants({ size: 'hero' })}>
                 {t('cta')}
+                {/* Solid, not stroked: a play glyph has to read at 15px, and the outline
+                    version turns into a squiggle. */}
+                <Play aria-hidden="true" className="size-4 fill-current" strokeWidth={0} />
               </a>
               <p className="max-w-[38ch] self-end text-right text-[14px] text-muted">
                 {t('guestNote')}
