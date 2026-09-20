@@ -6,7 +6,7 @@ import { GITHUB_URL, LICENSE_URL } from '@oh-your-ear/shared/links'
 import { GitHubKey, LanguageKey, ThemeKey, iconGroup } from '@oh-your-ear/shared/pref-controls'
 
 import { PitchChart2D } from '@/components/pitch-chart-2d'
-import { PitchChart3 } from '@/components/pitch-chart-3'
+import { PianoRoll } from '@/components/piano-roll'
 
 /** Where "开始练习" goes. Configurable because the two sites live on different hosts in
  *  production and on different ports in development. */
@@ -75,8 +75,8 @@ export default function App() {
               </div>
             </div>
 
-            {/* ?chart=2d brings back the bar chart; the piano roll is the current take. */}
-            {chartVariant() === '2d' ? <PitchChart2D /> : <PitchChart3 />}
+            {/* ?chart=2d brings back the bar chart; the roll is the editor (#91). */}
+            {chartVariant() === '2d' ? <PitchChart2D /> : <PianoRoll />}
           </div>
         </section>
       </main>

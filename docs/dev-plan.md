@@ -384,3 +384,18 @@
 - **description**: The landing page ships an empty HTML shell and renders in the browser, so a crawler that does not execute JavaScript sees no copy at all. Prerendering (or SSG) would put the headline, the description and the links into the first response. Not done now because search engines do execute JS and the page is a single screen; revisit when the page grows or when organic traffic is being measured.
 - **depends on**: 18.2
 
+## M19 The hero's instrument
+
+### 19.1 Editable piano roll
+
+- **issue**: #91
+- **status**: 🟡 doing
+- **description**: The landing page's right column becomes a one-bar piano roll you can edit, the way a DAW's is edited: 4/4 in sixteen steps, twelve pitch rows with the black keys shaded, click to select, double click to write or remove a note, drag the body to move, drag an edge to change the length, everything snapped to the grid, chords allowed, and a button that writes a random bar. Pure DOM 2D — the 3D take was dropped because a hairline inside a 3D transform comes back dotted (see `memory/2026-09-20-thin-lines-inside-css-3d-go-dotted.md`). Drags never enter React state: the dragged element is moved directly and committed on release. The snapping, clamping and the random bar live in `apps/landing/src/lib/roll.ts` and are covered by `node --test`.
+- **depends on**: —
+
+### 19.2 Playback and a playhead
+
+- **issue**: #91
+- **status**: ⚪ backlog
+- **description**: A play button that sounds the whole bar with a moving playhead. Needs `playNote(frequency, when)` for scheduling and a short requestAnimationFrame loop that stops when the bar ends — the landing page otherwise runs no loop at all.
+- **depends on**: 19.1

@@ -7,5 +7,6 @@
   "guestNote": "if you wanna act like pro",
   "github": "GitHub",
   "license": "Apache-2.0",
-  "chart": "Pitch chart"
+  "chart": "Pitch chart",
+  "rollShuffle": "Random bar"
 }

@@ -7,5 +7,6 @@
   "guestNote": "if you wanna act like pro",
   "github": "GitHub",
   "license": "Apache-2.0",
-  "chart": "音高柱状图"
+  "chart": "音高柱状图",
+  "rollShuffle": "随机一小节"
 }
