@@ -40,41 +40,63 @@ test('bars stay inside the strip', () => {
   for (const value of bars(loud, 20)) assert.ok(value >= 0 && value <= 1)
 })
 
-test('silence draws nothing and bars stand on the floor', () => {
-  const calls: [number, number, number, number][] = []
+const trace = () => {
+  const points: [number, number][] = []
+  let strokes = 0
   const context = {
-    fillStyle: '',
+    strokeStyle: '',
+    lineWidth: 0,
+    lineJoin: 'miter' as CanvasLineJoin,
+    lineCap: 'butt' as CanvasLineCap,
     setTransform: () => {},
     clearRect: () => {},
-    fillRect: (x: number, y: number, w: number, h: number) => calls.push([x, y, w, h]),
+    beginPath: () => {
+      points.length = 0
+    },
+    moveTo: (x: number, y: number) => points.push([x, y]),
+    lineTo: (x: number, y: number) => points.push([x, y]),
+    stroke: () => {
+      strokes += 1
+    },
   }
   const canvas = { clientWidth: 64, clientHeight: 32, width: 0, height: 0 }
+  return { points, context, canvas, strokes: () => strokes }
+}
 
+test('silence is one flat line on the floor', () => {
+  const { points, context, canvas, strokes } = trace()
   drawMeter(context, canvas, [0, 0, 0], 'ink')
-  assert.deepEqual(calls, [], 'a zero-height bar is not drawn')
+  assert.equal(strokes(), 1, 'one continuous trace, not a bar each')
+  assert.equal(points.length, 3)
+  assert.deepEqual(
+    points.map(([, y]) => y),
+    [31, 31, 31],
+    'a flat line one pixel above the bottom of the strip',
+  )
+  assert.deepEqual(points[0], [0, 31], 'starting at the left edge')
+  assert.deepEqual(points[2], [64, 31], 'and ending at the right one')
   assert.equal(canvas.width, 64, 'and the backing store is sized to the strip')
+  assert.equal(context.lineWidth, 1.5)
+})
 
-  // two neighbours, so the gap can be measured between bars that are both drawn
+test('the trace follows the values, top to bottom', () => {
+  const { points, context, canvas, strokes } = trace()
   drawMeter(context, canvas, [1, 0.5, 0], 'ink')
-  assert.equal(calls.length, 2, 'the middle bar has height, the last one does not')
-  const [full, half] = calls
-  assert.equal(full[1] + full[3], 32, 'a full bar stands on the floor')
-  assert.equal(half[1] + half[3], 32, 'and so does a half-height one')
-  assert.equal(Math.round(half[3]), 16, 'half height is half the strip')
-  assert.ok(full[0] < half[0], 'bars move left to right')
-  assert.equal(half[0] - (full[0] + full[2]), 1, 'with exactly a one-pixel gap between them')
+  assert.equal(strokes(), 1)
+  assert.deepEqual(
+    points.map(([, y]) => y),
+    [1, 16, 31],
+    'full height one pixel below the top, half way up, and silence on the floor',
+  )
+  assert.deepEqual(
+    points.map(([x]) => x),
+    [0, 32, 64],
+    'evenly across the strip',
+  )
+  assert.equal(context.strokeStyle, 'ink')
 
-  // and at the count the meter actually draws, a bar is a couple of pixels and no more
-  calls.length = 0
-  drawMeter(
-    context,
-    canvas,
-    Array.from({ length: 20 }, () => 1),
-    'ink',
-  )
-  assert.equal(calls.length, 20)
-  assert.ok(
-    calls[0][2] > 1 && calls[0][2] < 3,
-    `a bar is thin at 20 across 64px, got ${calls[0][2]}`,
-  )
+  // a single point cannot be a line, but must not divide by zero either
+  const one = trace()
+  drawMeter(one.context, one.canvas, [0.5], 'ink')
+  assert.deepEqual(one.points, [[0, 16]])
 })
