@@ -228,7 +228,11 @@ export function PianoRoll() {
         aria-label={t('chart')}
         className="flex h-[200px] font-display [--keys:38px] sm:h-[220px] sm:[--keys:48px]"
       >
-        {/* the keyboard: one row per semitone, black keys shortened */}
+        {/* The keyboard: one row per semitone, black keys shortened. The keys ignore the
+            colour scheme — white keys are white and black keys are black in either theme,
+            because that is what a keyboard looks like. The *grid's* shaded rows below are a
+            different thing: that shading is the roll's, and follows the theme like a DAW's
+            does. */}
         <div className="relative w-[var(--keys)] shrink-0 border border-r-0 border-hairline-strong">
           {ROWS.map((midi) => (
             <button
@@ -236,12 +240,12 @@ export function PianoRoll() {
               type="button"
               aria-label={`${nameOf(midi)}4 · ${frequencyOf(midi).toFixed(1)} Hz`}
               onPointerDown={() => play(midi)}
-              className={`absolute inset-x-0 cursor-pointer border-t border-hairline first:border-t-0 hover:opacity-88 ${BLACK.has(midi % 12) ? 'bg-surface-strong' : 'bg-surface'}`}
+              className="absolute inset-x-0 cursor-pointer border-t border-[#d6d3d1] bg-white first:border-t-0 hover:opacity-88"
               style={{ bottom: `${(midi - LOW) * ROW_PCT}%`, height: `${ROW_PCT}%` }}
             >
-              {BLACK.has(midi % 12) && <span className="block h-full w-[55%] bg-ink" />}
+              {BLACK.has(midi % 12) && <span className="block h-full w-[55%] bg-[#0c0a09]" />}
               {midi === LOW && (
-                <span className="tabular absolute right-1 top-1/2 -translate-y-1/2 text-[9px] text-muted">
+                <span className="tabular absolute right-1 top-1/2 -translate-y-1/2 text-[9px] text-[#777169]">
                   C4
                 </span>
               )}
