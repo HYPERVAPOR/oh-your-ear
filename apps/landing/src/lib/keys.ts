@@ -7,6 +7,7 @@
  *  piano, which is honest — this is a demonstration, not an instrument. */
 
 let context: AudioContext | null = null
+let meter: AnalyserNode | null = null
 
 /** Equal temperament from A4 = 440. */
 export function frequencyOf(midi: number): number {
@@ -19,6 +20,23 @@ export function audioNow(): number | null {
   return context?.currentTime ?? null
 }
 
+/** Where the sound comes out: an analyser in front of the speakers, so a meter can draw
+ *  anything that is playing — the whole bar or a single auditioned key. A pass-through:
+ *  it neither changes the sound nor survives on its own. */
+function output(audio: AudioContext): AnalyserNode {
+  if (!meter) {
+    meter = audio.createAnalyser()
+    meter.fftSize = 512
+    meter.connect(audio.destination)
+  }
+  return meter
+}
+
+/** The analyser everything plays through, for drawing. Null until the first note. */
+export function audioMeter(): AnalyserNode | null {
+  return meter
+}
+
 /** A bus to play a bar through, so the whole bar can be silenced at once.
  *
  *  Every note of the bar is scheduled on the audio clock up front — that is how the bar
@@ -29,7 +47,7 @@ export function createBus(): GainNode {
   const audio = (context ??= new AudioContext())
   if (audio.state === 'suspended') void audio.resume()
   const bus = audio.createGain()
-  bus.connect(audio.destination)
+  bus.connect(output(audio))
   return bus
 }
 
@@ -52,7 +70,7 @@ export function playNote(frequency: number, when?: number, bus?: GainNode | null
   tone.type = 'lowpass'
   tone.frequency.value = 3400
   envelope.connect(tone)
-  tone.connect(bus ?? audio.destination)
+  tone.connect(bus ?? output(audio))
 
   for (const [multiple, level] of [
     [1, 1],

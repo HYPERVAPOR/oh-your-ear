@@ -4,7 +4,8 @@ import { Dices, Play, RotateCcwSquare, Square } from 'lucide-react'
 
 import { iconGroup } from '@oh-your-ear/shared/pref-controls'
 
-import { audioNow, createBus, frequencyOf, playNote } from '@/lib/keys'
+import { audioMeter, audioNow, createBus, frequencyOf, playNote } from '@/lib/keys'
+import { bars, drawMeter } from '@/lib/meter'
 import {
   HIGH,
   LOW,
@@ -33,6 +34,9 @@ const MIN_STEP = 1
 const BPM = 60
 const SIXTEENTH = 60 / BPM / 4
 const BAR = STEPS * SIXTEENTH
+/** How long the meter keeps drawing after the sound stops, in frames. Its bar count is not
+ *  fixed: it is one bar per ~4px of whatever width the row gives it. */
+const METER_TAIL = 40
 
 let nextId = 0
 const withIds = (notes: NoteInput[]): Note[] =>
@@ -80,8 +84,45 @@ export function PianoRoll() {
   /** The bus the current bar is playing through, so Stop can drop it. */
   const bus = useRef<GainNode | null>(null)
   const [playing, setPlaying] = useState(false)
+  const meter = useRef<HTMLCanvasElement | null>(null)
+  const drawing = useRef(0)
+  const quiet = useRef(0)
 
-  const play = (midi: number) => playNote(frequencyOf(midi))
+  const play = (midi: number) => {
+    playNote(frequencyOf(midi))
+    wake()
+  }
+
+  /** Draw the output while there is output to draw, then stop. Nothing loops at rest: the
+   *  meter is woken by a note and puts itself out a beat after the sound does. */
+  function wake() {
+    if (drawing.current) return
+    const canvas = meter.current
+    const context = canvas?.getContext('2d')
+    if (!canvas || !context) return
+    const ink = getComputedStyle(canvas).color
+    let data: Uint8Array | null = null
+    // a fresh run starts quiet: the counter means "frames since the sound stopped", and
+    // carrying the last run's total over would end this one on its first silent frame
+    quiet.current = 0
+    const tick = () => {
+      const analyser = audioMeter()
+      if (analyser) {
+        data ??= new Uint8Array(analyser.frequencyBinCount)
+        analyser.getByteFrequencyData(data)
+        // a bar of about 3px at whatever width the row hands out, plus the 1px gap
+        const count = Math.max(12, Math.round(canvas.clientWidth / 4))
+        drawMeter(context, canvas, bars(data, count), ink, window.devicePixelRatio || 1)
+      }
+      quiet.current = (data?.some((value) => value > 12) ?? false) ? 0 : quiet.current + 1
+      if (quiet.current > METER_TAIL) {
+        drawing.current = 0
+        return
+      }
+      drawing.current = requestAnimationFrame(tick)
+    }
+    drawing.current = requestAnimationFrame(tick)
+  }
 
   /** Commit an edit through the overlap rule. `priority` is whatever the reader just
    *  touched: it wins against its neighbours instead of being trimmed by them. */
@@ -92,6 +133,7 @@ export function PianoRoll() {
   /** Play the bar: every note scheduled on the audio clock up front, and one short
    *  requestAnimationFrame loop to move the playhead. Nothing runs after the bar ends. */
   function togglePlay() {
+    wake()
     if (playing) {
       cancelAnimationFrame(frame.current)
       frame.current = 0
@@ -392,6 +434,10 @@ export function PianoRoll() {
             <RotateCcwSquare aria-hidden="true" className="size-4" strokeWidth={1.75} />
           </button>
         </div>
+
+        {/* The spectrum. Bare, so silence is an empty strip rather than a widget that is
+            switched off, and it takes the width between the keys and the readout. */}
+        <canvas ref={meter} aria-hidden="true" className="h-8 min-w-0 flex-1 text-ink" />
 
         <span className="tabular ml-auto text-[11px] text-muted-soft">
           {notes.length} · 4/4 · {BPM} bpm
