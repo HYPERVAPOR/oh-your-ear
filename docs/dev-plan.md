@@ -352,21 +352,21 @@
 ### 18.1 Adaptive favicon and share image
 
 - **issue**: #86
-- **status**: 🟡 doing
+- **status**: 🟢 done
 - **description**: The brand ear mark as a favicon with a backing plate, switching with the reader's colour scheme (black glyph on white in light, white on black in dark) from a single SVG whose own `@media (prefers-color-scheme: dark)` rule does the switching. Plus a 1200×630 share image in the product's vocabulary for `og:image` / `twitter:image`, referenced by absolute URL.
 - **depends on**: —
 
 ### 18.2 Metadata, robots.txt, llms.txt, sitemap.xml
 
 - **issue**: #86
-- **status**: 🟡 doing
+- **status**: 🟢 done
 - **description**: Title and description sized not to be truncated, canonical URL, Open Graph and Twitter card tags, light/dark `theme-color`, JSON-LD describing the application, a robots.txt that points at a sitemap, and an llms.txt in the llmstxt.org shape so a model reading the site gets the product in one file.
 - **depends on**: —
 
 ### 18.3 Keep the app out of the index
 
 - **issue**: #86
-- **status**: 🟡 doing
+- **status**: 🟢 done
 - **description**: `app.<domain>` is a login-shaped application and duplicate content next to the landing page: give it `<meta name="robots" content="noindex">` and a `robots.txt` that disallows everything, so search engines index the pitch and not the practice screens.
 - **depends on**: —
 
