@@ -65,103 +65,107 @@ export function Bookmarks() {
     <div className="flex min-h-screen flex-col">
       <AppHeader />
 
-      <main className="mx-auto w-full max-w-[900px] flex-1 px-5 py-12 sm:px-6 sm:py-16">
-        <h1 className="text-[30px] font-medium leading-tight sm:text-[36px]">
-          {t('collections.title')}
-        </h1>
-        <p className="mt-3 max-w-[54ch] text-[15px] text-body">{t('collections.intro')}</p>
+      <main className="flex-1 px-6 py-12 sm:py-16">
+        {/* Gutter outside the 1200px box and the same width as the header: with the
+            padding inside, this column sat 300px inboard of the bar above it. */}
+        <div className="mx-auto w-full max-w-[1200px]">
+          <h1 className="text-[30px] font-medium leading-tight sm:text-[36px]">
+            {t('collections.title')}
+          </h1>
+          <p className="mt-3 max-w-[54ch] text-[15px] text-body">{t('collections.intro')}</p>
 
-        {!user && (
-          <div className="mt-8 flex flex-wrap items-center gap-4 rounded-xl border border-hairline bg-surface px-5 py-4">
-            <p className="text-[15px] text-body">{t('collections.guestBanner')}</p>
-            <Link
-              to="/login"
-              state={{ from: '/bookmarks' }}
-              className="inline-flex h-10 items-center rounded-none bg-primary px-5 text-[15px] font-medium text-on-primary transition-opacity hover:opacity-90"
-            >
-              {t('actions.login')}
-            </Link>
-          </div>
-        )}
+          {!user && (
+            <div className="mt-8 flex flex-wrap items-center gap-4 rounded-xl border border-hairline bg-surface px-5 py-4">
+              <p className="text-[15px] text-body">{t('collections.guestBanner')}</p>
+              <Link
+                to="/login"
+                state={{ from: '/bookmarks' }}
+                className="inline-flex h-10 items-center rounded-none bg-primary px-5 text-[15px] font-medium text-on-primary transition-opacity hover:opacity-90"
+              >
+                {t('actions.login')}
+              </Link>
+            </div>
+          )}
 
-        {user && (collections ?? []).length === 0 && (
-          <EmptyState className="mt-8">{t('collections.empty')}</EmptyState>
-        )}
+          {user && (collections ?? []).length === 0 && (
+            <EmptyState className="mt-8">{t('collections.empty')}</EmptyState>
+          )}
 
-        <div className="mt-8 space-y-6">
-          {(collections ?? []).map((collection) => (
-            <Card key={collection.id} className="p-5 sm:p-6">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                {collection.isDefault ? (
-                  <h2 className="text-[20px] font-medium">{folderName(collection)}</h2>
+          <div className="mt-8 space-y-6">
+            {(collections ?? []).map((collection) => (
+              <Card key={collection.id} className="p-5 sm:p-6">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  {collection.isDefault ? (
+                    <h2 className="text-[20px] font-medium">{folderName(collection)}</h2>
+                  ) : (
+                    <RenameField
+                      value={collection.name}
+                      onRename={(next) => rename.mutate({ id: collection.id, name: next })}
+                    />
+                  )}
+
+                  {!collection.isDefault && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="gap-1.5 text-muted"
+                      onClick={() => drop.mutate(collection.id)}
+                      disabled={drop.isPending}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      {t('collections.deleteFolder')}
+                    </Button>
+                  )}
+                </div>
+
+                {collection.levels.length === 0 ? (
+                  <p className="mt-4 text-[14px] text-muted">{t('collections.folderEmpty')}</p>
                 ) : (
-                  <RenameField
-                    value={collection.name}
-                    onRename={(next) => rename.mutate({ id: collection.id, name: next })}
-                  />
-                )}
+                  <ul className="mt-4 divide-y divide-hairline">
+                    {collection.levels.map((slug) => {
+                      const found = catalog ? findLevel(catalog, slug) : undefined
+                      const kind = found?.set.module as ExerciseKind | undefined
+                      const title = found ? pickText(found.level.title, i18n.language) : slug
 
-                {!collection.isDefault && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="gap-1.5 text-muted"
-                    onClick={() => drop.mutate(collection.id)}
-                    disabled={drop.isPending}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                    {t('collections.deleteFolder')}
-                  </Button>
-                )}
-              </div>
-
-              {collection.levels.length === 0 ? (
-                <p className="mt-4 text-[14px] text-muted">{t('collections.folderEmpty')}</p>
-              ) : (
-                <ul className="mt-4 divide-y divide-hairline">
-                  {collection.levels.map((slug) => {
-                    const found = catalog ? findLevel(catalog, slug) : undefined
-                    const kind = found?.set.module as ExerciseKind | undefined
-                    const title = found ? pickText(found.level.title, i18n.language) : slug
-
-                    return (
-                      <li
-                        key={slug}
-                        className="flex flex-wrap items-center justify-between gap-3 py-3"
-                      >
-                        <span className="flex items-center gap-3 text-[15px]">
-                          {kind && <ModuleSwatch kind={kind} />}
-                          <span className="font-medium">{title}</span>
-                          <span className="text-[13px] text-muted">
-                            {kind ? t(`modules.${kind}`) : ''}
+                      return (
+                        <li
+                          key={slug}
+                          className="flex flex-wrap items-center justify-between gap-3 py-3"
+                        >
+                          <span className="flex items-center gap-3 text-[15px]">
+                            {kind && <ModuleSwatch kind={kind} />}
+                            <span className="font-medium">{title}</span>
+                            <span className="text-[13px] text-muted">
+                              {kind ? t(`modules.${kind}`) : ''}
+                            </span>
                           </span>
-                        </span>
 
-                        <span className="flex items-center gap-4">
-                          {kind && (
-                            <Link
-                              to={`/exercise/${modulePath(kind)}?level=${slug}`}
-                              className="text-[15px] font-medium underline underline-offset-4"
+                          <span className="flex items-center gap-4">
+                            {kind && (
+                              <Link
+                                to={`/exercise/${modulePath(kind)}?level=${slug}`}
+                                className="text-[15px] font-medium underline underline-offset-4"
+                              >
+                                {t('collections.practise')}
+                              </Link>
+                            )}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-muted"
+                              onClick={() => remove.mutate({ id: collection.id, slug })}
                             >
-                              {t('collections.practise')}
-                            </Link>
-                          )}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-muted"
-                            onClick={() => remove.mutate({ id: collection.id, slug })}
-                          >
-                            {t('collections.remove')}
-                          </Button>
-                        </span>
-                      </li>
-                    )
-                  })}
-                </ul>
-              )}
-            </Card>
-          ))}
+                              {t('collections.remove')}
+                            </Button>
+                          </span>
+                        </li>
+                      )
+                    })}
+                  </ul>
+                )}
+              </Card>
+            ))}
+          </div>
         </div>
       </main>
     </div>

@@ -1,10 +1,10 @@
 {
   "appName": "Oh Your Ear",
   "tagline": "随时随地练耳。",
-  "line1": "五组练习，随时开始，无需注册。",
-  "line2": "掌握音高、音程、和弦、旋律与节奏。",
-  "cta": "开始练习",
-  "guestNote": "未登录也能练全部基础题，成绩只留在本次会话。",
-  "footerNote": "浏览器里就能跑，不用装任何东西。",
-  "enterApp": "直接进入练习"
+  "line1": "五组练习，随时开始。注册？练完再说。",
+  "line2": "音高、音程、和弦、旋律、节奏，还有 KTV 里那点底气。",
+  "cta": "Practice ->",
+  "guestNote": "if you wanna act like pro",
+  "github": "GitHub",
+  "license": "Apache-2.0"
 }

@@ -40,4 +40,4 @@ Train your ear with single notes, intervals, chords, melodies, and rhythms — o
 
 ## License
 
-MIT
+[Apache License 2.0](./LICENSE) — see also [NOTICE](./NOTICE) for third-party attributions.

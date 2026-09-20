@@ -21,5 +21,6 @@
   },
   "devDependencies": {
     "turbo": "2.10.13"
-  }
+  },
+  "license": "Apache-2.0"
 }

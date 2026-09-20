@@ -4,7 +4,13 @@ import { Ear, LogIn, LogOut, SquareUser } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { useAuthStore } from '@/stores/auth-store'
-import { LanguageKey, ThemeKey, iconKey } from '@oh-your-ear/shared/pref-controls'
+import {
+  GitHubKey,
+  LanguageKey,
+  ThemeKey,
+  iconGroup,
+  iconKey,
+} from '@oh-your-ear/shared/pref-controls'
 
 const icon = 'h-4 w-4'
 
@@ -25,8 +31,8 @@ export function AppHeader() {
   }
 
   return (
-    <header className="border-b border-hairline">
-      <div className="mx-auto flex min-h-16 max-w-[1200px] flex-wrap items-center justify-between gap-x-3 gap-y-1.5 px-5 py-2 sm:px-6">
+    <header className="border-b border-hairline px-6">
+      <div className="mx-auto flex min-h-16 max-w-[1200px] flex-wrap items-center justify-between gap-x-3 gap-y-1.5 py-2">
         {/* One nameplate, not a glyph beside a label: the mark and the wordmark share a
             single hairline box, divided by a rule, the way a device is silkscreened onto
             a panel. Square and hard-edged, same as everything else. */}
@@ -46,7 +52,8 @@ export function AppHeader() {
           </span>
         </Link>
 
-        <nav className="flex items-center gap-1.5">
+        {/* One welded piece rather than a row of loose squares: see iconGroup. */}
+        <nav className={iconGroup}>
           <LanguageKey />
           <ThemeKey />
 
@@ -87,6 +94,8 @@ export function AppHeader() {
               <LogIn aria-hidden="true" className={icon} strokeWidth={1.75} />
             </Button>
           )}
+
+          <GitHubKey />
         </nav>
       </div>
     </header>

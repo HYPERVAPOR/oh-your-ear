@@ -59,75 +59,85 @@ export function Daily() {
     <div className="flex min-h-screen flex-col">
       <AppHeader />
 
-      <main className="mx-auto w-full max-w-[900px] flex-1 px-5 py-12 sm:px-6 sm:py-16">
-        <h1 className="text-[30px] font-medium leading-tight sm:text-[36px]">{t('daily.title')}</h1>
-        <p className="mt-3 max-w-[54ch] text-[15px] text-body">{t('daily.intro')}</p>
+      <main className="flex-1 px-6 py-12 sm:py-16">
+        {/* Gutter outside the 1200px box and the same width as the header: with the
+            padding inside, this column sat 300px inboard of the bar above it. */}
+        <div className="mx-auto w-full max-w-[1200px]">
+          <h1 className="text-[30px] font-medium leading-tight sm:text-[36px]">
+            {t('daily.title')}
+          </h1>
+          <p className="mt-3 max-w-[54ch] text-[15px] text-body">{t('daily.intro')}</p>
 
-        {!user && (
-          <div className="mt-8 flex flex-wrap items-center gap-4 rounded-xl border border-hairline bg-surface px-5 py-4">
-            <p className="text-[15px] text-body">{t('daily.guestBanner')}</p>
-            <Link
-              to="/login"
-              state={{ from: '/daily' }}
-              className="inline-flex h-10 items-center rounded-none bg-primary px-5 text-[15px] font-medium text-on-primary transition-opacity hover:opacity-90"
-            >
-              {t('actions.login')}
-            </Link>
-          </div>
-        )}
-
-        {user && plan && (
-          <Card className="mt-8 p-6 sm:p-7">
-            <div className="flex flex-wrap items-end justify-between gap-4">
-              <div>
-                <p className="badge-label text-muted">{t('daily.today')}</p>
-                <p className="tabular mt-1.5 text-[32px] font-medium leading-none">
-                  {t('daily.progress', { solved, goal })}
-                </p>
-              </div>
-              {met && <p className="text-[15px] font-medium text-success-text">{t('daily.met')}</p>}
-            </div>
-
-            <div className="mt-4 h-1 w-full overflow-hidden rounded-none bg-surface-strong">
-              <div className="h-full rounded-none bg-primary" style={{ width: `${percent}%` }} />
-            </div>
-
-            <p className="badge-label mt-7 text-muted">{t('daily.focus')}</p>
-            <ul className="mt-3 flex flex-wrap gap-3">
-              {focus.map((kind) => (
-                <li key={kind} className="flex items-center gap-2 text-[15px]">
-                  <ModuleSwatch kind={kind} />
-                  {t(`modules.${kind}`)}
-                  <span className="tabular text-[13px] text-muted">{byExercise[kind] ?? 0}</span>
-                </li>
-              ))}
-            </ul>
-
-            <div className="mt-8 flex flex-wrap items-center gap-4">
-              <Button size="lg" onClick={startSession}>
-                {met ? t('daily.extraRound') : t('daily.start', { count: Math.min(remaining, 20) })}
-              </Button>
+          {!user && (
+            <div className="mt-8 flex flex-wrap items-center gap-4 rounded-xl border border-hairline bg-surface px-5 py-4">
+              <p className="text-[15px] text-body">{t('daily.guestBanner')}</p>
               <Link
-                to="/me"
-                className="text-[15px] text-muted underline underline-offset-4 hover:text-ink"
+                to="/login"
+                state={{ from: '/daily' }}
+                className="inline-flex h-10 items-center rounded-none bg-primary px-5 text-[15px] font-medium text-on-primary transition-opacity hover:opacity-90"
               >
-                {t('daily.settingsLink')}
+                {t('actions.login')}
               </Link>
             </div>
+          )}
 
-            {!met && (
-              <p className="mt-4 text-[14px] text-muted">
-                {t('daily.nextModule', { module: t(`modules.${next}`) })}
-              </p>
-            )}
-          </Card>
-        )}
+          {user && plan && (
+            <Card className="mt-8 p-6 sm:p-7">
+              <div className="flex flex-wrap items-end justify-between gap-4">
+                <div>
+                  <p className="badge-label text-muted">{t('daily.today')}</p>
+                  <p className="tabular mt-1.5 text-[32px] font-medium leading-none">
+                    {t('daily.progress', { solved, goal })}
+                  </p>
+                </div>
+                {met && (
+                  <p className="text-[15px] font-medium text-success-text">{t('daily.met')}</p>
+                )}
+              </div>
 
-        {user && (
-          <div className="mt-6">
-            <DailyHeatmap />
-          </div>
-        )}
+              <div className="mt-4 h-1 w-full overflow-hidden rounded-none bg-surface-strong">
+                <div className="h-full rounded-none bg-primary" style={{ width: `${percent}%` }} />
+              </div>
+
+              <p className="badge-label mt-7 text-muted">{t('daily.focus')}</p>
+              <ul className="mt-3 flex flex-wrap gap-3">
+                {focus.map((kind) => (
+                  <li key={kind} className="flex items-center gap-2 text-[15px]">
+                    <ModuleSwatch kind={kind} />
+                    {t(`modules.${kind}`)}
+                    <span className="tabular text-[13px] text-muted">{byExercise[kind] ?? 0}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <div className="mt-8 flex flex-wrap items-center gap-4">
+                <Button size="lg" onClick={startSession}>
+                  {met
+                    ? t('daily.extraRound')
+                    : t('daily.start', { count: Math.min(remaining, 20) })}
+                </Button>
+                <Link
+                  to="/me"
+                  className="text-[15px] text-muted underline underline-offset-4 hover:text-ink"
+                >
+                  {t('daily.settingsLink')}
+                </Link>
+              </div>
+
+              {!met && (
+                <p className="mt-4 text-[14px] text-muted">
+                  {t('daily.nextModule', { module: t(`modules.${next}`) })}
+                </p>
+              )}
+            </Card>
+          )}
+
+          {user && (
+            <div className="mt-6">
+              <DailyHeatmap />
+            </div>
+          )}
+        </div>
       </main>
     </div>
   )
