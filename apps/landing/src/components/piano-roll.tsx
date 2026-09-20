@@ -27,8 +27,11 @@ const nameOf = (midi: number) => NAMES[midi % 12]
 const ROW_PCT = 100 / ROWS.length
 const STEP_PCT = 100 / STEPS
 const MIN_STEP = 1
-/** A sixteenth at 120bpm, so the bar is two seconds. */
-const SIXTEENTH = 0.125
+/** The tempo the bar is written at, and one sixteenth of a bar at that tempo. 60bpm is
+ *  deliberate: this is a bar to look at and pick apart, not a backing track, and at 60 a
+ *  step lasts 0.25s — slow enough to hear where each block sits. */
+const BPM = 60
+const SIXTEENTH = 60 / BPM / 4
 const BAR = STEPS * SIXTEENTH
 
 let nextId = 0
@@ -391,7 +394,7 @@ export function PianoRoll() {
         </div>
 
         <span className="tabular ml-auto text-[11px] text-muted-soft">
-          {notes.length} · 4/4 · 120 bpm
+          {notes.length} · 4/4 · {BPM} bpm
         </span>
       </div>
     </div>
