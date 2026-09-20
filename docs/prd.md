@@ -216,6 +216,8 @@
 | --- | --- |
 | favicon | 品牌耳朵标记 + 垫底色，**跟随系统深浅色**切换（浅色：黑图案白底；深色：白图案黑底） |
 | 分享卡片（OG/Twitter） | 1200×630，品牌调性，绝对 URL —— 社交平台不解析相对路径 |
+| 分享卡源文件 | `apps/landing/og-card.html`，渲染命令写在文件注释里。**模板必须进仓库**：第一版卡片的模板没提交，改一次文案就得靠量像素盲猜重画 |
+| 语言 | 机器可见层一律英文：title / description / OG / Twitter / JSON-LD / `robots.txt` / `llms.txt` / 分享卡上的文字。读者看到的内容仍跟随语言偏好，`<html lang>` 在 i18n 初始化后由 `languageChanged` 改写 |
 | 元数据 | title / description（长度控制在搜索结果不被截断）、`canonical`、Open Graph、Twitter `summary_large_image`、深浅两套 `theme-color`、JSON-LD（软件类结构化数据） |
 | robots.txt | 允许抓取落地页，指向 `sitemap.xml` |
 | sitemap.xml | 至少包含落地页 |

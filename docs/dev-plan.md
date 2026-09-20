@@ -370,6 +370,13 @@
 - **description**: `app.<domain>` is a login-shaped application and duplicate content next to the landing page: give it `<meta name="robots" content="noindex">` and a `robots.txt` that disallows everything, so search engines index the pitch and not the practice screens.
 - **depends on**: —
 
+### 18.5 One language for the machines
+
+- **issue**: —
+- **status**: 🟢 done
+- **description**: Everything a crawler, a model or a link preview reads is English: title, description, OG/Twitter cards, JSON-LD, `robots.txt`, `llms.txt`, and the text drawn on the share image, which was the last Chinese piece. The copy a *reader* sees still follows their own preference, and `i18n` rewrites `<html lang>` once it has hydrated. The share card's source is now committed at `apps/landing/og-card.html`: the first card was rendered from a template that never existed in the repo, so changing one word meant rebuilding it by measuring pixels blind.
+- **depends on**: 18.1, 18.2
+
 ### 18.4 Prerender the landing page
 
 - **issue**: #86
