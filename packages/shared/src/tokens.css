@@ -35,6 +35,70 @@
     U+A720-A7FF;
 }
 
+/* The Latin fallback, matched to the face it stands in for.
+   Without these the first paint takes its Latin glyphs from the first family in the stack
+   that has them — PingFang or YaHei, a *proportional* face — and the swap to a monospace
+   pulls every line back on screen: measured on this machine, 0.9771em per character
+   against the real 0.6000em, 63% wider. One face per platform, because the metrics differ
+   per platform; a face whose local( ) does not resolve is skipped and the next is tried.
+   Chinese is unaffected either way — these carry JBM's own unicode-range, and none of them
+   holds a CJK glyph, so CJK still falls through to the platform faces below. */
+@font-face {
+  font-family: 'JetBrains Mono Fallback Consolas';
+  src: local('Consolas');
+  /* 0.5498em → 0.6000em — the ratios are horizontal + vertical metric overrides, not taste. */
+  size-adjust: 109.13%;
+  ascent-override: 93.5%;
+  descent-override: 27.5%;
+  unicode-range:
+    U+0000-00FF, U+0100-02BA, U+0131, U+0152-0153, U+02BB-02BC, U+02BD-02C5, U+02C6, U+02C7-02CC,
+    U+02CE-02D7, U+02DA, U+02DC, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F,
+    U+1EF2-1EFF, U+2000-206F, U+20A0-20AB, U+20AC, U+20AD-20C0, U+2113, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+2C60-2C7F, U+A720-A7FF, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'JetBrains Mono Fallback Menlo';
+  src: local('Menlo');
+  /* 0.6023em → 0.6000em — the ratios are horizontal + vertical metric overrides, not taste. */
+  size-adjust: 99.6%;
+  ascent-override: 102.4%;
+  descent-override: 30.1%;
+  unicode-range:
+    U+0000-00FF, U+0100-02BA, U+0131, U+0152-0153, U+02BB-02BC, U+02BD-02C5, U+02C6, U+02C7-02CC,
+    U+02CE-02D7, U+02DA, U+02DC, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F,
+    U+1EF2-1EFF, U+2000-206F, U+20A0-20AB, U+20AC, U+20AD-20C0, U+2113, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+2C60-2C7F, U+A720-A7FF, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'JetBrains Mono Fallback DejaVu';
+  src: local('DejaVu Sans Mono'), local('Liberation Mono');
+  /* 0.602em → 0.6000em — the ratios are horizontal + vertical metric overrides, not taste. */
+  size-adjust: 99.7%;
+  ascent-override: 102.3%;
+  descent-override: 30.1%;
+  unicode-range:
+    U+0000-00FF, U+0100-02BA, U+0131, U+0152-0153, U+02BB-02BC, U+02BD-02C5, U+02C6, U+02C7-02CC,
+    U+02CE-02D7, U+02DA, U+02DC, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F,
+    U+1EF2-1EFF, U+2000-206F, U+20A0-20AB, U+20AC, U+20AD-20C0, U+2113, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+2C60-2C7F, U+A720-A7FF, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'JetBrains Mono Fallback Courier';
+  src: local('Courier New');
+  /* 0.6001em → 0.6000em — the ratios are horizontal + vertical metric overrides, not taste. */
+  size-adjust: 100%;
+  ascent-override: 102%;
+  descent-override: 30%;
+  unicode-range:
+    U+0000-00FF, U+0100-02BA, U+0131, U+0152-0153, U+02BB-02BC, U+02BD-02C5, U+02C6, U+02C7-02CC,
+    U+02CE-02D7, U+02DA, U+02DC, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F,
+    U+1EF2-1EFF, U+2000-206F, U+20A0-20AB, U+20AC, U+20AD-20C0, U+2113, U+2122, U+2191, U+2193,
+    U+2212, U+2215, U+2C60-2C7F, U+A720-A7FF, U+FEFF, U+FFFD;
+}
+
 @theme inline {
   /* Vocabulary of DESIGN.md. New code uses these names and nothing else. */
   --color-canvas: var(--canvas);
@@ -85,8 +149,10 @@
      Maple Mono), otherwise the platform's proportional CJK face. Result: Latin and
      every numeral sit on a grid, Chinese reads as the reader's system font. */
   --font-sans:
-    'JetBrains Mono', 'Sarasa Mono SC', 'Sarasa Fixed SC', 'Noto Sans Mono CJK SC', 'Maple Mono CN',
-    'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif;
+    'JetBrains Mono', 'JetBrains Mono Fallback Consolas', 'JetBrains Mono Fallback Menlo',
+    'JetBrains Mono Fallback DejaVu', 'JetBrains Mono Fallback Courier', 'Sarasa Mono SC',
+    'Sarasa Fixed SC', 'Noto Sans Mono CJK SC', 'Maple Mono CN', 'PingFang SC', 'Hiragino Sans GB',
+    'Microsoft YaHei', 'Noto Sans CJK SC', sans-serif;
   --font-display: var(--font-sans);
 
   /* Square corners: this is studio equipment, not a SaaS dashboard. */
