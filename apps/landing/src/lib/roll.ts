@@ -16,6 +16,18 @@ export interface Note {
 
 export type NoteInput = Omit<Note, 'id'>
 
+/** The bar the roll opens on: the first vocal bar of "Never Gonna Give You Up" —
+ *  "We're no stran-gers to love" — one eighth note per syllable.
+ *
+ *  The song is in F# minor and that phrase spans A4–E5, which does not fit the roll's one
+ *  octave, so it is transposed down a minor sixth (A4 → C4). The intervals are untouched:
+ *  what you hear is the line, in a key the instrument can play. */
+export const OPENING_BAR: NoteInput[] = [62, 64, 65, 65, 67, 64, 62, 60].map((midi, index) => ({
+  midi,
+  step: index * 2,
+  length: 2,
+}))
+
 export function clamp(value: number, low: number, high: number): number {
   return Math.min(high, Math.max(low, value))
 }

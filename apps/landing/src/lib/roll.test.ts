@@ -1,7 +1,17 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 
-import { HIGH, LOW, STEPS, moveNote, normalize, randomBar, resizeNote, type Note } from './roll.ts'
+import {
+  HIGH,
+  LOW,
+  OPENING_BAR,
+  STEPS,
+  moveNote,
+  normalize,
+  randomBar,
+  resizeNote,
+  type Note,
+} from './roll.ts'
 
 const bar = (over: Partial<Note> = {}): Note => ({ id: 'n', midi: 64, step: 4, length: 2, ...over })
 
@@ -132,4 +142,21 @@ test('normalize never lets a note leave the bar', () => {
     const spans = tidy.map((note) => `${note.midi}:${note.step}-${note.step + note.length}`)
     assert.equal(new Set(spans).size, spans.length, `seed ${seed} left a duplicate span`)
   }
+})
+
+test('the opening bar is a valid bar: inside it, eight eighths, no collisions', () => {
+  assert.equal(OPENING_BAR.length, 8)
+  for (const note of OPENING_BAR) {
+    assert.ok(note.step >= 0 && note.step + note.length <= STEPS)
+    assert.ok(note.midi >= LOW && note.midi <= HIGH)
+  }
+  assert.equal(
+    normalize(OPENING_BAR.map((note, index) => ({ ...note, id: `o${index}` }))).length,
+    8,
+  )
+  // the syllables land on every other sixteenth, so the phrase fills exactly one bar
+  assert.deepEqual(
+    OPENING_BAR.map((note) => note.step),
+    [0, 2, 4, 6, 8, 10, 12, 14],
+  )
 })

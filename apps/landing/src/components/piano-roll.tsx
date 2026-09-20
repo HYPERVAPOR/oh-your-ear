@@ -8,6 +8,7 @@ import { audioNow, frequencyOf, playNote } from '@/lib/keys'
 import {
   HIGH,
   LOW,
+  OPENING_BAR,
   STEPS,
   moveNote,
   normalize,
@@ -67,7 +68,7 @@ function place(element: HTMLElement | null, note: { step: number; length: number
  *  renderer. */
 export function PianoRoll() {
   const { t } = useTranslation()
-  const [notes, setNotes] = useState<Note[]>(() => normalize(withIds(randomBar())))
+  const [notes, setNotes] = useState<Note[]>(() => normalize(withIds(OPENING_BAR)))
   const [selected, setSelected] = useState<string | null>(null)
   const roll = useRef<HTMLDivElement | null>(null)
   const drag = useRef<Drag | null>(null)
