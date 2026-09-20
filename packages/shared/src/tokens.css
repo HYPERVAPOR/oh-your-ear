@@ -241,7 +241,8 @@
     min-height: 100svh;
   }
 
-  /* Display is the editorial voice: light, never bold. */
+  /* Headings take 500 — not 300 (which read as wireframe), not bold. One family, one
+     weight step, hierarchy from size and space. */
   h1,
   h2,
   h3 {
