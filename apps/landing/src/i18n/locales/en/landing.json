@@ -10,5 +10,6 @@
   "chart": "Pitch chart",
   "rollShuffle": "Random bar",
   "rollPlay": "Play",
-  "rollStop": "Stop"
+  "rollStop": "Stop",
+  "rollReset": "Restore the default bar"
 }

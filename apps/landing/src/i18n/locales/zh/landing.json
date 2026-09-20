@@ -10,5 +10,6 @@
   "chart": "音高柱状图",
   "rollShuffle": "随机一小节",
   "rollPlay": "播放",
-  "rollStop": "停止"
+  "rollStop": "停止",
+  "rollReset": "恢复默认旋律"
 }

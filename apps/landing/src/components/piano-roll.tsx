@@ -1,6 +1,6 @@
 import { useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Dices, Play, Square } from 'lucide-react'
+import { Dices, Play, RotateCcw, Square } from 'lucide-react'
 
 import { audioNow, frequencyOf, playNote } from '@/lib/keys'
 import {
@@ -364,6 +364,19 @@ export function PianoRoll() {
         <span className="tabular ml-auto text-[11px] text-muted-soft">
           {notes.length} · 4/4 · 120 bpm
         </span>
+
+        <button
+          type="button"
+          aria-label={t('rollReset')}
+          title={t('rollReset')}
+          onClick={() => {
+            commit(withIds(OPENING_BAR))
+            setSelected(null)
+          }}
+          className="flex size-8 items-center justify-center text-ink hover:bg-surface-strong"
+        >
+          <RotateCcw aria-hidden="true" className="size-4" strokeWidth={1.75} />
+        </button>
       </div>
     </div>
   )
