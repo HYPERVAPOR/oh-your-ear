@@ -2,8 +2,6 @@ import { useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Dices, Play, Square } from 'lucide-react'
 
-import { buttonVariants } from '@oh-your-ear/shared/button-variants'
-
 import { audioNow, frequencyOf, playNote } from '@/lib/keys'
 import {
   HIGH,
@@ -341,14 +339,13 @@ export function PianoRoll() {
           aria-label={playing ? t('rollStop') : t('rollPlay')}
           title={playing ? t('rollStop') : t('rollPlay')}
           onClick={togglePlay}
-          className={buttonVariants({ size: 'sm' })}
+          className="flex size-8 items-center justify-center text-ink hover:bg-surface-strong"
         >
           {playing ? (
             <Square aria-hidden="true" className="size-4 fill-current" strokeWidth={0} />
           ) : (
             <Play aria-hidden="true" className="size-4 fill-current" strokeWidth={0} />
           )}
-          {playing ? t('rollStop') : t('rollPlay')}
         </button>
 
         <button
@@ -359,10 +356,9 @@ export function PianoRoll() {
             commit(withIds(randomBar()))
             setSelected(null)
           }}
-          className={buttonVariants({ variant: 'outline', size: 'sm' })}
+          className="flex size-8 items-center justify-center text-ink hover:bg-surface-strong"
         >
           <Dices aria-hidden="true" className="size-4" strokeWidth={1.75} />
-          {t('rollShuffle')}
         </button>
 
         <span className="tabular ml-auto text-[11px] text-muted-soft">
