@@ -17,9 +17,10 @@ const APP_URL = import.meta.env.VITE_APP_URL ?? 'http://localhost:5173'
  *  screen, because the whole point of the site split (PRD 7.1.2) is that a visitor who is
  *  not ready to practise pays for a headline, a button and a few lines of Web Audio
  *  rather than for an audio engine. */
-/** Which chart to draw: the piano roll by default, the bar chart when asked. */
+/** Which chart to draw: the flat bar chart by default, the piano roll — the editor (#91) —
+ *  when asked. Both read the same octave and the same synth. */
 function chartVariant(): string {
-  return new URLSearchParams(window.location.search).get('chart') ?? 'roll'
+  return new URLSearchParams(window.location.search).get('chart') ?? '2d'
 }
 
 export default function App() {
@@ -75,8 +76,8 @@ export default function App() {
               </div>
             </div>
 
-            {/* ?chart=2d brings back the bar chart; the roll is the editor (#91). */}
-            {chartVariant() === '2d' ? <PitchChart2D /> : <PianoRoll />}
+            {/* ?chart=roll brings back the piano roll; the bar chart is the default. */}
+            {chartVariant() === 'roll' ? <PianoRoll /> : <PitchChart2D />}
           </div>
         </section>
       </main>
