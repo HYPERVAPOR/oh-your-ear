@@ -1,28 +1,28 @@
 # Oh Your Ear
 
-> 浏览器里的练耳应用：单音、音程、和弦、旋律、节奏五组练习，中英双语，明暗主题。
+> Ear training in the browser: single notes, intervals, chords, melody and rhythm — in Chinese and English, in light and dark.
 
-面向所有想练耳的人（乐器学习者、视唱练耳学生、音乐爱好者）。游客打开即练全部基础题，无需注册；登录后可保存进度、错题本、连续打卡与成就。
+For anyone who wants to train their ear: instrumentalists, sight-singing students, curious hobbyists. Guests can practise every basic exercise with no account; signing in adds saved progress, a mistake notebook, a practice streak and achievements.
 
-## 练习模块
+## Practice modules
 
-- 单音：听一个音，说出音名
-- 音程：听两个音的距离
-- 和弦：听和弦的性质
-- 旋律：听完一段旋律并复现
-- 节奏：听节奏并敲出来
+- Single notes: hear one note and name it
+- Intervals: hear the distance between two notes
+- Chords: hear the quality of a chord
+- Melody: hear a phrase and play it back
+- Rhythm: hear a pattern and tap it
 
-## 页面
+## Pages
 
-- [落地页](https://ohyourear.com/)：产品说明与入口
-- [直接开始练习](https://app.ohyourear.com/)：练习枢纽（应用界面，未被索引）
+- [Landing page](https://ohyourear.com/): what the product is and how to start
+- [Start practising](https://app.ohyourear.com/): the practice hub (the app interface, not indexed)
 
-## 事实
+## Facts
 
-- 纯 Web 应用，无需安装；音频是 Tone.js + Salamander 钢琴采样
-- 成绩在浏览器内判定；登录后云端同步
-- 免费；不投放广告，不出售数据
+- Pure web app, nothing to install; audio is Tone.js over Salamander piano samples
+- Answers are graded in the browser; signing in syncs them to the server
+- Free; no ads, no data sold
 
-## 联系
+## Contact
 
-- 站点：https://ohyourear.com/
+- Site: https://ohyourear.com/
