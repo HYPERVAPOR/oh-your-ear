@@ -1,6 +1,6 @@
 import { useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Dices, Play, RotateCcw, Square } from 'lucide-react'
+import { Dices, Play, RotateCcwSquare, Square } from 'lucide-react'
 
 import { iconGroup } from '@oh-your-ear/shared/pref-controls'
 
@@ -346,10 +346,12 @@ export function PianoRoll() {
             onClick={togglePlay}
             className="flex size-8 items-center justify-center text-ink hover:bg-surface-strong"
           >
+            {/* Hollow, not solid: the key is one of three welded together, and a filled
+                triangle sits heavier than its neighbours' outline glyphs. */}
             {playing ? (
-              <Square aria-hidden="true" className="size-4 fill-current" strokeWidth={0} />
+              <Square aria-hidden="true" className="size-4" strokeWidth={1.75} />
             ) : (
-              <Play aria-hidden="true" className="size-4 fill-current" strokeWidth={0} />
+              <Play aria-hidden="true" className="size-4" strokeWidth={1.75} />
             )}
           </button>
 
@@ -376,7 +378,7 @@ export function PianoRoll() {
             }}
             className="flex size-8 items-center justify-center text-ink hover:bg-surface-strong"
           >
-            <RotateCcw aria-hidden="true" className="size-4" strokeWidth={1.75} />
+            <RotateCcwSquare aria-hidden="true" className="size-4" strokeWidth={1.75} />
           </button>
         </div>
 
