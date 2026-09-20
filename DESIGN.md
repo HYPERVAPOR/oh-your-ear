@@ -1,176 +1,124 @@
 ---
-version: alpha
-name: oh-your-ear-design
-based-on: "ElevenLabs DESIGN.md (VoltAgent/awesome-design-md) — quiet editorial system, pastel atmospheric orbs"
-description: >
-  A musician's practice workbook, not a dashboard. Off-white paper holds warm near-black ink;
-  hairlines and one soft shadow tier separate surfaces; display type is a light editorial serif
-  while the interface runs JetBrains Mono. The single saturated idea in the product is the five pastel
-  gradient orbs, and they are not decoration: each of the five exercise modules owns one, so the
-  palette itself is the module map. Everything else is ink on paper, and the only action colour
-  is the ink pill.
-
-colors:
-  # light
-  canvas: "#f5f5f5"
-  canvas-soft: "#fafafa"
-  surface: "#ffffff"
-  surface-strong: "#f0efed"
-  ink: "#0c0a09"
-  body: "#4e4e4e"
-  muted: "#777169"
-  muted-soft: "#a8a29e"
-  hairline: "#e7e5e4"
-  hairline-strong: "#d6d3d1"
-  on-primary: "#ffffff"
-  # dark
-  canvas-dark: "#0c0a09"
-  surface-dark: "#1c1917"
-  surface-strong-dark: "#292524"
-  ink-dark: "#fafaf9"
-  body-dark: "#d6d3d1"
-  muted-dark: "#a8a29e"
-  hairline-dark: "#292524"
-  hairline-strong-dark: "#44403c"
-  on-primary-dark: "#0c0a09"
-  # module orbs — the only chromatic colour in the product
-  orb-mint: "#a7e5d3" # single note
-  orb-peach: "#f4c5a8" # interval
-  orb-lavender: "#c8b8e0" # chord
-  orb-sky: "#a8c8e8" # melody
-  orb-rose: "#e8b8c4" # rhythm
-  # semantic (marks use the hue, text uses the darker variant for AA on paper)
-  success: "#16a34a"
-  success-text: "#166534"
-  error: "#dc2626"
-  error-text: "#991b1b"
-  success-text-dark: "#4ade80"
-  error-text-dark: "#f87171"
-
-typography:
-  display-xl: { family: display, size: 48px, weight: 300, line-height: 1.08, tracking: -0.96px }
-  display-lg: { family: display, size: 36px, weight: 300, line-height: 1.17, tracking: -0.36px }
-  display-md: { family: display, size: 32px, weight: 300, line-height: 1.13, tracking: -0.32px }
-  display-sm: { family: display, size: 24px, weight: 300, line-height: 1.2, tracking: 0 }
-  title-md: { family: ui, size: 20px, weight: 500, line-height: 1.35 }
-  title-sm: { family: ui, size: 18px, weight: 500, line-height: 1.44, tracking: 0.18px }
-  body: { family: ui, size: 16px, weight: 400, line-height: 1.5, tracking: 0.16px }
-  body-sm: { family: ui, size: 15px, weight: 400, line-height: 1.47, tracking: 0.15px }
-  caption: { family: ui, size: 14px, weight: 400, line-height: 1.5 }
-  badge: { family: ui, size: 12px, weight: 600, line-height: 1.4, tracking: 0.96px, transform: uppercase }
-  button: { family: ui, size: 15px, weight: 500, line-height: 1 }
-  numeral: { family: ui, weight: 500, feature: "tabular-nums" }
-
-fonts:
-  # One family for the whole product, deliberate revision — see "Why there is no display face".
-  display: "'JetBrains Mono', 'Sarasa Mono SC', 'Noto Sans Mono CJK SC', 'Maple Mono CN', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif"
-  ui: "'JetBrains Mono', 'Sarasa Mono SC', 'Noto Sans Mono CJK SC', 'Maple Mono CN', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif"
-
-rounded: { xs: 4px, sm: 6px, md: 8px, lg: 12px, xl: 16px, xxl: 24px, pill: 9999px }
-
-layout:
-  nav-height: 64px
-  content-max: 1200px
-  rhythm: 96px # between page bands, 48px on mobile
-  card-gap: 20px
-  shadow: "0 4px 16px rgba(0, 0, 0, 0.04)" # hover only, one tier
+name: Oh Your Ear 设计系统
+version: 2
+updated: 2026-09-21
+source-of-truth: packages/shared/src/tokens.css
 ---
 
-# Oh Your Ear — design system
+# 设计系统
 
-Adapted from the [ElevenLabs DESIGN.md](https://github.com/VoltAgent/awesome-design-md) analysis.
-The source language is quiet and editorial; that is a good fit for something people use for ten
-minutes a day while listening, where a loud interface would compete with the thing being learned.
+**这份文件不是真相，`packages/shared/src/tokens.css` 才是。** 两者冲突时以 CSS 为准，并把这份文件当 bug 修掉。
 
-## What was changed, and why
+职责分得很清楚，各看各的：
 
-| Source | Here | Reason |
-| --- | --- | --- |
-| Waldenburg Light (licensed) | **no display face at all** | First pass used Newsreader 300 (EB Garamond, the doc's own suggestion, has no 300 weight). Reviewers read the result as two voices: a Latin serif over the platform's CJK serif, alternating line by line with sans body copy. A Latin serif cannot pair with a CJK serif convincingly, and shipping a Chinese webfont is megabytes, so the display voice now comes from *scale, weight 300 and tight tracking* in the same family as everything else. |
-| JetBrains Mono (everything) | Self-hosted variable, Latin subset (55KB) | Terminal/industrial register, one family everywhere, no third-party request, works offline. |
-| CJK | falls back to the OS | A Chinese webfont is megabytes; Songti/PingFang/YaHei are already on every device. |
-| Five orbs as brand atmosphere | Five orbs as **module identity** | The product has exactly five modules. Colour now carries information instead of mood. |
-| `semantic-success #16a34a` on paper | marks keep the hue, **text uses `#166534`** | The source green is 3.1:1 on paper — fine for a check mark, not for the word next to it. |
-
-## Colours
-
-- **Ink pill is the only action colour.** `primary` is near-black on paper and near-white on the dark
-  canvas; nothing else in the product is allowed to be a saturated button.
-- **Orbs never fill anything.** They appear as radial-gradient blooms behind a module's header, on a
-  module card, and as the module's marker in lists. Never as a button fill, never as text.
-- **Surface ladder:** canvas (page) → surface (card, white) → surface-strong (badges, plates), divided
-  by 1px hairlines. Dark canvas → surface-dark → surface-strong-dark.
-- **One shadow tier**, hover only. Depth belongs to the orbs, not to stacked shadows.
-
-## Typography
-
-- **One family, everywhere.** Display text is the same mono stack as the body: the hierarchy is
-  carried by size and weight (500 display / 400 interface), never by switching
-  typeface. CJK falls back to the platform's sans. See the note in the substitution table for why the
-  serif pass was reverted.
-- Display is **always weight 300**, never bold. Negative tracking scales with size (-0.32px to -0.96px).
-  Bolding display copy is the fastest way to make this look like consumer marketing instead of a workbook.
-- Interface text is JetBrains Mono at 400/500 with no tracking adjustment — a monospaced grid, terminals aligned.
-- Numbers that sit in columns (stats, scores, counts) use tabular figures so they do not dance.
-- `badge` (12px/600, +0.96px, uppercase) is for **tags only** — module tags, status pills. Uppercase is
-  not used as a decorative eyebrow above headings.
-- Avoid joining metadata with `·`; use separate lines or a hairline-separated row instead.
-
-## Layout
-
-- 64px nav, content capped at 1200px, bands separated by 96px (48px on mobile).
-- Editorial rhythm: a page is a stack of bands; cards inside a band sit 20px apart.
-- Grids of five (the module cards) wrap in rows of three **centred**, so a short final row sits in the
-  middle rather than leaving a hole at the bottom right.
-- Exercise screens are the exception and are **centred**, because the object of attention is a single
-  centred control — the listen button — with options below it.
-- Max line length ~72 characters.
-
-## Shapes
-
-Pill for every CTA and badge, 16px for cards, 8px for inputs, 24px for orb-backed panels.
-Sharp corners are not part of this system.
-
-## Components
-
-- **top-nav**: canvas background, wordmark in display type, quiet pill controls on the right.
-- **button-primary**: ink pill, 40px tall, 15px/500 label. **button-outline**: transparent pill with a
-  1px hairline-strong border. **button-ghost**: text only.
-- **module-card**: surface card, 16px radius, hairline border, orb bloom behind the label, module name in
-  display-sm, one line of description in body-sm.
-- **listen-button**: the hero of every exercise screen — the largest ink pill on the page.
-- **hero CTA**: the home page's one action ("Start with single note") is the largest, highest-contrast
-  element on the page: ink pill on paper, paper pill on ink. The C4 demo next to it is deliberately
-  quiet — one primary action per band.
-- **option-tile**: hairline-tinted surface tile, 16px radius, pill-shaped once correct/incorrect.
-- **feedback-note**: a tinted pill in the margin note voice, sentence case, no exclamation marks.
-- **config-panel**: hairline-separated rows inside a surface card; label left, control right.
-- **toggle-group / toggle**: a multi-select or switch uses the *quiet fill* for "on", not ink.
-  Twelve ink pills in a settings panel is a wall of black, and ink is reserved for the one
-  primary action on the screen.
-- **module swatch**: the module's colour as a small solid dot in lists, statistics rows and the
-  notebook. The pastel orb is atmosphere and far too faint to identify a row, so lists use a
-  mid-tone stand of the same hue (`--swatch-*`).
-- **stat-figure**: display-md numeral with a caption-uppercase label underneath.
-- **empty-state**: one sentence saying what to do next, never an apology.
-
-## Do / Don't
-
-**Do** reserve ink for the primary action; keep display at 300; use hairlines before shadows; give every
-module its orb everywhere it appears, and its swatch wherever a row needs identifying; state an answer's
-verdict with a tint *and* a border *and* a mark, never colour alone; keep copy in sentence case and active
-voice; give answer tiles and the next button a reserved slot so answering never shifts the tiles under the
-pointer.
-
-**Don't** introduce a second action colour; bold display copy; use orbs as fills; use uppercase as page
-decoration; stack shadows; use sharp corners on CTAs.
-
-## Responsive
-
-| Width | Behaviour |
+| 文件 | 管什么 |
 | --- | --- |
-| < 640px | display-xl → 32px, module cards 1-up, rhythm 48px, nav collapses to wordmark + account only |
-| 640–1024px | display-xl → 40px, module cards 2-up |
-| > 1024px | full scale, module cards 3-up, content capped at 1200px |
+| `docs/prd.md` §7.1 | 方向与理由：为什么是器物感、为什么不用光晕 |
+| `packages/shared/src/tokens.css` | **唯一真相**：色值、字体栈、圆角、间距、工具类 |
+| `DESIGN.md`（本文件） | 词汇表：这套系统里的东西叫什么、什么时候用哪个、什么永不做 |
+| `memory/` | 历史决策与踩坑的来龙去脉 |
 
-Touch targets stay ≥ 40px; the listen button is 52px tall on every breakpoint.
+上一版是照着一份 ElevenLabs 的分析文档改的（柔光球、胶囊圆角、衬线标题），M16 全部推翻。那一轮的结论留在 `memory/2026-09-18-design-system-practice-workbook.md`，本文件只写现在成立的规则。
+
+## 1. 三个词
+
+**geek** —— 不是消费级仪表盘的美学。界面是给愿意盯着一行行数字的人用的工具：数字用等宽、对齐、带单位；读数就是读数，不需要变成图表。
+
+**terminal** —— 一个等宽家族统治整个界面，字重只有 400 与 500，没有负字距，没有装饰性大写。层级靠**字号和留白**建立，不靠换字体。光标和选中态有明确反馈，像终端那样。
+
+**Ableton** —— 要的是**词汇**，不是皮肤。走带压条、焊接的键、卷帘窗、分析仪轨迹、以小节为单位的时间，这些是使用者已经会读的语言。模仿 Live 的灰蓝配色或图标风格不是目标，那是皮肤。
+
+## 2. 颜色
+
+四层结构，两套主题各一套值（**不是反色**，是分别调过的）：
+
+| 阶梯 | 用途 |
+| --- | --- |
+| `--canvas` / `--canvas-soft` | 页面底色、页面内更浅的一块 |
+| `--surface` / `--surface-strong` | 卡片、面板；徽标、按键底色 |
+| `--ink` | 文字，以及**唯一的动作色** |
+| `--hairline` / `--hairline-strong` | 网格与分隔线 / 结构外框与控件边界 |
+
+- **ink 是唯一的动作色。** 浅色下近黑、暗色下近白（`--primary` / `--on-primary` 是它的按钮版，取同一批值）。产品里不允许出现第二个饱和按钮底色。
+- **模块色是身份，不是装饰。** 五个 `--swatch-*` 中调色对应五个练习模块，出现在色块条、进度、列表行、错题本里，也用在"选中/正在发声"这类状态上。不铺大面积背景、不做氛围、不做渐变。
+- **语义色分两档。** `--success` / `--error` 是色相，用于标记与淡染；`--success-text` / `--error-text` 是能承载文字的深档（浅色底上的绿只有 3.1:1）。暗色主题只换文字档。
+- **判定永远三件套**：淡染 + 描边 + 符号。不靠颜色单独表达对错。
+- **没有渐变，没有光晕，没有模糊背景。** `tokens.css` 结尾专门留了注释说明这一点。模糊是拿对比度换氛围，而"什么都发光"等于什么都不突出。
+
+## 3. 字体
+
+- **一个家族走到底。** JetBrains Mono，自托管、只带拉丁子集（两个 woff2，约 40KB 与 latin-ext），不请求第三方。中文落在平台字体上 —— 中文 webfont 是几兆，而等宽 CJK（Sarasa / Noto Sans Mono CJK / Maple Mono）已在多数机器上，优先用它。
+- **字重只有 400（正文）与 500（标题、标签、数字）。** 不用 300 —— M16 之前的细字重正是整个界面"发虚、像线框"的原因。
+- **正文 tracking 为 0。** 唯一例外是落地页的 hero 大标题（`-0.01em`），字号越大越需要收一点。
+- **等宽数字**：计数、进度、BPM、频率一律 `tabular` 工具类，不跳动。
+- **`badge-label`**（12px / 600 / +0.06em / 大写 / 斜杠零）**只给标签用** —— 模块标签、状态徽标。大写不做页面装饰、不做标题上方的眉标。
+- **换行属于文案本身**（`\n` + `whitespace-pre-line`），不靠容器宽度偶然产生。
+- **字体未就绪时不许换宽度。** 自托管面只声明拉丁范围，若回退到 CJK 字体里的比例拉丁字形，换字体瞬间整行会宽 63%（实测）。所以栈里 JBM 之后先放**度量对齐的等宽回退面**（`size-adjust` + `ascent/descent-override` 的 `local()` 面），CJK 字体排在它们后面。实测漂移 0.03px。
+
+## 4. 几何
+
+- **圆角一律 0。** `--radius-*` 全是 `0px`：代码里写 `rounded-xl` 的东西也是方的。这是录音室设备，不是 SaaS 仪表盘。
+- **线只有两种。** `--hairline` 画网格与分隔，`--hairline-strong` 画结构外框与控件边界。默认恒为 1px（只有坐标轴这种结构线是 2px），不随缩放变粗，也不靠阴影代替。
+- **8px 是默认节奏。** 相邻元素之间就是 `gap-2`。更大的间距（12/16/24px）用于分组，不是随手填。
+- **控件 32px。** 页头的键、品牌标记、走带条上的键同一个尺寸，所以一排读起来像面板上的键帽。
+- **主按钮 52px**（`buttonVariants` 的 `size: hero`），一屏只给一个。
+- **容器 1200px，装订线在容器之外**（`px-6` 在外、`max-w-[1200px]` 在内）。装订线放进容器里，条内的内容会比下方所有内容窄 24px。
+- **图标线宽 1.75**，并且 `svg.lucide { stroke-linecap: square }` 全局把圆角笔帽改方 —— 圆笔帽是界面上最后一条软边。
+- **实心柱 ≠ 空盒。** 该被读成"块"的东西填实（落地页柱状图），该被读成"格"的东西描边（输入框、选项键）。
+
+## 5. 词汇表
+
+| 元素 | 规则 |
+| --- | --- |
+| **键（key）** | 32px 方块，自身**无**边框，悬停垫一层 `surface-strong`。英文名 `iconKey` |
+| **焊接组（`iconGroup`）** | 一圈外框 + `divide-x` 一条内线。**不是**两个挨着的边框，也不是每个键自带框 |
+| **压条（transport bar）** | 一条 32px 发丝压条，内部用同样的分隔线切格：键 \| 频谱 \| 读数。每格同高、同样 `px-3`、内容居中；整条与上方网格同宽、边缘齐平 |
+| **按钮** | `buttonVariants`：六个变体 × 五个尺寸。ink 唯一动作色；`hero` 只给一屏唯一那个动作（app 里是播放键，落地页是「开始练习」） |
+| **棋盘（rack）** | 首页六格：`grid-cols-2 gap-2 sm:grid-cols-3`，每格上方一条 3px 模块色块，第六格是「错题重练」（无模块色） |
+| **色块（swatch）** | 模块色的中调实心小条/点，用于识别一行。不要用低透明度的淡色块代替 |
+| **热力图** | 三档：完成 `bg-success`、部分 `bg-success/35`、无 `bg-surface-strong` |
+| **卷帘窗** | 12 行半音，黑键行随主题加暗（那是网格词汇）；**琴键本身不随主题** —— 白键恒白、黑键恒黑，那是键盘的样子。拖拽预览必须是**吸附后**的位置，不是跟手的自由位置 |
+| **分析仪轨迹** | 真 `AnalyserNode`，不是装饰波形。对数分组的连续折线、1.5px ink、每个采样都是折角（不做平滑，平滑会骗峰值）。静止时是贴底的零线；被声音唤醒，声音停下后再画约 0.7 秒自动熄灭 |
+| **选项键** | ≥44px（`min-h-[44px]`），练习界面里的播放键 52px。选项是选项，动作是动作，尺寸上就分得开 |
+| **空状态** | 一句话说下一步做什么，不道歉 |
+
+## 6. 动效
+
+- 悬停与按下用**透明度**（`opacity-88`）或**垫一层底色**，不用位移、不用缩放特效、不用发光。
+- 阴影存在两档（`--shadow-soft` / `--shadow-lift`），**只在悬停时**用，不做层级堆叠。深度来自发丝与表面阶梯，不来自阴影。
+- **闲着不跑循环。** 落地页静止时没有 rAF；分析仪被声音唤醒后才画，声音停下后自己熄灭。
+- **时间由音频时钟决定，不由定时器决定**：整小节一次排程，游标只用一个 rAF 跟着走。
+- **拖拽期间不进 React state**，松手才提交；预览直接写被拖那个元素的样式。理由见 `memory/2026-09-20-render-written-transform-vs-rerender.md`。
+
+## 7. 永不做
+
+| 不做 | 理由 |
+| --- | --- |
+| 装饰性渐变光晕、粒子背景、鼠标跟随光晕 | 降低文字对比度、手机上耗电掉帧 |
+| 玻璃拟态 | 同上，而且和器物感是两套语言 |
+| 霓虹色铺满、第二动作色 | "什么都发光"等于什么都不突出 |
+| 紫色 `#7C3AED` | 曾是候选强调色，与模块色系统冲突 |
+| 圆角 | 见 §4 |
+| 把大写当页面装饰 | 大写是标签的语法，不是标题的装饰 |
+| 两种声音（衬线标题 + 等宽正文） | 拉丁衬线无法与中文衬线配对，中文 webfont 又是几兆 |
+| Ableton 的**皮肤** | 要的是词汇，不是配色模仿 |
+| 3D 变换里的 1px 发丝线 | 会被栅格化后重采样，断成虚线。见 `memory/2026-09-20-thin-lines-inside-css-3d-go-dotted.md` |
+| 装饰性波形画布 | 真 `AnalyserNode` 可以，画一条好看的假波形不行 |
+
+## 8. 两个站点，一套系统
+
+落地页（`apps/landing`）与产品（`apps/web`）共用 `packages/shared`：同一份 token、同一套字体、同一组控件、同一个主题与语言切换。**访客不该从控件看出自己在哪个站点上。**
+
+- 落地页的唯一动作是「开始练习」；内容对游客可见，点进去才要登录。
+- 产品里的唯一动作是练习界面的播放键。
+- 落地页不加载练习引擎（钢琴采样 8MB）：hero 里的乐器是几行 Web Audio 合成出来的。
+
+## 9. 响应式
+
+| 宽度 | 行为 |
+| --- | --- |
+| < 640px | 品牌只留标记（字标隐藏）；首页棋盘 2 列；卷帘窗琴键槽 38px、高 200px；hero 标题 40px |
+| ≥ 640px | 棋盘 3 列；琴键槽 48px、高 220px；hero 标题 60px |
+| ≥ 1024px | 落地页 hero 左右分栏（`1.4fr / 1fr`，底部对齐） |
+
+触摸目标：页头的键 32px（PRD 明确要求这个尺寸），练习界面的选项键 ≥44px，播放键 52px。
