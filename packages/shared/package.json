@@ -10,7 +10,8 @@
     "./pref-controls": "./src/pref-controls.tsx",
     "./button-variants": "./src/button-variants.ts",
     "./i18n": "./src/i18n.ts",
-    "./cookie-domain": "./src/cookie-domain.ts"
+    "./cookie-domain": "./src/cookie-domain.ts",
+    "./links": "./src/links.ts"
   },
   "dependencies": {
     "i18next": "26.4.2",
@@ -27,5 +28,6 @@
   },
   "scripts": {
     "test": "node --test src/*.test.ts"
-  }
+  },
+  "license": "Apache-2.0"
 }
