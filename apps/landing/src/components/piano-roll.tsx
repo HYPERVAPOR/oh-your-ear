@@ -30,10 +30,10 @@ const labelOf = (midi: number) => `${NAMES[midi % 12]}${Math.floor(midi / 12) - 
 const ROW_PCT = 100 / ROWS.length
 const STEP_PCT = 100 / STEPS
 const MIN_STEP = 1
-/** The tempo the phrase is written at, and one sixteenth of a bar at that tempo. 60bpm is
- *  deliberate: this is music to look at and pick apart, not a backing track, and at 60 a
- *  step lasts 0.25s — slow enough to hear where each block sits. */
-const BPM = 60
+/** The tempo the phrase is written at, and one sixteenth of a bar at that tempo. A step at
+ *  90bpm lasts 0.167s: quick enough that the phrase sounds like music instead of a
+ *  demonstration, slow enough to follow one block across the grid. */
+const BPM = 90
 const SIXTEENTH = 60 / BPM / 4
 const PHRASE = STEPS * SIXTEENTH
 /** How long the meter keeps drawing after the sound stops, in frames. Its bar count is not
