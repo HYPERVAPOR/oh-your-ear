@@ -33,7 +33,8 @@ export default function App() {
       <header className="border-b border-hairline px-6">
         <div className="mx-auto flex min-h-16 max-w-[1200px] flex-wrap items-center justify-between gap-x-3 gap-y-1.5 py-2">
           {/* One nameplate, not a glyph beside a label: the mark and the wordmark share
-              a single hairline box, divided by a rule. Same object as the app's. */}
+              a single hairline box, divided by a rule. Same object as the app's — but not
+              a link: this is the page it would point at. */}
           <div className="flex items-center border border-hairline-strong text-ink">
             <span className="flex h-8 w-8 shrink-0 items-center justify-center sm:border-r sm:border-hairline-strong">
               <Ear aria-hidden="true" className="h-4 w-4" strokeWidth={1.75} />
@@ -65,15 +66,14 @@ export default function App() {
                 <span className="block">{t('line2')}</span>
               </p>
 
-              <div className="mt-10 flex flex-col items-start gap-3">
-                <a href={APP_URL} className={buttonVariants({ size: 'hero' })}>
-                  {t('cta')}
-                  {/* Solid, not stroked: a play glyph has to read at 15px, and the outline
-                      version turns into a squiggle. */}
-                  <Play aria-hidden="true" className="size-4 fill-current" strokeWidth={0} />
-                </a>
-                <p className="max-w-[38ch] text-[14px] text-muted">{t('guestNote')}</p>
-              </div>
+              {/* The one action. No note under it: it had a line of small print, and the
+                  button is clearer with the space to itself. */}
+              <a href={APP_URL} className={`mt-10 ${buttonVariants({ size: 'hero' })}`}>
+                {t('cta')}
+                {/* Solid, not stroked: a play glyph has to read at 15px, and the outline
+                    version turns into a squiggle. */}
+                <Play aria-hidden="true" className="size-4 fill-current" strokeWidth={0} />
+              </a>
             </div>
 
             {/* ?chart=2d brings back the bar chart; the roll is the editor (#91). */}
