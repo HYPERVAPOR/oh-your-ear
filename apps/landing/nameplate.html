@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en" class="light">
+  <head>
+    <meta charset="utf-8" />
+    <title>nameplate</title>
+    <!--
+      The brand nameplate with nothing around it: the mark, a rule, the wordmark — the same
+      object that sits in the top left of both sites (DESIGN.md §5). This is the source for
+      .github/assets/nameplate-light.png and nameplate-dark.png, which the README opens on.
+
+      It lives here because the dev server serves this directory and the font has to come
+      from the same place the sites get it: /fonts/jetbrains-mono-latin.woff2.
+
+      Render with the dev server running. `#dark` selects the dark palette, because headless
+      Chrome will not force prefers-color-scheme (--blink-settings=preferredColorScheme=2
+      does nothing). The window size is the box's own size, which the page reports in its
+      <title> once the font has loaded — add a pixel and you get a visible hairline of
+      padding around the plate:
+
+        chrome --headless=new --window-size=151,34 --force-device-scale-factor=2 \
+          --hide-scrollbars --default-background-color=00000000 --virtual-time-budget=4000 \
+          --screenshot=.github/assets/nameplate-light.png http://localhost:5174/nameplate.html
+
+        chrome ... --screenshot=.github/assets/nameplate-dark.png \
+          'http://localhost:5174/nameplate.html#dark'
+
+      Two files rather than one because the mark is ink: near-black on paper, near-white on
+      near-black. The README picks between them with <picture>, and the PNG is transparent so
+      the plate sits directly on whatever background the reader has.
+    -->
+    <style>
+      @font-face {
+        font-family: 'JetBrains Mono';
+        src: url('/fonts/jetbrains-mono-latin.woff2') format('woff2');
+        font-weight: 100 800;
+        /* block, not swap: a screenshot taken mid-swap would capture the fallback face */
+        font-display: block;
+      }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: max-content;
+        height: max-content;
+        background: transparent;
+      }
+      html.light {
+        --ink: #0c0a09;
+        --rule: #d6d3d1;
+      }
+      html.dark {
+        --ink: #fafaf9;
+        --rule: #554b45;
+      }
+      body {
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
+        -webkit-font-smoothing: antialiased;
+      }
+      /* One plate: mark and wordmark in a single hairline box, divided by a rule. Square
+         corners, one outline, the same 1px on both sides of the divider — the app's
+         iconGroup rule, applied to the brand. */
+      .nameplate {
+        display: inline-flex;
+        align-items: center;
+        border: 1px solid var(--rule);
+        color: var(--ink);
+      }
+      .mark {
+        display: flex;
+        width: 32px;
+        height: 32px;
+        align-items: center;
+        justify-content: center;
+        border-right: 1px solid var(--rule);
+      }
+      .word {
+        padding: 0 10px;
+        font-size: 12px;
+        font-weight: 500;
+        line-height: 1;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="nameplate">
+      <!-- lucide's ear, exactly as the interface draws it: 16px box, 1.75 stroke, square
+           caps (svg.lucide { stroke-linecap: square } in tokens.css). -->
+      <span class="mark">
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.75"
+          stroke-linecap="square"
+          stroke-linejoin="round"
+        >
+          <path d="M6 8.5a6.5 6.5 0 1 1 13 0c0 6-6 6-6 10a3.5 3.5 0 1 1-7 0" />
+          <path d="M15 8.5a2.5 2.5 0 0 0-5 0v1a2 2 0 1 1 0 4" />
+        </svg>
+      </span>
+      <span class="word">Oh Your Ear</span>
+    </div>
+
+    <script>
+      document.documentElement.className = location.hash === '#dark' ? 'dark' : 'light'
+      // Report the plate's size for the render command. After the font is ready: measuring
+      // against the fallback face would give a width the real wordmark does not have.
+      document.fonts.ready.then(() => {
+        const box = document.querySelector('.nameplate').getBoundingClientRect()
+        document.title = `${Math.ceil(box.width)}x${Math.ceil(box.height)}`
+      })
+    </script>
+  </body>
+</html>

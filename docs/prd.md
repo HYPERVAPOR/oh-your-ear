@@ -289,6 +289,22 @@
 
 两个站点的品牌标记保持一致。落地页当前是客户端渲染的 SPA，搜索引擎能执行 JS，但**首屏 HTML 里没有正文** —— 要做到极致需要预渲染/SSG，单列为待办。
 
+### 7.6 仓库的检索面（GitHub）
+
+GitHub 的仓库搜索主要吃四样东西：**描述**、**topics**、**README**、仓库名。前两样是元数据，权重最高；README 决定点进来的人留不留下 —— 所以它是**营销页，不是技术文档**，技术细节交给 `docs/tech-spec.md`。
+
+| 项目 | 要求 |
+| --- | --- |
+| 描述 | 一句话，含主要检索词（ear training / interval / chord / melody / rhythm），并说清免费与开源 |
+| Homepage | 必须是**带 scheme 的绝对 URL**（`https://ohyourear.com`）—— 少了 `https://` 就不会被渲染成可点链接 |
+| Topics | 不超过 20 个，覆盖"练耳/乐理"与实现栈两组词 |
+| README | 营销风格：开篇是**落地页左上角那个 nameplate**、一句 tagline、一个真能点的入口；卖点讲人话（练什么、访客能做什么、登录多什么、多语言多主题），技术栈压成一行 |
+| README 里的品牌图 | `.github/assets/nameplate-{light,dark}.png`，源文件 `apps/landing/nameplate.html`（渲染命令写在文件注释里，与分享卡同一套路）。用 `<picture>` 按 `prefers-color-scheme` 二选一：图案是 ink 色，浅色下近黑、深色下近白，一张图盖不住两套 |
+| 标签 | 除 GitHub 默认那套之外按**区域**补：landing / app / api / audio / ui / i18n / infra / seo / performance / security / polish |
+| 社交预览图 | **只能手动**，GitHub 没有对应 API：用 `apps/landing/public/og.png`（Settings → Social preview） |
+
+README 写**英文**：仓库页与 title / description / llms.txt 同属机器可见层；产品本身仍然双语。
+
 ### 7.2 响应式断点
 
 | 断点               | 布局要点                                             |
