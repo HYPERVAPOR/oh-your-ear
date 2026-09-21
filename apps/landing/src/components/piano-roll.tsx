@@ -7,11 +7,12 @@ import { bars, drawMeter } from '@/lib/meter'
 import {
   HIGH,
   LOW,
-  OPENING_BAR,
+  OPENING_PHRASE,
   STEPS,
+  STEPS_PER_BAR,
   moveNote,
   normalize,
-  randomBar,
+  randomPhrase,
   resizeNote,
   type Note,
   type NoteInput,
@@ -21,17 +22,20 @@ import {
 const ROWS = Array.from({ length: HIGH - LOW + 1 }, (_, index) => LOW + index)
 const BLACK = new Set([1, 3, 6, 8, 10])
 const NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
-const nameOf = (midi: number) => NAMES[midi % 12]
+
+/** Midi 60 is C4, so the octave is one less than the twelves in the number. Spelled out
+ *  rather than assumed: the axis reaches F5, and a hard-coded "4" would mislabel it. */
+const labelOf = (midi: number) => `${NAMES[midi % 12]}${Math.floor(midi / 12) - 1}`
 
 const ROW_PCT = 100 / ROWS.length
 const STEP_PCT = 100 / STEPS
 const MIN_STEP = 1
-/** The tempo the bar is written at, and one sixteenth of a bar at that tempo. 60bpm is
- *  deliberate: this is a bar to look at and pick apart, not a backing track, and at 60 a
+/** The tempo the phrase is written at, and one sixteenth of a bar at that tempo. 60bpm is
+ *  deliberate: this is music to look at and pick apart, not a backing track, and at 60 a
  *  step lasts 0.25s — slow enough to hear where each block sits. */
 const BPM = 60
 const SIXTEENTH = 60 / BPM / 4
-const BAR = STEPS * SIXTEENTH
+const PHRASE = STEPS * SIXTEENTH
 /** How long the meter keeps drawing after the sound stops, in frames. Its bar count is not
  *  fixed: it is one bar per ~4px of whatever width the row gives it. */
 const METER_TAIL = 40
@@ -73,7 +77,7 @@ function place(element: HTMLElement | null, note: { step: number; length: number
  *  renderer. */
 export function PianoRoll() {
   const { t } = useTranslation()
-  const [notes, setNotes] = useState<Note[]>(() => normalize(withIds(OPENING_BAR)))
+  const [notes, setNotes] = useState<Note[]>(() => normalize(withIds(OPENING_PHRASE)))
   const [selected, setSelected] = useState<string | null>(null)
   const roll = useRef<HTMLDivElement | null>(null)
   const drag = useRef<Drag | null>(null)
@@ -153,7 +157,7 @@ export function PianoRoll() {
       const now = audioNow()
       const line = head.current
       if (!line || now === null) return
-      const progress = (now - start) / BAR
+      const progress = (now - start) / PHRASE
       if (progress >= 1) {
         line.style.left = '0%'
         line.style.opacity = '0'
@@ -290,7 +294,7 @@ export function PianoRoll() {
             <button
               key={midi}
               type="button"
-              aria-label={`${nameOf(midi)}4 · ${frequencyOf(midi).toFixed(1)} Hz`}
+              aria-label={`${labelOf(midi)} · ${frequencyOf(midi).toFixed(1)} Hz`}
               onPointerDown={() => play(midi)}
               className="absolute inset-x-0 cursor-pointer border-t border-[#d6d3d1] bg-white first:border-t-0 hover:opacity-88"
               style={{ bottom: `${(midi - LOW) * ROW_PCT}%`, height: `${ROW_PCT}%` }}
@@ -298,7 +302,7 @@ export function PianoRoll() {
               {BLACK.has(midi % 12) && <span className="block h-full w-[55%] bg-[#0c0a09]" />}
               {midi === LOW && (
                 <span className="tabular absolute right-1 top-1/2 -translate-y-1/2 text-[9px] text-[#777169]">
-                  C4
+                  {labelOf(LOW)}
                 </span>
               )}
             </button>
@@ -311,8 +315,8 @@ export function PianoRoll() {
           onPointerDown={() => setSelected(null)}
           onDoubleClick={onDoubleClick}
         >
-          {/* shaded rows for the black keys, then the rules: one per row, one per step,
-              and a heavier line on every beat */}
+          {/* shaded rows for the black keys, then the rules: one per row, one per step, a
+              heavier line on every beat, and a 2px line between the two bars */}
           {ROWS.filter((midi) => BLACK.has(midi % 12)).map((midi) => (
             <span
               key={`black${midi}`}
@@ -330,7 +334,13 @@ export function PianoRoll() {
           {Array.from({ length: STEPS + 1 }, (_, step) => (
             <span
               key={`step${step}`}
-              className={`pointer-events-none absolute inset-y-0 w-px ${step % 4 === 0 ? 'bg-hairline-strong' : 'bg-hairline/70'}`}
+              className={`pointer-events-none absolute inset-y-0 ${
+                step % STEPS_PER_BAR === 0
+                  ? 'w-0.5 bg-hairline-strong'
+                  : step % 4 === 0
+                    ? 'w-px bg-hairline-strong'
+                    : 'w-px bg-hairline/70'
+              }`}
               style={{ left: `${step * STEP_PCT}%` }}
             />
           ))}
@@ -350,7 +360,7 @@ export function PianoRoll() {
               data-note={note.id}
               role="button"
               tabIndex={0}
-              aria-label={`${nameOf(note.midi)}4 · ${frequencyOf(note.midi).toFixed(1)} Hz`}
+              aria-label={`${labelOf(note.midi)} · ${frequencyOf(note.midi).toFixed(1)} Hz`}
               onPointerDown={(event) => startDrag(event, note, 'move')}
               onPointerMove={onPointerMove}
               onPointerUp={endDrag}
@@ -367,8 +377,10 @@ export function PianoRoll() {
                 height: `${ROW_PCT}%`,
               }}
             >
-              <span className="pointer-events-none truncate px-px">{nameOf(note.midi)}</span>
-              {/* the edges that change the length: invisible until the note is touched */}
+              <span className="pointer-events-none truncate px-px">{NAMES[note.midi % 12]}</span>
+              {/* the edges that change the length: invisible until the note is touched.
+                  A quarter of the note, capped: eighteen rows over two bars makes a step
+                  ~15px, so two fixed 6px handles would swallow a one-step note whole. */}
               {(['start', 'end'] as const).map((edge) => (
                 <span
                   key={edge}
@@ -376,7 +388,7 @@ export function PianoRoll() {
                   onPointerDown={(event) => startDrag(event, note, edge)}
                   onPointerMove={onPointerMove}
                   onPointerUp={endDrag}
-                  className={`absolute inset-y-0 w-1.5 cursor-ew-resize opacity-0 group-hover:opacity-100 ${
+                  className={`absolute inset-y-0 w-[25%] max-w-1.5 cursor-ew-resize opacity-0 group-hover:opacity-100 ${
                     edge === 'start' ? 'left-0' : 'right-0'
                   } ${selected === note.id ? 'bg-ink/30' : 'bg-canvas/60'}`}
                 />
@@ -412,7 +424,7 @@ export function PianoRoll() {
           aria-label={t('rollShuffle')}
           title={t('rollShuffle')}
           onClick={() => {
-            commit(withIds(randomBar()))
+            commit(withIds(randomPhrase()))
             setSelected(null)
           }}
           className="flex size-8 shrink-0 items-center justify-center text-ink hover:bg-surface-strong"
@@ -425,7 +437,7 @@ export function PianoRoll() {
           aria-label={t('rollReset')}
           title={t('rollReset')}
           onClick={() => {
-            commit(withIds(OPENING_BAR))
+            commit(withIds(OPENING_PHRASE))
             setSelected(null)
           }}
           className="flex size-8 shrink-0 items-center justify-center text-ink hover:bg-surface-strong"
