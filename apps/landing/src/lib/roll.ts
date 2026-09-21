@@ -1,11 +1,14 @@
 /** The piano roll's arithmetic, kept out of the component so it can be tested.
  *
- *  A bar is 4/4 in sixteenths, so sixteen steps; the pitch axis is the octave from C4
- *  (midi 60) to B4 (71). Notes are { step, length } in steps and never leave the bar. */
+ *  A bar is 4/4 in sixteenths, so sixteen steps, and the default phrase is two bars: the
+ *  grid is thirty-two steps wide. The pitch axis is eighteen rows, C4 (midi 60) to F5 (77) —
+ *  the six rows above B4 are what the phrase's top note needs. Notes are { step, length }
+ *  in steps and never leave either wall. */
 
-export const STEPS = 16
+export const STEPS_PER_BAR = 16
+export const STEPS = STEPS_PER_BAR * 2
 export const LOW = 60
-export const HIGH = 71
+export const HIGH = 77
 
 export interface Note {
   id: string
@@ -16,34 +19,42 @@ export interface Note {
 
 export type NoteInput = Omit<Note, 'id'>
 
-/** The bar the roll opens on: the second bar of "Never Gonna Give You Up" — the one the
- *  intro's harmony lands on, and the bar with the riff people actually remember.
+/** What the roll opens on: two bars transcribed from a MIDI file of "Never Gonna Give You
+ *  Up" (4/4, 96 ticks to the beat, so 24 ticks to a sixteenth) — the intro's figure, then
+ *  the same figure left hanging on a held chord.
  *
- *  Transcribed from the intro's note events (the song is in Bb minor, tempo ~113): a Bb
- *  minor stab on beat one, then the bass arpeggio that walks up through Ab and back down.
- *  The arpeggio spans exactly an octave (G#2–G#3), so it is transposed up 24 semitones —
- *  intervals untouched — while the stab already sits inside the roll's register:
+ *  Two things had to give to put it on a sixteenth grid:
  *
- *    step  0  Bbm stab    Db  F   Bb
- *    step  6  Ab arpeggio Ab            (G#2 + 24)
- *    step  8              C             (C3  + 24)
- *    step  9              Eb            (D#3 + 24)
- *    step 10              Ab
- *    step 12              Eb            the descent
- *    step 13              C
- *    step 14              Ab
+ *  - **Register.** The source sits on C3–F4. Transposed up 12 semitones its lowest note
+ *    lands on the roll's C4 and its highest on F5, six rows above the old ceiling — which
+ *    is where the eighteen-row axis comes from. Intervals are untouched.
+ *  - **The turn at the end of bar one.** Four notes across half a beat (32nds) cannot exist
+ *    on a sixteenth grid, so the two that fall between steps are dropped: the descent reads
+ *    F5 → D5 into the downbeat instead of F5 → Eb5 → D5 → C5.
+ *
+ *    step  0  Eb + Bb      step  8  D  + C    step 16  Eb + Bb   (bar two)
+ *    step  3  F  + C       step 11  G  + D    step 19  F  + C
+ *    step  6  C            step 14  F5        step 22  C  + F    held to the end
+ *                          step 15  D5
  */
-export const OPENING_BAR: NoteInput[] = [
-  { midi: 61, step: 0, length: 2 },
-  { midi: 65, step: 0, length: 2 },
-  { midi: 70, step: 0, length: 2 },
-  { midi: 68, step: 6, length: 2 },
-  { midi: 60, step: 8, length: 1 },
-  { midi: 63, step: 9, length: 1 },
-  { midi: 68, step: 10, length: 2 },
-  { midi: 63, step: 12, length: 1 },
-  { midi: 60, step: 13, length: 1 },
-  { midi: 68, step: 14, length: 2 },
+export const OPENING_PHRASE: NoteInput[] = [
+  { midi: 63, step: 0, length: 3 },
+  { midi: 70, step: 0, length: 3 },
+  { midi: 65, step: 3, length: 5 },
+  { midi: 72, step: 3, length: 5 },
+  { midi: 60, step: 6, length: 2 },
+  { midi: 62, step: 8, length: 3 },
+  { midi: 72, step: 8, length: 3 },
+  { midi: 67, step: 11, length: 3 },
+  { midi: 74, step: 11, length: 3 },
+  { midi: 77, step: 14, length: 1 },
+  { midi: 74, step: 15, length: 1 },
+  { midi: 63, step: 16, length: 3 },
+  { midi: 70, step: 16, length: 3 },
+  { midi: 65, step: 19, length: 3 },
+  { midi: 72, step: 19, length: 3 },
+  { midi: 60, step: 22, length: 10 },
+  { midi: 65, step: 22, length: 10 },
 ]
 
 export function clamp(value: number, low: number, high: number): number {
@@ -107,17 +118,17 @@ export function normalize(notes: Note[], priority?: string): Note[] {
   return result.sort((a, b) => a.step - b.step || a.midi - b.midi)
 }
 
-/** One bar of music, so a reader has something to hear the moment the page loads: a
+/** Two bars of music, so a reader has something to hear the moment the page loads: a
  *  handful of events, some of them chords, lengths of a sixteenth to a beat, and the
  *  pitches leaning on the C major scale with the occasional accidental. */
-export function randomBar(random: () => number = Math.random): NoteInput[] {
+export function randomPhrase(random: () => number = Math.random): NoteInput[] {
   const pick = <T>(items: readonly T[]): T => items[Math.floor(random() * items.length)]
   const scale = [0, 2, 4, 5, 7, 9, 11]
   const lengths = [1, 2, 2, 4]
   const notes: NoteInput[] = []
   const taken = new Set<string>()
 
-  for (const step of [0, 2, 4, 6, 8, 10, 12, 14]) {
+  for (let step = 0; step < STEPS; step += 2) {
     if (random() < 0.25) continue
     const root = pick(scale) + (random() < 0.85 ? 0 : 1)
     const voices = random() < 0.3 ? (random() < 0.5 ? 2 : 3) : 1
@@ -131,7 +142,7 @@ export function randomBar(random: () => number = Math.random): NoteInput[] {
     }
   }
 
-  // Never return an empty bar: a random draw that muted every event would look broken.
+  // Never return an empty phrase: a random draw that muted every event would look broken.
   if (notes.length === 0) notes.push({ midi: 60, step: 0, length: 4 })
   return notes
 }

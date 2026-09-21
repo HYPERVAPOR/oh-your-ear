@@ -4,11 +4,11 @@ import { test } from 'node:test'
 import {
   HIGH,
   LOW,
-  OPENING_BAR,
+  OPENING_PHRASE,
   STEPS,
   moveNote,
   normalize,
-  randomBar,
+  randomPhrase,
   resizeNote,
   type Note,
 } from './roll.ts'
@@ -21,7 +21,7 @@ test('moving snaps to whole steps and rows, and stops at the walls', () => {
     { step: 7, midi: 62 },
   )
   // right wall: the note keeps its length, so it stops at STEPS - length
-  assert.equal(moveNote(bar({ step: 14, length: 4 }), 10, 0).step, STEPS - 4)
+  assert.equal(moveNote(bar({ step: 14, length: 4 }), 99, 0).step, STEPS - 4)
   assert.equal(moveNote(bar({ step: 0 }), -5, 0).step, 0)
   // pitch walls
   assert.equal(moveNote(bar({ midi: HIGH }), 0, 9).midi, HIGH)
@@ -46,7 +46,7 @@ test('a resize never inverts or leaves the bar', () => {
   assert.equal(resizeNote(note, 'end', -99).length, 1)
 })
 
-test('the random bar is playable: inside the bar, no duplicates, never empty', () => {
+test('the random phrase is playable: inside the grid, no duplicates, never empty', () => {
   for (let seed = 0; seed < 500; seed += 1) {
     // a deterministic sweep: each seed is a different random stream
     let n = seed
@@ -54,12 +54,15 @@ test('the random bar is playable: inside the bar, no duplicates, never empty', (
       n = (n * 1103515245 + 12345) % 2147483648
       return n / 2147483648
     }
-    const notes = randomBar(random)
+    const notes = randomPhrase(random)
     assert.ok(notes.length > 0, `seed ${seed} produced nothing`)
     for (const note of notes) {
-      assert.ok(note.step >= 0 && note.step + note.length <= STEPS, `seed ${seed} ran past the bar`)
+      assert.ok(
+        note.step >= 0 && note.step + note.length <= STEPS,
+        `seed ${seed} ran past the grid`,
+      )
       assert.ok(note.length >= 1, `seed ${seed} has a zero-length note`)
-      assert.ok(note.midi >= LOW && note.midi <= HIGH, `seed ${seed} left the octave`)
+      assert.ok(note.midi >= LOW && note.midi <= HIGH, `seed ${seed} left the axis`)
     }
     const keys = notes.map((note) => `${note.step}:${note.midi}`)
     assert.equal(new Set(keys).size, keys.length, `seed ${seed} stacked a note on a note`)
@@ -144,31 +147,35 @@ test('normalize never lets a note leave the bar', () => {
   }
 })
 
-test('the opening bar is the intro transcribed: a stab and the arpeggio', () => {
-  assert.equal(OPENING_BAR.length, 10)
-  for (const note of OPENING_BAR) {
-    assert.ok(note.step >= 0 && note.step + note.length <= STEPS)
-    assert.ok(note.midi >= LOW && note.midi <= HIGH)
+test('the opening phrase is the transcription: two bars, and it reaches F5', () => {
+  assert.equal(OPENING_PHRASE.length, 17)
+  for (const note of OPENING_PHRASE) {
+    assert.ok(note.step >= 0 && note.step + note.length <= STEPS, 'the phrase ran past the grid')
   }
-  // the B♭ minor stab opens the bar, one chord on beat one
+  // the source's lowest note lands on the bottom row and its highest on the top one: that
+  // transposition is what makes the axis eighteen rows rather than twelve
+  const pitches = OPENING_PHRASE.map((note) => note.midi)
+  assert.equal(Math.min(...pitches), LOW)
+  assert.equal(Math.max(...pitches), HIGH)
+  // bar one opens on the Eb + Bb stab and answers with F + C
   assert.deepEqual(
-    OPENING_BAR.filter((note) => note.step === 0).map((note) => note.midi),
-    [61, 65, 70],
+    OPENING_PHRASE.filter((note) => note.step === 0).map((note) => note.midi),
+    [63, 70],
   )
-  // and the A♭ arpeggio walks up and back down through the rest of it
+  // bar two restarts the figure on its own downbeat and holds the last chord to the end
   assert.deepEqual(
-    OPENING_BAR.filter((note) => note.step >= 6).map((note) => [note.step, note.midi]),
-    [
-      [6, 68],
-      [8, 60],
-      [9, 63],
-      [10, 68],
-      [12, 63],
-      [13, 60],
-      [14, 68],
-    ],
+    OPENING_PHRASE.filter((note) => note.step === 16).map((note) => note.midi),
+    [63, 70],
   )
-  // nothing on the same pitch collides, so normalize has nothing to trim
-  const ids = OPENING_BAR.map((note, index) => ({ ...note, id: `o${index}` }))
-  assert.equal(normalize(ids).length, OPENING_BAR.length)
+  assert.deepEqual(
+    OPENING_PHRASE.filter((note) => note.step === 22).map((note) => note.length),
+    [10, 10],
+  )
+  // and it is written the way the editor would have written it: normalize has nothing to do
+  const ids = OPENING_PHRASE.map((note, index) => ({ ...note, id: `o${index}` }))
+  assert.deepEqual(
+    normalize(ids).map((note) => [note.midi, note.step, note.length]),
+    OPENING_PHRASE.map((note) => [note.midi, note.step, note.length]),
+    'the default phrase overlaps itself',
+  )
 })
