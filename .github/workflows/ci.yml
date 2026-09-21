@@ -3,8 +3,22 @@ name: CI
 on:
   push:
     branches: [main]
+    paths-ignore: &not-code
+      - '**/*.md'
+      - '.github/assets/**'
+      - 'LICENSE'
+      - 'NOTICE'
   pull_request:
     branches: [main]
+    paths-ignore: *not-code
+
+# A change that is only prose — a README, a memory note, the nameplate PNG — cannot break
+# the build, and five runners to prove it is five runners wasted. Nothing gates on these
+# checks (`main` has no required status checks), so skipping the whole workflow is safe.
+#
+# If required checks are ever turned on for `main`, this has to become job-level `if:`
+# guards instead: a workflow that never runs leaves a required check pending forever, and
+# the pull request waits on a status that will never be reported.
 
 env:
   NODE_VERSION: '24.16.0'
