@@ -31,9 +31,9 @@ const ROW_PCT = 100 / ROWS.length
 const STEP_PCT = 100 / STEPS
 const MIN_STEP = 1
 /** The tempo the phrase is written at, and one sixteenth of a bar at that tempo. A step at
- *  90bpm lasts 0.167s: quick enough that the phrase sounds like music instead of a
+ *  80bpm lasts 0.188s: quick enough that the phrase sounds like music instead of a
  *  demonstration, slow enough to follow one block across the grid. */
-const BPM = 90
+const BPM = 80
 const SIXTEENTH = 60 / BPM / 4
 const PHRASE = STEPS * SIXTEENTH
 /** How long the meter keeps drawing after the sound stops, in frames. Its bar count is not
