@@ -97,7 +97,6 @@
   },
   "notFound": "Page not found.",
   "plan": {
-    "today": "Today's progress",
     "solvedOfGoal": "{{solved}} / {{goal}} questions",
     "title": "Daily practice settings",
     "description": "Set the daily question goal and focus modules; daily practice builds the day’s session from them.",
@@ -232,8 +231,12 @@
     "loginCtaHint": "The plan, accuracy trends, mistake review, streaks and badges."
   },
   "heatmap": {
-    "title": "Practice history",
+    "title": "Progress",
     "streaks": "{{current}}-day streak · longest {{longest}}",
+    "slot": {
+      "todo": "Not yet",
+      "done": "Answered"
+    },
     "day": "Day",
     "week": "Week",
     "month": "Month",

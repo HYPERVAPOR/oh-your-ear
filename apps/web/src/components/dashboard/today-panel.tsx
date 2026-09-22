@@ -40,7 +40,6 @@ export function TodayPanel() {
   const goal = plan?.dailyGoal ?? DEFAULT_GOAL
   const solved = plan?.today.solved ?? 0
   const remaining = Math.max(goal - solved, 0)
-  const percent = goal > 0 ? Math.min(100, Math.round((solved / goal) * 100)) : 0
   const met = goal > 0 && solved >= goal
 
   // The focus modules, or all of them when the plan does not narrow it down.
@@ -69,9 +68,17 @@ export function TodayPanel() {
               <p className="mt-1.5 break-all text-[15px]">{user.email}</p>
             </div>
             <div className="mt-8">
-              <Button size="lg" onClick={startSession}>
-                {met ? t('home.extraRound') : t('home.startDaily')}
-              </Button>
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
+                <Button size="lg" onClick={startSession}>
+                  {met ? t('home.extraRound') : t('home.startDaily')}
+                </Button>
+                <Link
+                  to="/me"
+                  className="text-[14px] text-muted underline underline-offset-4 hover:text-ink"
+                >
+                  {t('home.adjustPlan')}
+                </Link>
+              </div>
               <p className="mt-3 text-[14px] text-muted">
                 {met || !next
                   ? t('home.goalMet')
@@ -98,32 +105,10 @@ export function TodayPanel() {
         )}
       </Card>
 
+      {/* The heatmap owns today's count as well: the panel used to draw its own bar and
+          number beside the day view, which was the same progress twice. */}
       <Card className="min-w-0 p-6 sm:p-7">
-        <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
-          <div>
-            <p className="badge-label text-muted">{t('plan.today')}</p>
-            <p className="tabular mt-1.5 text-[32px] font-medium leading-none">
-              {t('plan.solvedOfGoal', { solved, goal })}
-            </p>
-          </div>
-          {user ? (
-            <Link
-              to="/me"
-              className="text-[13px] text-muted underline underline-offset-4 hover:text-ink"
-            >
-              {t('home.adjustPlan')}
-            </Link>
-          ) : null}
-        </div>
-
-        <div className="mt-4 h-1 w-full overflow-hidden bg-surface-strong">
-          <div className="h-full bg-primary" style={{ width: `${percent}%` }} />
-        </div>
-        {met && <p className="mt-2 text-[13px] font-medium text-success-text">{t('home.met')}</p>}
-
-        <div className="mt-8 border-t border-hairline pt-6">
-          <PracticeHeatmap />
-        </div>
+        <PracticeHeatmap />
       </Card>
     </div>
   )

@@ -16,8 +16,10 @@ export type Level = 'day' | 'week' | 'month' | 'year'
 /** Met, partly done, or nothing: a day is judged against the goal that applied to it. */
 export type Tier = 0 | 1 | 3
 
-/** One square of a calendar view: a date, or a blank that keeps the columns aligned. */
-export type Square = { date: string | null; day?: DailyBucket; tier: Tier }
+/** One square of a calendar view: a date, or a blank that keeps the columns aligned.
+ *  Blanks carry a key too — a list of squares has to be keyed, and only the square itself
+ *  knows what makes it unique. */
+export type Square = { key: string; date: string | null; day?: DailyBucket; tier: Tier }
 
 /** One square of the day view: a question the goal asked for, filled as it is answered. */
 export type Slot = { key: number; filled: boolean }
@@ -45,11 +47,19 @@ function index(days: DailyBucket[]): Map<string, DailyBucket> {
   return new Map(days.map((day) => [day.date, day]))
 }
 
-const blank = (): Square => ({ date: null, tier: 0 })
+/** Blanks up to the first of the month (or the first day of the series), so the column a
+ *  day lands in is its weekday. */
+export function leadingBlanks(date: string): Square[] {
+  return Array.from({ length: weekdayIndex(date) }, (_, offset) => ({
+    key: `pad-${offset}`,
+    date: null,
+    tier: 0 as Tier,
+  }))
+}
 
 function squareAt(byDate: Map<string, DailyBucket>, date: string): Square {
   const day = byDate.get(date)
-  return { date, day, tier: tierOf(day) }
+  return { key: date, date, day, tier: tierOf(day) }
 }
 
 /** The seven days of the week `today` falls in, Monday first. */
@@ -68,7 +78,7 @@ export function month(days: DailyBucket[], today: string): Square[] {
   // Day 0 of the next month is the last day of this one, which knows about leap years.
   const length = new Date(Date.UTC(calendarYear, calendarMonth, 0)).getUTCDate()
 
-  const squares: Square[] = Array.from({ length: weekdayIndex(first) }, blank)
+  const squares: Square[] = leadingBlanks(first)
   for (let offset = 0; offset < length; offset++) {
     squares.push(squareAt(byDate, iso(at(first) + offset * DAY_MS)))
   }
@@ -77,7 +87,7 @@ export function month(days: DailyBucket[], today: string): Square[] {
 
 /** The year: every day the series has, one column per week. */
 export function year(days: DailyBucket[]): Square[] {
-  return days.map((day) => ({ date: day.date, day, tier: tierOf(day) }))
+  return days.map((day) => ({ key: day.date, date: day.date, day, tier: tierOf(day) }))
 }
 
 /**
