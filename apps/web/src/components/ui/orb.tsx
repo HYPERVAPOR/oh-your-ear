@@ -2,6 +2,9 @@ import { cn } from '@/lib/utils'
 
 export type ExerciseKind = 'singleNote' | 'interval' | 'chord' | 'melody' | 'rhythm'
 
+/** The five drills, in the order every rack and statistic lists them. */
+export const MODULES: ExerciseKind[] = ['singleNote', 'interval', 'chord', 'melody', 'rhythm']
+
 /**
  * The module's colour as a marker for lists and statistics: the orb itself is
  * atmosphere and far too faint to identify a row.
