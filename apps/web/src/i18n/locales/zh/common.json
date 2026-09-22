@@ -99,7 +99,6 @@
   "plan": {
     "today": "今日进度",
     "solvedOfGoal": "{{solved}} / {{goal}} 题",
-    "accuracy": "正确率 {{percent}}%",
     "title": "每日练习设置",
     "description": "设定每日题数与重点模块；每日练习按它生成当天要练的题。",
     "dailyGoal": "每日目标题数",
@@ -163,16 +162,6 @@
     "melody": "听一段旋律，选出对应的那条。",
     "rhythm": "听一段节奏，把它敲回来。"
   },
-  "home": {
-    "guestNote": "未登录也能练全部基础题，成绩只留在本次会话。",
-    "loginCtaHint": "学习计划、正确率趋势、错题重练、连续打卡与徽章。",
-    "loginHeading": "登录解锁进度与错题本",
-    "practiceHeading": "随机练习",
-    "practiceHint": "无限出题、随机练习，没有轮次也没有目标；游客也能练全部基础题。",
-    "dailyHint": "设定每日题数与重点模块，按计划练完当天的量。",
-    "mistakesTile": "错题重练",
-    "mistakesHint": "从错题本抽题，专攻弱项。"
-  },
   "round": {
     "title": "一轮结束",
     "correct": "答对",
@@ -202,37 +191,11 @@
     "empty": "还没有记录。从第一关开始吧。",
     "guestBanner": "题单进度保存在账号里，登录后即可从第一关开始。",
     "entryHintGuest": "按难度闯关，进度云端保存 —— 需要登录。",
-    "modeTitle": "题单模式",
     "modeHint": "每个模块一条链，从易到难。过一关解锁下一关，进度跟着账号走。",
     "continueAt": "继续「{{level}}」· 最好 {{percent}}%",
     "allPassed": "这条链已全部通关",
     "viewAll": "查看全部关卡",
     "startAtName": "从「{{level}}」开始"
-  },
-  "daily": {
-    "title": "每日练习",
-    "intro": "按你的计划生成今天的练习，练够每日题数就算达标。",
-    "guestBanner": "每日练习的进度与历史保存在账号里，登录后开始。",
-    "today": "今天",
-    "progress": "{{solved}} / {{goal}} 题",
-    "met": "今日已达标",
-    "focus": "重点模块（今天各练了多少）",
-    "start": "开始今日练习（{{count}} 题）",
-    "extraRound": "再来一轮",
-    "settingsLink": "调整每日计划",
-    "nextModule": "这一轮从「{{module}}」开始，练完可以继续下一个重点模块。",
-    "entry": "今日练习",
-    "entryHint": "按计划出题，练够目标即达标。",
-    "entryHintGuest": "需要登录，进度与历史存在账号里。",
-    "afterRound": "今天 {{solved}} / {{goal}} 题，还差 {{remaining}} 题。",
-    "history": "练习历史（近一年）",
-    "streaks": "连续练习 {{current}} 天 · 最长 {{longest}} 天",
-    "cellTitle": "{{date}}：{{solved}} / {{goal}} 题",
-    "tier": {
-      "met": "达标",
-      "partial": "练了一部分",
-      "none": "没练"
-    }
   },
   "collections": {
     "title": "收藏夹",
@@ -249,5 +212,44 @@
     "guestBanner": "收藏夹跟着账号走，登录后即可使用。",
     "openHint": "收藏的关卡，可建多个收藏夹。",
     "open": "查看收藏夹"
+  },
+  "home": {
+    "learnTitle": "闯关",
+    "randomTitle": "随机练习",
+    "passedOf": "{{passed}}/{{total}} 关",
+    "collectionsHint": "自己收着的关卡",
+    "startDaily": "开始每日训练",
+    "extraRound": "再来一轮",
+    "startHint": "今天还差 {{count}} 题，从「{{module}}」开始。",
+    "goalMet": "今天已经达标了，想练就再开一轮。",
+    "adjustPlan": "调整每日计划",
+    "met": "今日已达标",
+    "accountLabel": "账号",
+    "guestIdentity": "未登录，成绩只留在本次会话。",
+    "practiceHint": "无限出题、随机练习，没有轮次也没有目标；游客也能练全部基础题。",
+    "mistakesTile": "错题重练",
+    "mistakesHint": "从错题本抽题，专攻弱项。",
+    "loginCtaHint": "学习计划、正确率趋势、错题重练、连续打卡与徽章。"
+  },
+  "heatmap": {
+    "title": "练习历史",
+    "streaks": "连续练习 {{current}} 天 · 最长 {{longest}} 天",
+    "day": "日",
+    "week": "周",
+    "month": "月",
+    "year": "年",
+    "cellDay": "{{date}}：{{solved}} / {{goal}} 题",
+    "cellPeriod": "{{label}}：{{solved}} 题，{{days}} 天",
+    "tier": {
+      "met": "达标",
+      "partial": "练了一部分",
+      "none": "没练"
+    },
+    "relative": {
+      "3": "最多",
+      "2": "较多",
+      "1": "较少",
+      "0": "没有"
+    }
   }
 }

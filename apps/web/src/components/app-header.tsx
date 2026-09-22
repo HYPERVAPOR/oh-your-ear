@@ -1,8 +1,7 @@
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Ear, LogIn, LogOut, SquareUser } from 'lucide-react'
+import { Ear, LogOut, SquareUser } from 'lucide-react'
 
-import { Button } from '@/components/ui/button'
 import { loginHere } from '@/lib/auth'
 import { useAuthStore } from '@/stores/auth-store'
 import {
@@ -58,46 +57,46 @@ export function AppHeader() {
           <LanguageKey />
           <ThemeKey />
 
-          {user ? (
-            /* The account page shows its own header actions: repeating them here is
+          {user
+            ? /* The account page shows its own header actions: repeating them here is
                noise, and they are what pushes the nav onto a second row at 390px. */
-            location.pathname !== '/me' && (
-              <>
-                <Link
-                  to="/me"
-                  className={`${iconKey} no-underline`}
-                  aria-label={t('auth.account')}
-                  title={t('auth.account')}
-                >
-                  <SquareUser aria-hidden="true" className={icon} strokeWidth={1.75} />
-                </Link>
-                <button
-                  type="button"
-                  className={iconKey}
-                  aria-label={t('actions.logout')}
-                  title={t('actions.logout')}
-                  onClick={handleLogout}
-                >
-                  <LogOut aria-hidden="true" className={icon} strokeWidth={1.75} />
-                </button>
-              </>
-            )
-          ) : (
-            /* The only filled control in the header, so it stays the obvious first move
-               even with an icon instead of a word. */
-            <Button
-              size="icon"
-              className="h-8 w-8"
-              aria-label={t('actions.login')}
-              title={t('actions.login')}
-              onClick={() => navigate(loginHere())}
-            >
-              <LogIn aria-hidden="true" className={icon} strokeWidth={1.75} />
-            </Button>
-          )}
+              location.pathname !== '/me' && (
+                <>
+                  <Link
+                    to="/me"
+                    className={`${iconKey} no-underline`}
+                    aria-label={t('auth.account')}
+                    title={t('auth.account')}
+                  >
+                    <SquareUser aria-hidden="true" className={icon} strokeWidth={1.75} />
+                  </Link>
+                  <button
+                    type="button"
+                    className={iconKey}
+                    aria-label={t('actions.logout')}
+                    title={t('actions.logout')}
+                    onClick={handleLogout}
+                  >
+                    <LogOut aria-hidden="true" className={icon} strokeWidth={1.75} />
+                  </button>
+                </>
+              )
+            : null}
 
           <GitHubKey />
         </nav>
+
+        {/* A word, not a glyph: an icon in a header full of icons does not read as the
+            first move. Outside the welded group because a label would fight the 32px
+            squares' rhythm — it keeps their height and nothing else. */}
+        {!user && (
+          <Link
+            to={loginHere()}
+            className="inline-flex h-8 items-center bg-primary px-3 text-[13px] font-medium text-on-primary transition-opacity hover:opacity-90"
+          >
+            {t('actions.login')}
+          </Link>
+        )}
       </div>
     </header>
   )

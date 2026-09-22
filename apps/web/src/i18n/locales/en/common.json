@@ -99,7 +99,6 @@
   "plan": {
     "today": "Today's progress",
     "solvedOfGoal": "{{solved}} / {{goal}} questions",
-    "accuracy": "{{percent}}% correct",
     "title": "Daily practice settings",
     "description": "Set the daily question goal and focus modules; daily practice builds the day’s session from them.",
     "dailyGoal": "Daily question goal",
@@ -163,16 +162,6 @@
     "melody": "Pick the melody you heard.",
     "rhythm": "Tap the rhythm back."
   },
-  "home": {
-    "guestNote": "Guests can practise everything; scores last for this session only.",
-    "loginCtaHint": "Study plan, accuracy trend, re-practice, streaks and badges.",
-    "loginHeading": "Sign in for progress and the notebook",
-    "practiceHeading": "Random practice",
-    "practiceHint": "Endless random questions, no rounds and no goal; guests can practise everything.",
-    "dailyHint": "Set a daily question goal and focus modules, then work through the day’s amount.",
-    "mistakesTile": "Mistake review",
-    "mistakesHint": "Drawn from your mistake notebook."
-  },
   "round": {
     "title": "Round complete",
     "correct": "Correct",
@@ -202,37 +191,11 @@
     "empty": "Nothing here yet. Start with level 1.",
     "guestBanner": "Question-set progress lives in your account. Sign in to start from level 1.",
     "entryHintGuest": "Work through each module by difficulty; progress is saved to your account.",
-    "modeTitle": "Question sets",
     "modeHint": "One chain per module, easy to hard. Pass a level to open the next one; progress follows your account.",
     "continueAt": "Continue “{{level}}” · best {{percent}}%",
     "allPassed": "Every level in this chain is passed",
     "viewAll": "See all levels",
     "startAtName": "Start at “{{level}}”"
-  },
-  "daily": {
-    "title": "Daily practice",
-    "intro": "Builds today’s session from your plan. Meeting the daily question goal is what counts.",
-    "guestBanner": "Daily progress and history live in your account. Sign in to start.",
-    "today": "Today",
-    "progress": "{{solved}} / {{goal}} questions",
-    "met": "Today’s goal is met",
-    "focus": "Focus modules (done today)",
-    "start": "Start today’s session ({{count}})",
-    "extraRound": "Another round",
-    "settingsLink": "Adjust the plan",
-    "nextModule": "This round starts with {{module}}; the next focus module follows afterwards.",
-    "entry": "Today’s session",
-    "entryHint": "Questions drawn from your plan until the goal is met.",
-    "entryHintGuest": "Needs an account: progress and history are saved there.",
-    "afterRound": "Today {{solved}} / {{goal}} questions, {{remaining}} to go.",
-    "history": "Practice history (last year)",
-    "streaks": "{{current}}-day streak · longest {{longest}}",
-    "cellTitle": "{{date}}: {{solved}} / {{goal}} questions",
-    "tier": {
-      "met": "goal met",
-      "partial": "partly done",
-      "none": "nothing"
-    }
   },
   "collections": {
     "title": "Collections",
@@ -249,5 +212,44 @@
     "guestBanner": "Folders follow your account; sign in to use them.",
     "openHint": "Your saved levels, in as many folders as you like.",
     "open": "Open collections"
+  },
+  "home": {
+    "learnTitle": "Learn",
+    "randomTitle": "Random test",
+    "passedOf": "{{passed}}/{{total}} levels",
+    "collectionsHint": "The levels you kept",
+    "startDaily": "Start daily practice",
+    "extraRound": "One more round",
+    "startHint": "{{count}} left today, picking up {{module}}.",
+    "goalMet": "Today's goal is met — another round if you want one.",
+    "adjustPlan": "Adjust the daily plan",
+    "met": "Today's goal is met",
+    "accountLabel": "Account",
+    "guestIdentity": "Not signed in — results last this session only.",
+    "practiceHint": "Endless questions, no rounds and no goal; guests can practise every drill.",
+    "mistakesTile": "Mistake review",
+    "mistakesHint": "Draw from the notebook and go after the weak spots.",
+    "loginCtaHint": "The plan, accuracy trends, mistake review, streaks and badges."
+  },
+  "heatmap": {
+    "title": "Practice history",
+    "streaks": "{{current}}-day streak · longest {{longest}}",
+    "day": "Day",
+    "week": "Week",
+    "month": "Month",
+    "year": "Year",
+    "cellDay": "{{date}}: {{solved}} of {{goal}}",
+    "cellPeriod": "{{label}}: {{solved}} questions over {{days}} days",
+    "tier": {
+      "met": "Goal met",
+      "partial": "Partly done",
+      "none": "Nothing"
+    },
+    "relative": {
+      "3": "Most",
+      "2": "More",
+      "1": "Less",
+      "0": "None"
+    }
   }
 }

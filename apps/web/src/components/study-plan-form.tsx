@@ -102,10 +102,7 @@ export function StudyPlanForm() {
           {t('plan.save')}
         </Button>
         {saved && <span className="text-[14px] text-success-text">{t('plan.saved')}</span>}
-        <Link
-          to="/daily"
-          className="text-[14px] text-muted underline underline-offset-4 hover:text-ink"
-        >
+        <Link to="/" className="text-[14px] text-muted underline underline-offset-4 hover:text-ink">
           {t('plan.goToday')}
         </Link>
       </div>

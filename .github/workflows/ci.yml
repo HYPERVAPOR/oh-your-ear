@@ -178,6 +178,11 @@ jobs:
       - name: Type check
         run: pnpm run typecheck
 
+      # The apps had tests before this and nobody ran them: the landing site's piano-roll
+      # and meter suites only ever gated a developer's memory.
+      - name: Test
+        run: pnpm run test
+
       - name: Build
         run: pnpm run build
 
