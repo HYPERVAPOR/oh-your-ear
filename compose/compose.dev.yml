@@ -27,6 +27,9 @@ services:
       - "5173:5173"
     environment:
       VITE_API_PROXY_TARGET: "http://api:8080"
+      # The nameplate in the app header points at the marketing site; in dev that is
+      # the landing dev server, not the real domain.
+      VITE_LANDING_URL: "http://localhost:5174"
     command:
       - sh
       - -c
