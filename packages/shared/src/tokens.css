@@ -111,6 +111,7 @@
   --color-muted-soft: var(--muted-soft);
   --color-hairline: var(--hairline);
   --color-hairline-strong: var(--hairline-strong);
+  --color-hairline-hover: var(--hairline-hover);
   --color-primary: var(--primary);
   --color-on-primary: var(--on-primary);
   --color-success: var(--success);
@@ -186,6 +187,9 @@
   --muted-soft: #8b847f;
   --hairline: #c5bfbb;
   --hairline-strong: #aea9a4;
+  /* One step darker than `strong`, for the pointer: a hairline that jumps straight to
+     ink reads as a glare in the dark theme, where ink is near-white. */
+  --hairline-hover: #a8a29e;
   --primary: #0c0a09;
   --on-primary: #ffffff;
 
@@ -223,6 +227,7 @@
   --muted-soft: #857e79;
   --hairline: #3b332e;
   --hairline-strong: #554b45;
+  --hairline-hover: #78716c;
   --primary: #fafaf9;
   --on-primary: #0c0a09;
 
