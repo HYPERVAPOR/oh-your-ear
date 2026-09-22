@@ -97,7 +97,6 @@
   },
   "notFound": "页面不存在。",
   "plan": {
-    "today": "今日进度",
     "solvedOfGoal": "{{solved}} / {{goal}} 题",
     "title": "每日练习设置",
     "description": "设定每日题数与重点模块；每日练习按它生成当天要练的题。",
@@ -232,8 +231,12 @@
     "loginCtaHint": "学习计划、正确率趋势、错题重练、连续打卡与徽章。"
   },
   "heatmap": {
-    "title": "练习历史",
+    "title": "练习进度",
     "streaks": "连续练习 {{current}} 天 · 最长 {{longest}} 天",
+    "slot": {
+      "todo": "未答",
+      "done": "已答"
+    },
     "day": "日",
     "week": "周",
     "month": "月",
