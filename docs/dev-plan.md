@@ -415,3 +415,42 @@
 - **status**: 🟢 done
 - **description**: The repository's search surface was empty — no description, no topics, a homepage URL missing its scheme, only GitHub's ten default labels — and the README was 43 lines of feature and tech-stack lists that still said "Live Demo: Coming soon" about a site that has been live for days. Now: an English marketing README that opens on the brand nameplate (the same mark-and-wordmark plate as the top left of both sites, rendered from `apps/landing/nameplate.html` into `.github/assets/nameplate-{light,dark}.png` and chosen with `<picture>` for the reader's colour scheme), a one-line tagline, a working link to the live site, the five drills as a table, the guest-versus-account promise, the landing page's playable roll as the hook, and the tech stack compressed to a single line pointing at `docs/tech-spec.md`. The repository itself got a description built around the words people actually search, a homepage with its scheme restored, twenty topics covering both ear-training terms and the implementation stack, and eleven area labels (landing/app/api/audio/ui/i18n/infra/seo/performance/security/polish) so the existing flow can label work by where it lands. The social preview can only be set by hand — GitHub has no API for it — and is recorded in PRD §7.6 as a manual step.
 - **depends on**: —
+
+---
+
+## M21 首页重构为 dashboard
+
+### 21.1 登录后回到触发登录的页面
+
+- **issue**: #106
+- **status**: 🔴 todo
+- **description**: `?next=` 成为唯一的回跳机制：登录页读 `next`，`RequireAuth` 与首页各登录入口跳 `/login?next=…`。`RequireAuth` 现在只传 `location.pathname`，查询串丢失，所以 `/exercise/interval?level=xx` 登录回来会掉关卡参数。`next` 必须做同源校验（以 `/` 开头、不以 `//` 开头），否则是开放重定向。Google 流程把 `next` 带过 OAuth 回路（`/api/v1/auth/google?next=…` 存进 state cookie），回调重定向到它而不是固定的 `FrontendURL + "/#access_token=…"`；顺带不再把 access token 塞进 URL hash —— 回调已经设了 refresh cookie，客户端 `restoreSession()` 本来就会用它换 token，带着反而与 PRD 7.1.2「不在 URL 里传任何令牌」冲突。
+- **depends on**: 7.1
+
+### 21.2 首页三段结构
+
+- **issue**: #107
+- **status**: 🔴 todo
+- **description**: 首页改成 dashboard（PRD 7.1.4）：第一段左右布局 —— 左侧邮箱与显眼的「开始每日训练」（游客同一位置放登录引导，布局不跳），右侧今日进度与热力图；第二、三段是两个 2×3 网格。`daily.tsx` 的 `startSession()` 逻辑（还算差几题、从练得最少的重点模块开一轮、一轮最多 20 题）搬到首页。顶栏给游客一个**带字不带图标**的登录按钮，放在图标组外侧、与其他控件同为 32px 高。
+- **depends on**: 21.1
+
+### 21.3 两个网格：Learn 与 Random
+
+- **issue**: #107
+- **status**: 🔴 todo
+- **description**: Learn 是 2×3 的闯关网格，前五格是五个模块的关链、第六格是收藏夹，每格带闯关进度条（已通关数 / 总关卡数）与当前关、最好成绩。Random 是同样式但**不带进度条**的 2×3 网格，第六格是错题重练。未登录时进度条显示 0、不显示假数据，点击才提示登录并回跳。
+- **depends on**: 21.2, 14.4, 14.5
+
+### 21.4 热力图四档切片
+
+- **issue**: #107
+- **status**: 🔴 todo
+- **description**: 热力图加日 / 周 / 月 / 年四个 tab，都是同一份每日数据（`GET /me/daily`）的时间切片，不新增接口：日是一格一天（近一年的 7 行日历，现状），周月年是一格一周 / 一月 / 一年的一行方块。只有「日」按当天目标分档（达标 / 部分 / 未练），周月年按该视图内的题量相对分档 —— 目标只以天为单位存在。连续天数常驻。
+- **depends on**: 15.2
+
+### 21.5 删掉每日练习页
+
+- **issue**: #107
+- **status**: 🔴 todo
+- **description**: 今日进度、开始按钮、热力图都已在首页，计划设置在 `/me`，`/daily` 没有存在意义了：删掉页面、路由与 `/daily` 的入口；`study-plan-form` 里指向它的链接改到首页；相关文案 key 迁进首页命名空间，中英同步。
+- **depends on**: 21.2
