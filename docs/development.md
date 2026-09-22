@@ -41,7 +41,7 @@ Services:
 | --- | --- | --- |
 | Web | http://localhost:5173 | `oh-your-ear-web-1` |
 | API | http://localhost:8080 | `oh-your-ear-api-1` |
-| API health | http://localhost:8080/health | `oh-your-ear-api-1` |
+| API health | http://localhost:8080/api/v1/health | `oh-your-ear-api-1` |
 | Postgres | localhost:5432 | `oh-your-ear-db-1` |
 
 ### View logs
@@ -88,7 +88,7 @@ pnpm dev
 
 - Web: http://localhost:5173
 - API: http://localhost:8080
-- API health: http://localhost:8080/health
+- API health: http://localhost:8080/api/v1/health
 
 ## Common Scripts
 
