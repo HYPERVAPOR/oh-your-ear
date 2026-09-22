@@ -238,18 +238,11 @@
     "week": "周",
     "month": "月",
     "year": "年",
-    "cellDay": "{{date}}：{{solved}} / {{goal}} 题",
-    "cellPeriod": "{{label}}：{{solved}} 题，{{days}} 天",
     "tier": {
       "met": "达标",
       "partial": "练了一部分",
       "none": "没练"
     },
-    "relative": {
-      "3": "最多",
-      "2": "较多",
-      "1": "较少",
-      "0": "没有"
-    }
+    "cell": "{{date}}：{{solved}} / {{goal}} 题"
   }
 }

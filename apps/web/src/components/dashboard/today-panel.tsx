@@ -8,11 +8,10 @@ import { modulePath } from '@/components/round-summary'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { MODULES, type ExerciseKind } from '@/components/ui/orb'
+import { DEFAULT_GOAL } from '@/lib/heatmap'
 import { loginHere } from '@/lib/auth'
 import { useAuthStore } from '@/stores/auth-store'
 
-/** The plan's own default, and what a signed-out reader is shown against. */
-const DEFAULT_GOAL = 20
 /** One session is a round; the plan can ask for more, but not in a single sitting. */
 const MAX_SESSION = 20
 
