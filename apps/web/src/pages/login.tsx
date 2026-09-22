@@ -6,6 +6,7 @@ import { apiClient } from '@/api/client'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Field, Input } from '@/components/ui/field'
+import { safeNext } from '@/lib/auth'
 import { useAuthStore } from '@/stores/auth-store'
 
 const RESEND_SECONDS = 60
@@ -23,7 +24,12 @@ export function Login() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const from = (location.state as { from?: string } | null)?.from ?? '/'
+  // Where to land after signing in. The query string is the mechanism, the router state
+  // is the older one kept working for links already in flight.
+  const next = safeNext(
+    new URLSearchParams(location.search).get('next') ??
+      (location.state as { from?: string } | null)?.from,
+  )
 
   useEffect(() => {
     if (cooldown <= 0) return
@@ -57,7 +63,7 @@ export function Login() {
       return
     }
     setSession(data.accessToken, data.user)
-    navigate(from, { replace: true })
+    navigate(next, { replace: true })
   }
 
   const loginWithMock = useCallback(async () => {
@@ -65,8 +71,8 @@ export function Login() {
     if (!res.ok) return
     const data = await res.json()
     setSession(data.accessToken, data.user)
-    navigate(from, { replace: true })
-  }, [from, navigate, setSession])
+    navigate(next, { replace: true })
+  }, [next, navigate, setSession])
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center px-6 py-16">
@@ -133,7 +139,9 @@ export function Login() {
               variant="outline"
               className="w-full"
               onClick={() => {
-                window.location.href = '/api/v1/auth/google'
+                // Google's redirect has to carry the destination too: it leaves this
+                // page entirely, so the query string is all that survives.
+                window.location.href = `/api/v1/auth/google?next=${encodeURIComponent(next)}`
               }}
             >
               {t('auth.loginWithGoogle')}

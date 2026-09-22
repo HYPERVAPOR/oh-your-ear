@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"net/url"
 	"strings"
 	"time"
 	_ "time/tzdata" // embedded so APP_TIMEZONE resolves in images without tzdata
@@ -98,6 +97,10 @@ func registerAuthRoutes(r *gin.Engine, cfg config.Config, server *api.Server, au
 			return
 		}
 		c.SetCookie(auth.OAuthStateCookieName, state, int(auth.OAuthStateTTL.Seconds()), "/", "", secureCookies(cfg), true)
+		// Remember where the reader was headed, so the callback can put them there
+		// instead of always dropping them on the hub.
+		next := auth.SafeNextPath(c.Query("next"))
+		c.SetCookie(auth.OAuthNextCookieName, next, int(auth.OAuthStateTTL.Seconds()), "/", "", secureCookies(cfg), true)
 		c.Redirect(http.StatusTemporaryRedirect, googleCfg.AuthCodeURL(state))
 	})
 
@@ -113,6 +116,8 @@ func registerAuthRoutes(r *gin.Engine, cfg config.Config, server *api.Server, au
 			return
 		}
 		c.SetCookie(auth.OAuthStateCookieName, "", -1, "/", "", secureCookies(cfg), true)
+		next, _ := c.Cookie(auth.OAuthNextCookieName)
+		c.SetCookie(auth.OAuthNextCookieName, "", -1, "/", "", secureCookies(cfg), true)
 
 		token, err := googleCfg.Exchange(ctx, c.Query("code"))
 		if err != nil {
@@ -132,14 +137,17 @@ func registerAuthRoutes(r *gin.Engine, cfg config.Config, server *api.Server, au
 			return
 		}
 
-		accessToken, refreshToken, err := server.IssueTokens(user)
+		_, refreshToken, err := server.IssueTokens(user)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, api.ErrorResponse{Error: "failed to generate tokens"})
 			return
 		}
 
+		// Refresh cookie only: the client exchanges it for an access token on boot, so
+		// there is no reason to put a token in the URL, where it would sit in the
+		// browser's history and conflict with PRD 7.1.2.
 		server.SetRefreshCookie(c, refreshToken)
-		c.Redirect(http.StatusTemporaryRedirect, cfg.FrontendURL+"/#access_token="+url.QueryEscape(accessToken))
+		c.Redirect(http.StatusTemporaryRedirect, cfg.FrontendURL+auth.SafeNextPath(next))
 	})
 
 	// Development-only door, and only when it is explicitly configured: this route used

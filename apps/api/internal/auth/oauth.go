@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"golang.org/x/oauth2"
@@ -16,9 +17,26 @@ import (
 const (
 	// OAuthStateCookieName holds the CSRF state for an in-flight Google login.
 	OAuthStateCookieName = "oauth_state"
+	// OAuthNextCookieName holds the path the reader was headed to when they started a
+	// Google login. It cannot ride along in `state`: Google hands that back unchanged,
+	// but the value is compared against a cookie, so it has to stay random.
+	OAuthNextCookieName = "oauth_next"
 	// OAuthStateTTL bounds how long a login attempt may stay in flight.
 	OAuthStateTTL = 10 * time.Minute
 )
+
+// SafeNextPath returns a same-origin path to send a reader to after signing in, or "/"
+// when the value is missing or could point at another host. An unchecked redirect
+// target is an open redirect, and `//evil.com` is a URL, not a path.
+func SafeNextPath(raw string) string {
+	if raw == "" || raw[0] != '/' || strings.HasPrefix(raw, "//") {
+		return "/"
+	}
+	if strings.ContainsAny(raw, "\\\r\n\t") {
+		return "/"
+	}
+	return raw
+}
 
 // GoogleUser represents the data returned by Google's userinfo endpoint.
 type GoogleUser struct {

@@ -8,6 +8,7 @@ import { modulePath } from '@/components/round-summary'
 import { TodayProgress } from '@/components/today-progress'
 import { buttonVariants } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import { loginPath, loginHere } from '@/lib/auth'
 import { cn } from '@/lib/utils'
 import { MODULE_SWATCH, ModuleSwatch, type ExerciseKind } from '@/components/ui/orb'
 import {
@@ -43,8 +44,7 @@ function LevelCard({
 
   return (
     <Link
-      to={signedIn ? target : '/login'}
-      state={signedIn ? undefined : { from: target }}
+      to={signedIn ? target : loginPath(target)}
       className="group block w-full sm:w-[calc(50%-10px)] lg:w-[calc(33.333%-14px)]"
     >
       <Card
@@ -232,7 +232,7 @@ export function Home() {
                       {t('home.loginCtaHint')}
                     </p>
                   </div>
-                  <Link to="/login" className={buttonVariants({ size: 'lg' })}>
+                  <Link to={loginHere()} className={buttonVariants({ size: 'lg' })}>
                     {t('actions.login')}
                   </Link>
                 </div>

@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Ear, LogIn, LogOut, SquareUser } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
+import { loginHere } from '@/lib/auth'
 import { useAuthStore } from '@/stores/auth-store'
 import {
   GitHubKey,
@@ -89,7 +90,7 @@ export function AppHeader() {
               className="h-8 w-8"
               aria-label={t('actions.login')}
               title={t('actions.login')}
-              onClick={() => navigate('/login')}
+              onClick={() => navigate(loginHere())}
             >
               <LogIn aria-hidden="true" className={icon} strokeWidth={1.75} />
             </Button>

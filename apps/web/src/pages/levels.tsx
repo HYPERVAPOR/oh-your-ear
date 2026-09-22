@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { Check, Lock } from 'lucide-react'
 
 import { apiClient } from '@/api/client'
+import { loginHere, loginPath } from '@/lib/auth'
 import { AppHeader } from '@/components/app-header'
 import { EmptyState } from '@/components/ui/card'
 import { CollectMenu } from '@/components/collect-menu'
@@ -52,8 +53,7 @@ export function Levels() {
             <div className="mt-6 flex flex-wrap items-center gap-4 rounded-xl border border-hairline bg-surface px-5 py-4">
               <p className="text-[15px] text-body">{t('levels.guestBanner')}</p>
               <Link
-                to="/login"
-                state={{ from: '/levels' }}
+                to={loginHere()}
                 className="inline-flex h-10 items-center rounded-none bg-primary px-5 text-[15px] font-medium text-on-primary transition-opacity hover:opacity-90"
               >
                 {t('actions.login')}
@@ -103,12 +103,7 @@ export function Levels() {
                                 to={
                                   user
                                     ? `/exercise/${modulePath(kind)}?level=${level.slug}`
-                                    : '/login'
-                                }
-                                state={
-                                  user
-                                    ? undefined
-                                    : { from: `/exercise/${modulePath(kind)}?level=${level.slug}` }
+                                    : loginPath(`/exercise/${modulePath(kind)}?level=${level.slug}`)
                                 }
                                 className="flex flex-1 items-center justify-between gap-4 rounded-xl border border-hairline bg-surface px-4 py-3.5 transition-colors hover:border-hairline-strong hover:bg-canvas-soft"
                               >
