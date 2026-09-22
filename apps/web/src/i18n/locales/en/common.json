@@ -238,18 +238,11 @@
     "week": "Week",
     "month": "Month",
     "year": "Year",
-    "cellDay": "{{date}}: {{solved}} of {{goal}}",
-    "cellPeriod": "{{label}}: {{solved}} questions over {{days}} days",
     "tier": {
       "met": "Goal met",
       "partial": "Partly done",
       "none": "Nothing"
     },
-    "relative": {
-      "3": "Most",
-      "2": "More",
-      "1": "Less",
-      "0": "None"
-    }
+    "cell": "{{date}}: {{solved}} of {{goal}}"
   }
 }

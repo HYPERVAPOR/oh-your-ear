@@ -9,20 +9,21 @@ export type DailyBucket = {
   met: boolean
 }
 
-export type Granularity = 'day' | 'week' | 'month' | 'year'
+/** How much of the calendar one screen shows. A square is always one day — except on the
+ *  day view, where it is one of the questions the day's goal asks for. */
+export type Level = 'day' | 'week' | 'month' | 'year'
 
-/** One square of the heatmap, with the numbers behind its colour. */
-export type Period = {
-  /** Stable identity and the sorting key: the first day of the period. */
-  key: string
-  first: string
-  last: string
-  solved: number
-  /** How many days the period covers, and the goals that were in force across it. */
-  days: number
-  goal: number
-  tier: 0 | 1 | 2 | 3
-}
+/** Met, partly done, or nothing: a day is judged against the goal that applied to it. */
+export type Tier = 0 | 1 | 3
+
+/** One square of a calendar view: a date, or a blank that keeps the columns aligned. */
+export type Square = { date: string | null; day?: DailyBucket; tier: Tier }
+
+/** One square of the day view: a question the goal asked for, filled as it is answered. */
+export type Slot = { key: number; filled: boolean }
+
+/** The plan's default daily goal (PRD 5.0.1), and what a reader without a plan sees. */
+export const DEFAULT_GOAL = 20
 
 const DAY_MS = 86_400_000
 
@@ -30,63 +31,77 @@ const DAY_MS = 86_400_000
 const at = (date: string) => Date.parse(`${date}T00:00:00Z`)
 const iso = (ms: number) => new Date(ms).toISOString().slice(0, 10)
 
-/** The Monday of a day's week — the daily grid is laid out Monday first, so weeks are too. */
-function weekStart(date: string): string {
-  const ms = at(date)
-  return iso(ms - ((new Date(ms).getUTCDay() + 6) % 7) * DAY_MS)
+export function tierOf(day: DailyBucket | undefined): Tier {
+  if (!day || day.solved <= 0) return 0
+  return day.met ? 3 : 1
 }
 
-function groupKey(date: string, granularity: Granularity): string {
-  if (granularity === 'week') return weekStart(date)
-  if (granularity === 'month') return `${date.slice(0, 7)}-01`
-  if (granularity === 'year') return `${date.slice(0, 4)}-01-01`
-  return date
+/** Monday-first index, 0–6: the calendar's rows start on Monday. */
+export function weekdayIndex(date: string): number {
+  return (new Date(at(date)).getUTCDay() + 6) % 7
+}
+
+function index(days: DailyBucket[]): Map<string, DailyBucket> {
+  return new Map(days.map((day) => [day.date, day]))
+}
+
+const blank = (): Square => ({ date: null, tier: 0 })
+
+function squareAt(byDate: Map<string, DailyBucket>, date: string): Square {
+  const day = byDate.get(date)
+  return { date, day, tier: tierOf(day) }
+}
+
+/** The seven days of the week `today` falls in, Monday first. */
+export function week(days: DailyBucket[], today: string): Square[] {
+  const byDate = index(days)
+  const start = at(today) - weekdayIndex(today) * DAY_MS
+  return Array.from({ length: 7 }, (_, offset) => squareAt(byDate, iso(start + offset * DAY_MS)))
+}
+
+/** The month `today` falls in, as a calendar: blanks up to the 1st, then its days. */
+export function month(days: DailyBucket[], today: string): Square[] {
+  const byDate = index(days)
+  const first = `${today.slice(0, 7)}-01`
+  const calendarYear = Number(today.slice(0, 4))
+  const calendarMonth = Number(today.slice(5, 7))
+  // Day 0 of the next month is the last day of this one, which knows about leap years.
+  const length = new Date(Date.UTC(calendarYear, calendarMonth, 0)).getUTCDate()
+
+  const squares: Square[] = Array.from({ length: weekdayIndex(first) }, blank)
+  for (let offset = 0; offset < length; offset++) {
+    squares.push(squareAt(byDate, iso(at(first) + offset * DAY_MS)))
+  }
+  return squares
+}
+
+/** The year: every day the series has, one column per week. */
+export function year(days: DailyBucket[]): Square[] {
+  return days.map((day) => ({ date: day.date, day, tier: tierOf(day) }))
 }
 
 /**
- * The same practice history at four time scales. `days` is the only period with a goal
- * to be judged against, so it is the only one whose tier means "did I meet it"; weeks,
- * months and years have no such target and are coloured relative to the busiest one in
- * the range (PRD 7.1.4).
+ * The day view: one square per question the goal asks for, filled as it is answered.
+ * Over-achieving adds squares rather than capping — the strip shows 0/20 → 20/20 and then
+ * keeps going.
  */
-export function slice(days: DailyBucket[], granularity: Granularity): Period[] {
-  const grouped = new Map<string, Period>()
-
-  for (const day of days) {
-    const key = groupKey(day.date, granularity)
-    let period = grouped.get(key)
-    if (!period) {
-      period = { key, first: day.date, last: day.date, solved: 0, days: 0, goal: 0, tier: 0 }
-      grouped.set(key, period)
-    }
-    period.solved += day.solved
-    period.goal += day.goal
-    period.days += 1
-    period.last = day.date
-    if (granularity === 'day') period.tier = day.solved <= 0 ? 0 : day.met ? 3 : 1
-  }
-
-  const periods = [...grouped.values()]
-  if (granularity === 'day') return periods
-
-  const busiest = periods.reduce((most, period) => Math.max(most, period.solved), 0)
-  for (const period of periods) {
-    period.tier =
-      busiest <= 0 || period.solved <= 0
-        ? 0
-        : (Math.min(3, Math.ceil((period.solved / busiest) * 3)) as 1 | 2 | 3)
-  }
-  return periods
+export function goalSlots(day: DailyBucket | undefined, fallbackGoal: number): Slot[] {
+  const goal = day && day.goal > 0 ? day.goal : fallbackGoal
+  const answered = day?.solved ?? 0
+  return Array.from({ length: Math.max(goal, answered, 1) }, (_, key) => ({
+    key,
+    filled: key < answered,
+  }))
 }
 
 /**
- * An empty range of days, so a signed-out reader sees the grid they are being offered
+ * An empty range of days, so a signed-out reader sees the calendar they are being offered
  * instead of a blank box, and the layout does not jump after signing in.
  */
 export function emptyRange(last: string, count = 371): DailyBucket[] {
   const end = at(last)
-  return Array.from({ length: count }, (_, index) => ({
-    date: iso(end - (count - 1 - index) * DAY_MS),
+  return Array.from({ length: count }, (_, offset) => ({
+    date: iso(end - (count - 1 - offset) * DAY_MS),
     solved: 0,
     goal: 0,
     met: false,

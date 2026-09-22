@@ -1,50 +1,47 @@
 import { useState } from 'react'
+import type { ReactNode } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 
 import { apiClient } from '@/api/client'
-import { emptyRange, slice, type DailyBucket, type Granularity, type Period } from '@/lib/heatmap'
+import {
+  DEFAULT_GOAL,
+  emptyRange,
+  goalSlots,
+  month,
+  week,
+  weekdayIndex,
+  year,
+  type DailyBucket,
+  type Level,
+  type Square,
+} from '@/lib/heatmap'
 import { useAuthStore } from '@/stores/auth-store'
 import { cn } from '@/lib/utils'
 
-const GRANULARITIES: Granularity[] = ['day', 'week', 'month', 'year']
+const LEVELS: Level[] = ['day', 'week', 'month', 'year']
 
-/** Four steps of one colour: nothing, then a third, two thirds, the fullest. */
-const TIER_CLASS = ['bg-surface-strong', 'bg-success/35', 'bg-success/60', 'bg-success']
+/** Three steps of one colour: nothing, partly done, the day's goal met. */
+const TIER_CLASS = ['bg-surface-strong', 'bg-success/35', 'bg-success']
 
-/** The day view keeps its own legend, because there the colour means "goal met". */
-const DAY_LEGEND = ['none', 'partial', 'met'] as const
+const LEGEND = ['none', 'partial', 'met'] as const
+const LEGEND_CLASS = { none: TIER_CLASS[0], partial: TIER_CLASS[1], met: TIER_CLASS[2] }
 
-const WEEKDAYS = ['一', '二', '三', '四', '五', '六', '日']
+/** English, and fixed: the axis is a scale, not a sentence. */
+const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
-const today = () => new Date().toISOString().slice(0, 10)
-
-function format(period: Period, granularity: Granularity, language: string): string {
-  const first = new Date(`${period.first}T00:00:00Z`)
-  if (granularity === 'year') return period.first.slice(0, 4)
-  if (granularity === 'month') {
-    return new Intl.DateTimeFormat(language, {
-      month: 'short',
-      year: 'numeric',
-      timeZone: 'UTC',
-    }).format(first)
-  }
-  return new Intl.DateTimeFormat(language, {
-    month: 'short',
-    day: 'numeric',
-    timeZone: 'UTC',
-  }).format(first)
-}
+const squareClass = 'h-2.5 w-2.5 shrink-0'
 
 /**
- * The practice history, sliced four ways (PRD 7.1.4). One series of daily buckets is the
- * only source; the tabs change the size of a square, not the numbers. A day is the only
- * period with a goal to be judged against, so it is the only view whose legend says so.
+ * The practice history as one calendar at four magnifications (PRD 7.1.4): today's goal
+ * as a strip of squares, this week, this month, and the year. A square is a day — or, on
+ * the day view, one of the questions the day's goal asks for — and it is always coloured
+ * against that day's own goal.
  */
 export function PracticeHeatmap() {
-  const { t, i18n } = useTranslation('common')
+  const { t } = useTranslation('common')
   const user = useAuthStore((s) => s.user)
-  const [granularity, setGranularity] = useState<Granularity>('day')
+  const [level, setLevel] = useState<Level>('day')
 
   const { data } = useQuery({
     queryKey: ['daily-history'],
@@ -59,52 +56,35 @@ export function PracticeHeatmap() {
     },
   })
 
-  // Signed out, the grid is shown empty rather than absent: the reader can see what they
-  // are being offered, and nothing jumps when they sign in.
-  const days: DailyBucket[] = data?.days ?? emptyRange(today())
-  const periods = slice(days, granularity)
-  const day = granularity === 'day'
+  // Signed out, the calendar is shown empty rather than absent: the reader can see what
+  // they are being offered, and nothing jumps when they sign in.
+  const days: DailyBucket[] = data?.days ?? emptyRange(new Date().toISOString().slice(0, 10))
+  // The server decides which day "today" is; its last bucket is that day.
+  const today = days[days.length - 1]?.date ?? new Date().toISOString().slice(0, 10)
+  const todayBucket = days.find((day) => day.date === today) ?? days[days.length - 1]
 
-  // The calendar: a column per week, Mondays first. Leading blanks keep the rows aligned.
-  const leading = day ? (new Date(`${periods[0]?.key}T00:00:00Z`).getUTCDay() + 6) % 7 : 0
-  const columns = day ? Math.ceil((periods.length + leading) / 7) : 1
-  const monthOf = new Intl.DateTimeFormat(i18n.language, { month: 'short', timeZone: 'UTC' })
-  const monthAt = new Map<number, string>()
-  const labelled = new Set<string>()
-  if (day) {
-    periods.forEach((period, index) => {
-      const month = period.key.slice(0, 7)
-      if (new Date(`${period.key}T00:00:00Z`).getUTCDate() <= 7 && !labelled.has(month)) {
-        labelled.add(month)
-        monthAt.set(
-          Math.floor((index + leading) / 7),
-          monthOf.format(new Date(`${period.key}T00:00:00Z`)),
-        )
-      }
+  const cellTitle = (square: Square) =>
+    t('heatmap.cell', {
+      date: square.date,
+      solved: square.day?.solved ?? 0,
+      goal: square.day?.goal ?? 0,
     })
-  }
 
-  const cellTitle = (period: Period) =>
-    day
-      ? t('heatmap.cellDay', { date: period.key, solved: period.solved, goal: period.goal })
-      : t('heatmap.cellPeriod', {
-          label: format(period, granularity, i18n.language),
-          solved: period.solved,
-          days: period.days,
-        })
-
-  const square = (period: Period) => (
-    <span
-      key={period.key}
-      title={cellTitle(period)}
-      data-tier={period.tier}
-      className={cn(
-        'h-2.5 w-2.5 shrink-0',
-        TIER_CLASS[period.tier],
-        period.last === days[days.length - 1]?.date && 'ring-1 ring-ink',
-      )}
-    />
-  )
+  const square = (item: Square) =>
+    item.date === null ? (
+      <span key="blank" className={squareClass} />
+    ) : (
+      <span
+        key={item.date}
+        title={cellTitle(item)}
+        data-tier={item.tier}
+        className={cn(
+          squareClass,
+          TIER_CLASS[item.tier === 3 ? 2 : item.tier],
+          item.date === today && 'ring-1 ring-ink',
+        )}
+      />
+    )
 
   return (
     <div>
@@ -128,15 +108,15 @@ export function PracticeHeatmap() {
           aria-label={t('heatmap.title')}
           className="flex items-stretch divide-x divide-hairline-strong border border-hairline-strong"
         >
-          {GRANULARITIES.map((value) => (
+          {LEVELS.map((value) => (
             <button
               key={value}
               type="button"
-              aria-pressed={granularity === value}
-              onClick={() => setGranularity(value)}
+              aria-pressed={level === value}
+              onClick={() => setLevel(value)}
               className={cn(
                 'h-8 px-2.5 text-[13px] transition-colors',
-                granularity === value ? 'bg-surface-strong text-ink' : 'text-muted hover:text-ink',
+                level === value ? 'bg-surface-strong text-ink' : 'text-muted hover:text-ink',
               )}
             >
               {t(`heatmap.${value}`)}
@@ -146,74 +126,113 @@ export function PracticeHeatmap() {
       </div>
 
       <div className="mt-4 overflow-x-auto pb-1">
-        {day ? (
-          <div className="inline-flex flex-col gap-1">
-            <div
-              className="grid gap-[2px] pl-[19px]"
-              style={{ gridTemplateColumns: `repeat(${columns}, 10px)` }}
-            >
-              {Array.from({ length: columns }, (_, column) => (
-                <span
-                  key={column}
-                  className="whitespace-nowrap text-[10px] leading-[10px] text-muted"
-                >
-                  {monthAt.get(column) ?? ''}
-                </span>
-              ))}
-            </div>
-
-            <div className="flex gap-[6px]">
-              <div
-                className="grid gap-[2px] text-[10px] leading-[10px] text-muted"
-                style={{ gridTemplateRows: 'repeat(7, 10px)' }}
-              >
-                {WEEKDAYS.map((label) => (
-                  <span key={label} className="w-3">
-                    {label}
-                  </span>
-                ))}
-              </div>
-
-              <div
-                className="grid grid-flow-col grid-rows-7 gap-[2px]"
-                style={{ gridTemplateColumns: `repeat(${columns}, 10px)` }}
-              >
-                {Array.from({ length: leading }, (_, index) => (
-                  <span key={`pad-${index}`} className="h-2.5 w-2.5" />
-                ))}
-                {periods.map(square)}
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="flex flex-wrap gap-[2px]">{periods.map(square)}</div>
-        )}
+        {level === 'day' && <DayStrip goal={todayBucket} />}
+        {level === 'week' && <WeekRow days={days} today={today} square={square} />}
+        {level === 'month' && <MonthGrid days={days} today={today} square={square} />}
+        {level === 'year' && <YearGrid days={days} square={square} />}
       </div>
 
       <ul className="mt-4 flex items-center gap-4 text-[13px] text-muted">
-        {day
-          ? DAY_LEGEND.map((key) => (
-              <li key={key} className="flex items-center gap-1.5">
-                <span
-                  className={cn(
-                    'h-2.5 w-2.5',
-                    key === 'met'
-                      ? TIER_CLASS[3]
-                      : key === 'partial'
-                        ? TIER_CLASS[1]
-                        : TIER_CLASS[0],
-                  )}
-                />
-                {t(`heatmap.tier.${key}`)}
-              </li>
-            ))
-          : ([3, 2, 1, 0] as const).map((tier) => (
-              <li key={tier} className="flex items-center gap-1.5">
-                <span className={cn('h-2.5 w-2.5', TIER_CLASS[tier])} />
-                {t(`heatmap.relative.${tier}`)}
-              </li>
-            ))}
+        {LEGEND.map((key) => (
+          <li key={key} className="flex items-center gap-1.5">
+            <span className={cn(squareClass, LEGEND_CLASS[key])} />
+            {t(`heatmap.tier.${key}`)}
+          </li>
+        ))}
       </ul>
+    </div>
+  )
+}
+
+/** Today: one square per question the goal asks for, filled as they are answered. */
+function DayStrip({ goal }: { goal: DailyBucket | undefined }) {
+  const slots = goalSlots(goal, DEFAULT_GOAL)
+
+  return (
+    <div aria-hidden="true" className="flex flex-wrap gap-[2px]">
+      {slots.map((slot) => (
+        <span
+          key={slot.key}
+          data-filled={slot.filled}
+          className={cn(squareClass, slot.filled ? 'bg-success' : 'bg-surface-strong')}
+        />
+      ))}
+    </div>
+  )
+}
+
+/** This week: seven days under their weekday names. */
+function WeekRow({
+  days,
+  today,
+  square,
+}: {
+  days: DailyBucket[]
+  today: string
+  square: (item: Square) => ReactNode
+}) {
+  const squares = week(days, today)
+
+  return (
+    <div className="inline-grid grid-cols-[repeat(7,16px)] justify-items-center gap-[2px]">
+      {WEEKDAYS.map((label) => (
+        <span key={label} className="text-[10px] leading-[10px] text-muted">
+          {label}
+        </span>
+      ))}
+      {squares.map(square)}
+    </div>
+  )
+}
+
+/** This month, as a calendar: the weekday header, blanks, then its days. */
+function MonthGrid({
+  days,
+  today,
+  square,
+}: {
+  days: DailyBucket[]
+  today: string
+  square: (item: Square) => ReactNode
+}) {
+  const squares = month(days, today)
+
+  return (
+    <div className="inline-grid grid-cols-[repeat(7,16px)] justify-items-center gap-[2px]">
+      {WEEKDAYS.map((label) => (
+        <span key={label} className="text-[10px] leading-[10px] text-muted">
+          {label}
+        </span>
+      ))}
+      {squares.map(square)}
+    </div>
+  )
+}
+
+/** The year: a column per week, Monday first, with the weekday names down the side. */
+function YearGrid({ days, square }: { days: DailyBucket[]; square: (item: Square) => ReactNode }) {
+  const squares = year(days)
+  const leading = squares.length > 0 ? weekdayIndex(squares[0].date as string) : 0
+  const columns = Math.ceil((squares.length + leading) / 7)
+
+  return (
+    <div className="inline-flex gap-[6px]">
+      <div className="grid grid-rows-[repeat(7,10px)] gap-[2px] text-[10px] leading-[10px] text-muted">
+        {WEEKDAYS.map((label) => (
+          <span key={label} className="w-[26px]">
+            {label}
+          </span>
+        ))}
+      </div>
+      <div
+        className="grid grid-flow-col grid-rows-7 gap-[2px]"
+        style={{ gridTemplateColumns: `repeat(${columns}, 10px)` }}
+      >
+        {Array.from({ length: leading }, (_, index) => (
+          <span key={`pad-${index}`} className={squareClass} />
+        ))}
+        {squares.map(square)}
+      </div>
     </div>
   )
 }
