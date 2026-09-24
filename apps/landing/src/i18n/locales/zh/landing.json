@@ -4,6 +4,21 @@
   "line1": "五组练习，随时开始。注册？练完再说。",
   "line2": "音高、音程、和弦、旋律、节奏，还有 KTV 里那点底气。",
   "cta": "Practice",
+  "free": {
+    "heading": "不靠这个赚钱。",
+    "openSource": {
+      "label": "开源",
+      "body": "代码在 GitHub 上，Apache-2.0，想自己跑一份也行。"
+    },
+    "price": {
+      "label": "免费",
+      "body": "五组练习都不用付钱，账号只是用来记住你练到哪。"
+    },
+    "fees": {
+      "label": "没有额外费用",
+      "body": "没有订阅，没有解锁费，没有要单独买的关卡。"
+    }
+  },
   "github": "GitHub",
   "license": "Apache-2.0",
   "chart": "音高柱状图",

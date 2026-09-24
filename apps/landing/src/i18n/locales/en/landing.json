@@ -4,6 +4,21 @@
   "line1": "Five drills, whenever you feel like it.\nAn account? After you've practised.",
   "line2": "Pitch, intervals, chords, melody, rhythm\n— and a bit more confidence at karaoke.",
   "cta": "Practice",
+  "free": {
+    "heading": "Not here to make money.",
+    "openSource": {
+      "label": "Open source",
+      "body": "The code is on GitHub under Apache-2.0 — run your own copy if you like."
+    },
+    "price": {
+      "label": "Free",
+      "body": "All five drills are free. An account only remembers where you got to."
+    },
+    "fees": {
+      "label": "No extra fees",
+      "body": "No subscription, no unlock fee, nothing to buy one level at a time."
+    }
+  },
   "github": "GitHub",
   "license": "Apache-2.0",
   "chart": "Pitch chart",

@@ -12,16 +12,20 @@ import { PianoRoll } from '@/components/piano-roll'
  *  production and on different ports in development. */
 const APP_URL = import.meta.env.VITE_APP_URL ?? 'http://localhost:5173'
 
-/** The landing page: one screen, everything flush left. The pitch and the one action in
- *  the left column, a keyboard to play with in the right — nothing here loads a practice
- *  screen, because the whole point of the site split (PRD 7.1.2) is that a visitor who is
- *  not ready to practise pays for a headline, a button and a few lines of Web Audio
- *  rather than for an audio engine. */
+/** The landing page: two screens, everything flush left. The first is the pitch and the
+ *  one action on the left with a keyboard to play with on the right; the second says what
+ *  it costs. Nothing here loads a practice screen, because the whole point of the site
+ *  split (PRD 7.1.2) is that a visitor who is not ready to practise pays for a headline, a
+ *  button and a few lines of Web Audio rather than for an audio engine. */
 /** Which chart to draw: the piano roll — the editor (#91) — by default, the flat bar chart
  *  when asked. Both read the same octave and the same synth. */
 function chartVariant(): string {
   return new URLSearchParams(window.location.search).get('chart') ?? 'roll'
 }
+
+/** The second screen's three claims, each with the sentence that backs it up. Order is the
+ *  order they are read in, and the labels are the words a visitor is looking for. */
+const CLAIMS = ['openSource', 'price', 'fees'] as const
 
 export default function App() {
   const { t } = useTranslation()
@@ -78,6 +82,32 @@ export default function App() {
 
             {/* ?chart=2d brings back the bar chart; the roll is the editor (#91). */}
             {chartVariant() === '2d' ? <PitchChart2D /> : <PianoRoll />}
+          </div>
+        </section>
+
+        {/* The second screen (PRD 7.1.5): what this costs, which is the first thing a
+            visitor who likes what they heard wants to know. Three claims in the same
+            welded bar the header keys and the transport use — one outline, rules between
+            neighbours, equal cells — not three cards that each carry their own border. */}
+        <section className="flex min-h-[calc(100svh-65px)] items-center border-t border-hairline px-6 py-16">
+          <div className="mx-auto w-full max-w-[1200px]">
+            <h2 className="max-w-[24ch] text-[28px] font-medium leading-[1.15] tracking-[-0.01em] sm:text-[36px]">
+              {t('free.heading')}
+            </h2>
+
+            <div className="mt-10 grid border border-hairline-strong sm:grid-cols-3">
+              {CLAIMS.map((claim) => (
+                <div
+                  key={claim}
+                  className="border-t border-hairline-strong p-6 first:border-t-0 sm:border-t-0 sm:border-l sm:first:border-l-0 sm:p-7"
+                >
+                  <p className="badge-label text-muted">{t(`free.${claim}.label`)}</p>
+                  <p className="mt-3 text-[15px] leading-[1.7] text-body">
+                    {t(`free.${claim}.body`)}
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
       </main>
