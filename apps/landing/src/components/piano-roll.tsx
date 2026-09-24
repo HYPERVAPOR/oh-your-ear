@@ -282,7 +282,7 @@ export function PianoRoll() {
       <div
         role="group"
         aria-label={t('chart')}
-        className="flex h-[200px] font-display [--keys:38px] sm:h-[220px] sm:[--keys:48px]"
+        className="flex h-[192px] font-display [--keys:38px] [@media(max-height:700px)]:h-[160px] sm:h-[220px] sm:[--keys:48px]"
       >
         {/* The keyboard: one row per semitone, black keys shortened. The keys ignore the
             colour scheme — white keys are white and black keys are black in either theme,
