@@ -1,23 +1,61 @@
 {
   "appName": "Oh Your Ear",
   "tagline": "Train your ear, anywhere.",
-  "line1": "Five drills, whenever you feel like it.\nAn account? After you've practised.",
-  "line2": "Pitch, intervals, chords, melody, rhythm\n— and a bit more confidence at karaoke.",
+  "drills": {
+    "pitch": "pitch",
+    "interval": "intervals",
+    "chord": "chords",
+    "melody": "melody",
+    "rhythm": "rhythm"
+  },
+  "subtitle": "10 years of playing, and it's still muscle memory?",
   "cta": "Practice",
   "free": {
-    "heading": "Not here to make money.",
+    "heading": "Ear training should not be a business.",
     "openSource": {
       "label": "Open source",
-      "body": "The code is on GitHub under Apache-2.0 — run your own copy if you like."
+      "body": "All on GitHub, Apache-2.0 — not locked behind a server."
     },
     "price": {
       "label": "Free",
-      "body": "All five drills are free. An account only remembers where you got to."
+      "body": "Five drills, nothing to pay. No trial, no annual discount."
     },
     "fees": {
       "label": "No extra fees",
-      "body": "No subscription, no unlock fee, nothing to buy one level at a time."
+      "body": "No subscription, no unlock fee, nothing charged a level at a time."
     }
+  },
+  "account": {
+    "heading": "An account is only here to remember these.",
+    "levels": {
+      "label": "Question sets",
+      "body": "One chain per module, level by level."
+    },
+    "plan": {
+      "label": "Daily plan",
+      "body": "A daily goal, and a module to drill."
+    },
+    "progress": {
+      "label": "Progress",
+      "body": "Each day, the streak, your best run."
+    },
+    "mistakes": {
+      "label": "Mistake notebook",
+      "body": "Wrong answers stay, right ones leave."
+    },
+    "bookmarks": {
+      "label": "Bookmarks",
+      "body": "Keep the questions you want again."
+    },
+    "sessionNote": "Without an account, scores last until you close the page."
+  },
+  "contact": {
+    "heading": "Bugs and feature requests, straight to me.",
+    "checkTitle": "Sound check",
+    "listen": "Play two notes",
+    "interval": "a minor second",
+    "noSound": "Heard nothing? That's a bug.",
+    "orGithub": "Or open an issue on GitHub."
   },
   "github": "GitHub",
   "license": "Apache-2.0",

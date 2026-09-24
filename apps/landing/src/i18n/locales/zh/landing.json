@@ -1,23 +1,61 @@
 {
   "appName": "Oh Your Ear",
   "tagline": "随时随地练耳。",
-  "line1": "五组练习，随时开始。注册？练完再说。",
-  "line2": "音高、音程、和弦、旋律、节奏，还有 KTV 里那点底气。",
+  "drills": {
+    "pitch": "音高",
+    "interval": "音程",
+    "chord": "和弦",
+    "melody": "旋律",
+    "rhythm": "节奏"
+  },
+  "subtitle": "弹了10年琴，还是靠肌肉记忆？",
   "cta": "Practice",
   "free": {
-    "heading": "不靠这个赚钱。",
+    "heading": "练耳不该是一门生意。",
     "openSource": {
       "label": "开源",
-      "body": "代码在 GitHub 上，Apache-2.0，想自己跑一份也行。"
+      "body": "代码全在 GitHub 上，Apache-2.0。别人锁在服务器后面的东西，这里都给你。"
     },
     "price": {
       "label": "免费",
-      "body": "五组练习都不用付钱，账号只是用来记住你练到哪。"
+      "body": "五组练习，一分钱不花，也不用注册。没有试用期，没有到期提醒，也没有年付折扣。"
     },
     "fees": {
       "label": "没有额外费用",
-      "body": "没有订阅，没有解锁费，没有要单独买的关卡。"
+      "body": "没有订阅，没有解锁费，没有一关一关地问你要钱。"
     }
+  },
+  "account": {
+    "heading": "账号只是用来记住这些。",
+    "levels": {
+      "label": "关卡模式",
+      "body": "五个模块各一条链，过一关解锁下一关。"
+    },
+    "plan": {
+      "label": "每日计划",
+      "body": "定每天练几题、先练哪个模块。"
+    },
+    "progress": {
+      "label": "进度记录",
+      "body": "每天练了多少、连续多少天、每关最好成绩。"
+    },
+    "mistakes": {
+      "label": "错题本",
+      "body": "答错的自动收进来，答对同一题自动移出。"
+    },
+    "bookmarks": {
+      "label": "收藏夹",
+      "body": "想反复练的题收起来，之后从这里抽题。"
+    },
+    "sessionNote": "不登录的话，成绩只留到这次会话结束。"
+  },
+  "contact": {
+    "heading": "有 bug、有需求，直接找我。",
+    "checkTitle": "声音检查",
+    "listen": "听两个音",
+    "interval": "小二度",
+    "noSound": "没响？那是 bug。",
+    "orGithub": "也可以在 GitHub 开一个 issue。"
   },
   "github": "GitHub",
   "license": "Apache-2.0",
