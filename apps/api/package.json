@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "go run ./cmd/server",
     "build": "go build -o bin/server ./cmd/server",
-    "generate": "go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@v2.4.1 --package=api --generate=gin,types,spec ../../openapi.yaml > internal/api/generated.go.tmp && mv internal/api/generated.go.tmp internal/api/generated.go",
+    "generate": "go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@v2.4.1 --package=api --generate=gin,types,spec ../../openapi.yaml > internal/api/generated.go",
     "lint": "test -z \"$(gofmt -l .)\" || { gofmt -l .; exit 1; }",
     "typecheck": "go vet ./...",
     "clean": "rm -rf bin"
