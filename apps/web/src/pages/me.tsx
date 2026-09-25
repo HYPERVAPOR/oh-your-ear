@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { AppHeader } from '@/components/app-header'
 import { AvatarPicker } from '@/components/avatar-picker'
 import { Avatar } from '@/components/avatar'
+import { PasswordForm } from '@/components/password-form'
 import { PracticeStats } from '@/components/practice-stats'
 import { StudyPlanForm } from '@/components/study-plan-form'
 import { Button } from '@/components/ui/button'
@@ -52,6 +53,8 @@ export function Me() {
 
           <div className="mt-10 space-y-6">
             <StudyPlanForm />
+
+            <PasswordForm />
 
             <PracticeStats />
 
