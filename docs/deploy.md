@@ -378,3 +378,44 @@ schema 在 API 启动时幂等地跑（`CREATE TABLE IF NOT EXISTS` + `ALTER TAB
 ### 已知的粗糙处
 
 部署期间有几秒不可用：`up -d --build` 要重建 api 容器。要做到零停机得两个容器加一次代理切换，现在不值得。
+
+## 7. Vercel 的部署额度
+
+免费计划每天 **100 次部署**，而且 **Vercel 的 Git 集成不认 GitHub 的 `paths-ignore`** —— 往分支推一次就是一次部署，哪怕只改了一个字的文档。2026-09-25 那天推了几十次（改一处、跑检查、推送、再改），额度被烧光，两个项目都返回 `Deployment rate limited — retry in 24 hours.`，于是**再推 main 前端也不会更新**，直到窗口恢复。被跳过的部署不会自动补：要补就在面板对最新提交点一次 Redeploy。
+
+三个手段，按可靠程度排：
+
+### 1. 分支策略：`dev` 优先（最可靠）
+
+`dev` 是集成分支：从它切功能分支，PR 合进 `dev`，`dev` 攒够了再一个 PR 合进 `main`。**推 `dev` 不创建任何部署**——两个项目的 `vercel.json` 里都写了：
+
+```json
+"git": { "deploymentEnabled": { "dev": false } }
+```
+
+这是「根本不创建部署」，不是「创建了再跳过」，所以额度问题上没有疑问。API 侧同样不会动：部署 workflow 只在 **CI 在 main 上通过**时触发（`workflow_run` 的 `branches: [main]`）。
+
+### 2. 每个项目各自判断该不该构建
+
+文件改动和项目无关时，那个项目的构建直接跳过。两个 `vercel.json` 都是：
+
+```json
+"ignoreCommand": "git diff --quiet HEAD^ HEAD -- . ../../packages/shared"
+```
+
+`ignoreCommand` 的语义是**退出码 0 → 跳过构建**，非 0 → 构建，而 `git diff --quiet` 在没有差异时正好退出 0。`.` 是项目自身目录（Vercel 以项目根为工作目录），`../../packages/shared` 把共享包算进去——它改了，两个前端都该重建。
+
+实测（在真实仓库里逐个跑过）：
+
+| 改了什么 | web 项目 | landing 项目 |
+| --- | --- | --- |
+| 只改 `apps/api` 或文档 | 跳过 | 跳过 |
+| `apps/web` | **构建** | 跳过 |
+| `apps/landing` | 跳过 | **构建** |
+| `packages/shared` | **构建** | **构建** |
+
+**这条能省多少额度官方没说清楚**：社区在问「被忽略的构建是否仍计入 100 次/天」，Vercel 没有明确答复。所以它至少省下构建时间和构建次数，但**不要拿它当额度问题的唯一解法** —— 真正确定的是第 1 条。
+
+### 3. 别把零碎提交直接推 `main`
+
+`main` 上的每一次推送都是一次生产部署。修错别字、调文档、改后端脚本，先推 `dev`，等一次提升 PR 一起带上 `main`。

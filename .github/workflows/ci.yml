@@ -1,15 +1,19 @@
 name: CI
 
 on:
+  # `dev` is where work lands first now: pushes to it and PRs against it run the same checks,
+  # so promoting to main is only ever merging something that already passed. Pushing to `dev`
+  # deploys nothing — the API deploys on CI-on-main (see deploy.yml), and Vercel is told to
+  # ignore dev (see docs/deploy.md 7).
   push:
-    branches: [main]
+    branches: [main, dev]
     paths-ignore: &not-code
       - '**/*.md'
       - '.github/assets/**'
       - 'LICENSE'
       - 'NOTICE'
   pull_request:
-    branches: [main]
+    branches: [main, dev]
     paths-ignore: *not-code
 
 # A change that is only prose — a README, a memory note, the nameplate PNG — cannot break
