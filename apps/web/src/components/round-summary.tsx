@@ -96,12 +96,7 @@ export function RoundSummary({
   }, [level, kind, user, entries.length, correct])
 
   return (
-    <ExerciseShell
-      kind={kind}
-      onBack={onBack}
-      score={{ correct, total: entries.length }}
-      instruction={false}
-    >
+    <ExerciseShell kind={kind} onBack={onBack} score={{ correct, total: entries.length }}>
       <Card className="w-full p-6 sm:p-7">
         <h2 className="text-[22px] font-medium leading-tight">
           {level

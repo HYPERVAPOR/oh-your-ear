@@ -154,13 +154,6 @@
       "description": "Practise 7 days in a row"
     }
   },
-  "moduleHints": {
-    "singleNote": "Name the note you hear.",
-    "interval": "Name the interval.",
-    "chord": "Name the chord quality.",
-    "melody": "Pick the melody you heard.",
-    "rhythm": "Tap the rhythm back."
-  },
   "round": {
     "title": "Round complete",
     "correct": "Correct",

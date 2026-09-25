@@ -6,8 +6,9 @@ import { MODULES, MODULE_SWATCH } from '@/components/ui/orb'
 
 /**
  * The Random band: endless practice, open to guests. No progress bars — there is nothing
- * to make progress on. The sixth cell is the mistakes notebook, which is also drawn from
- * what you have already done rather than from a chain.
+ * to make progress on — and no sentence under the module's name saying what the module
+ * is; the name is the whole statement. The sixth cell is the mistakes notebook, which is
+ * drawn from what you have already done rather than from a chain.
  */
 export function RandomRack() {
   const { t } = useTranslation('common')
@@ -20,11 +21,7 @@ export function RandomRack() {
           to={`/exercise/${modulePath(kind)}`}
           swatch={MODULE_SWATCH[kind]}
           title={t(`modules.${kind}`)}
-        >
-          <span className="mt-2 block text-[13px] leading-snug text-body">
-            {t(`moduleHints.${kind}`)}
-          </span>
-        </RackCell>
+        />
       ))}
 
       <RackCell to="/mistakes" swatch="bg-hairline-strong" title={t('home.mistakesTile')}>

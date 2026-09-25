@@ -15,7 +15,6 @@ export function ExerciseShell({
   onBack,
   score,
   progress,
-  instruction = true,
   children,
 }: {
   kind: ExerciseKind
@@ -23,8 +22,6 @@ export function ExerciseShell({
   score: { correct: number; total: number }
   /** Questions done out of the round's size, when a round is running. */
   progress?: { done: number; size: number }
-  /** Off for screens that are not asking a question, such as a round summary. */
-  instruction?: boolean
   children: ReactNode
 }) {
   const { t } = useTranslation('common')
@@ -63,9 +60,6 @@ export function ExerciseShell({
       </header>
 
       <main className="mx-auto flex w-full max-w-[600px] flex-1 flex-col items-center justify-center px-5 py-12 sm:py-16">
-        {instruction && (
-          <p className="mb-7 text-center text-[15px] text-body">{t(`moduleHints.${kind}`)}</p>
-        )}
         {children}
       </main>
     </div>

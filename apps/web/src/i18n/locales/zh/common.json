@@ -154,13 +154,6 @@
       "description": "连续 7 天练习"
     }
   },
-  "moduleHints": {
-    "singleNote": "听一个音，说出音名。",
-    "interval": "听两个音，说出音程。",
-    "chord": "听一个和弦，说出性质。",
-    "melody": "听一段旋律，选出对应的那条。",
-    "rhythm": "听一段节奏，把它敲回来。"
-  },
   "round": {
     "title": "一轮结束",
     "correct": "答对",
