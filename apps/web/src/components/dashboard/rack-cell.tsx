@@ -21,10 +21,13 @@ export function RackCell({
   children?: ReactNode
 }) {
   return (
-    <Link to={to} className="group block">
+    <Link to={to} className="group block h-full">
+      {/* One height for both tabs. Learn's bar makes its cell 87px and Random's has
+          nothing after the title, so without this the rack jumps 26px when the tab
+          changes. 88px is the next step of the 8px rhythm. */}
       <Card
         interactive
-        className="h-full gap-0 overflow-hidden p-0 transition-colors group-hover:border-hairline-strong"
+        className="h-full min-h-[88px] gap-0 overflow-hidden p-0 transition-colors group-hover:border-hairline-strong"
       >
         <span aria-hidden="true" className={cn('block h-[3px] w-full', swatch)} />
         <span className="block px-4 py-4">
