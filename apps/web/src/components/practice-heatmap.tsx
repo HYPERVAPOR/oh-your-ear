@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { apiClient } from '@/api/client'
 import { emptyRange, type DailyBucket, type Level, type Square } from '@/lib/heatmap'
 import { CELL, DayView, MonthGrid, TIER_CLASS, WeekRow, YearGrid } from '@/components/heatmap-views'
-import { useDelayed } from '@/lib/use-delayed'
+import { useDelayedLoading } from '@/lib/use-delayed'
 import { useAuthStore } from '@/stores/auth-store'
 import { cn } from '@/lib/utils'
 
@@ -29,7 +29,7 @@ export function PracticeHeatmap() {
   const { t, i18n } = useTranslation('common')
   const user = useAuthStore((s) => s.user)
   const initialized = useAuthStore((s) => s.initialized)
-  const loading = useDelayed(!initialized)
+  const loading = useDelayedLoading(!initialized)
   const [level, setLevel] = useState<Level>('day')
 
   const { data } = useQuery({
