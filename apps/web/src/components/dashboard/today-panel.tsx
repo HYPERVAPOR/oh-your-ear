@@ -93,10 +93,12 @@ export function TodayPanel() {
           </>
         ) : (
           <>
-            {/* A guest sees the way in and nothing else: no placeholder avatar and no
-                "not signed in", because neither means anything until there is an
-                account. The card keeps its size either way — the heatmap beside it
-                sets the row's height — so the page does not move on signing in. */}
+            {/* The label stays — it is the card's title, and a title does not depend on
+                being signed in. What goes is the placeholder avatar and the "not signed
+                in" line: neither means anything until there is an account. The way in is
+                centred in what is left. The card keeps its size either way, because the
+                heatmap beside it sets the row's height. */}
+            <p className="badge-label text-muted">{t('home.accountLabel')}</p>
             <div className="flex flex-1 items-center justify-center">
               <Link to={loginHere()} className={buttonVariants({ size: 'lg' })}>
                 {t('actions.login')}
