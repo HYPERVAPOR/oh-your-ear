@@ -9,11 +9,17 @@ import { Button, buttonVariants } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { MODULES, type ExerciseKind } from '@/components/ui/orb'
 import { DEFAULT_GOAL } from '@/lib/heatmap'
-import { loginHere } from '@/lib/auth'
+import { loginHere, loginPath } from '@/lib/auth'
 import { useAuthStore } from '@/stores/auth-store'
 
 /** One session is a round; the plan can ask for more, but not in a single sitting. */
 const MAX_SESSION = 20
+
+/** The account's own two pages. Not practice modes: where your answers end up. */
+const ACCOUNT_LINKS = [
+  { to: '/bookmarks', key: 'collections.title' },
+  { to: '/mistakes', key: 'mistakes.title' },
+] as const
 
 /**
  * The first band of the dashboard: who you are and what to do about today on the left,
@@ -103,6 +109,21 @@ export function TodayPanel() {
             </div>
           </>
         )}
+
+        {/* What the account keeps, with the account. These are not two more ways to
+            practise — they are where the answers you gave end up, and a guest is asked
+            to sign in for them like anywhere else. */}
+        <div className="mt-6 flex items-center gap-5 border-t border-hairline pt-4">
+          {ACCOUNT_LINKS.map(({ to, key }) => (
+            <Link
+              key={to}
+              to={user ? to : loginPath(to)}
+              className="text-[14px] text-muted underline underline-offset-4 hover:text-ink"
+            >
+              {t(key)}
+            </Link>
+          ))}
+        </div>
       </Card>
 
       {/* The heatmap owns today's count as well: the panel used to draw its own bar and

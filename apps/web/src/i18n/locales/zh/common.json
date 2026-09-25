@@ -204,7 +204,6 @@
     "learnTitle": "闯关",
     "randomTitle": "随机练习",
     "passedOf": "{{passed}}/{{total}}",
-    "collectionsHint": "自己收着的关卡",
     "startDaily": "开始每日训练",
     "extraRound": "再来一轮",
     "startHint": "今天还差 {{count}} 题，从「{{module}}」开始。",
@@ -213,9 +212,8 @@
     "met": "今日已达标",
     "accountLabel": "账号",
     "guestIdentity": "未登录，成绩只留在本次会话。",
-    "mistakesTile": "错题重练",
-    "mistakesHint": "从错题本抽题，专攻弱项。",
-    "loginCtaHint": "学习计划、正确率趋势、错题重练、连续打卡与徽章。"
+    "loginCtaHint": "学习计划、正确率趋势、错题重练、连续打卡与徽章。",
+    "modeLabel": "练习方式"
   },
   "heatmap": {
     "title": "练习进度",

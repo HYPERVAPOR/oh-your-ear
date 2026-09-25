@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Bookmark } from 'lucide-react'
 
 import { apiClient } from '@/api/client'
 import { RackCell } from '@/components/dashboard/rack-cell'
@@ -53,11 +52,10 @@ function ChainCell({
 }
 
 /**
- * The Learn band: the five chains, each carrying how far along it is, plus the folders of
- * levels a reader has made for themselves (PRD 7.1.4).
+ * The Learn tab: the five chains, each carrying how far along it is (PRD 7.1.4). The
+ * folders of saved levels are not a chain and live with the account instead.
  */
 export function LevelRack() {
-  const { t } = useTranslation('common')
   const user = useAuthStore((s) => s.user)
 
   const { data: progress } = useQuery({
@@ -74,23 +72,10 @@ export function LevelRack() {
   )
 
   return (
-    <div className="grid grid-cols-2 gap-2 lg:grid-cols-3">
+    <div className="grid grid-cols-2 gap-2 lg:grid-cols-5">
       {MODULES.map((kind) => (
         <ChainCell key={kind} kind={kind} signedIn={!!user} progress={byId} />
       ))}
-
-      {/* The sixth cell closes the rectangle and belongs to this mode: a folder of levels
-          is still a set of levels. */}
-      <RackCell
-        to={user ? '/bookmarks' : loginPath('/bookmarks')}
-        title={t('collections.title')}
-        swatch="bg-hairline-strong"
-      >
-        <span className="mt-3.5 flex items-center gap-2 text-[13px] leading-snug text-body">
-          <Bookmark aria-hidden="true" className="h-3.5 w-3.5 shrink-0" strokeWidth={1.75} />
-          {t('home.collectionsHint')}
-        </span>
-      </RackCell>
     </div>
   )
 }

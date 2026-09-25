@@ -204,7 +204,6 @@
     "learnTitle": "Learn",
     "randomTitle": "Random test",
     "passedOf": "{{passed}}/{{total}}",
-    "collectionsHint": "The levels you kept",
     "startDaily": "Start daily practice",
     "extraRound": "One more round",
     "startHint": "{{count}} left today, picking up {{module}}.",
@@ -213,9 +212,8 @@
     "met": "Today's goal is met",
     "accountLabel": "Account",
     "guestIdentity": "Not signed in — results last this session only.",
-    "mistakesTile": "Mistake review",
-    "mistakesHint": "Draw from the notebook and go after the weak spots.",
-    "loginCtaHint": "The plan, accuracy trends, mistake review, streaks and badges."
+    "loginCtaHint": "The plan, accuracy trends, mistake review, streaks and badges.",
+    "modeLabel": "Practice mode"
   },
   "heatmap": {
     "title": "Progress",
