@@ -1,13 +1,9 @@
 /**
- * The generated pixel avatar, and the two small jobs around it.
- *
- * A pattern is five columns of pixels mirrored around the middle, drawn from the account's
- * id: symmetric like a face, different for almost every account, and identical every time
- * the same account asks. Nothing is stored, so an account with no picture still has one.
+ * Two small jobs around the avatar: telling an upload from a provider picture, and
+ * squaring an uploaded one before it is sent. The default picture itself is a bitmap in
+ * `public/` — white paper, black pixels, the same in both themes — so nothing here draws
+ * it.
  */
-
-/** Width and height of the pattern, in pixels. Odd, so the middle column is its own. */
-export const AVATAR_COLUMNS = 5
 
 /** How wide the picture is, once the browser has squared and scaled an upload. */
 export const AVATAR_UPLOAD_SIZE = 256
@@ -18,31 +14,6 @@ const UPLOADED_PREFIX = '/api/v1/me/avatar'
 /** Whether the URL in hand is one of ours (an upload) rather than the sign-in provider's. */
 export function isUploadedAvatar(url: string | null | undefined): boolean {
   return !!url && url.startsWith(UPLOADED_PREFIX)
-}
-
-/** FNV-1a, so that neighbouring ids do not produce neighbouring patterns. */
-function hash(seed: string): number {
-  let h = 2166136261
-  for (let i = 0; i < seed.length; i++) {
-    h ^= seed.charCodeAt(i)
-    h = Math.imul(h, 16777619)
-  }
-  return h >>> 0
-}
-
-/** One row's left half, then the mirror of it. Deterministic for a given seed. */
-export function avatarPattern(seed: string): boolean[][] {
-  let state = hash(seed)
-  const half = Math.ceil(AVATAR_COLUMNS / 2)
-
-  return Array.from({ length: AVATAR_COLUMNS }, () => {
-    const left = Array.from({ length: half }, () => {
-      // A linear congruential step: many independent-looking draws from one seed.
-      state = (Math.imul(state, 1664525) + 1013904223) >>> 0
-      return (state & 0x8000) !== 0
-    })
-    return [...left, ...left.slice(0, AVATAR_COLUMNS - half).reverse()]
-  })
 }
 
 /**

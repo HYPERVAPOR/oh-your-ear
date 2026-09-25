@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { apiClient } from '@/api/client'
-import { Avatar } from '@/components/pixel-avatar'
+import { Avatar } from '@/components/avatar'
 import { PracticeHeatmap } from '@/components/practice-heatmap'
 import { modulePath } from '@/components/round-summary'
 import { Button, buttonVariants } from '@/components/ui/button'

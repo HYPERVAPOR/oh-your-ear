@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 
 import { AppHeader } from '@/components/app-header'
 import { AvatarPicker } from '@/components/avatar-picker'
-import { Avatar } from '@/components/pixel-avatar'
+import { Avatar } from '@/components/avatar'
 import { PracticeStats } from '@/components/practice-stats'
 import { StudyPlanForm } from '@/components/study-plan-form'
 import { Button } from '@/components/ui/button'
