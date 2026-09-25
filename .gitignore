@@ -5,6 +5,7 @@ dist
 bin
 .env
 .env.local
+.env.bak-*
 .env.*.local
 .DS_Store
 .vscode/settings.json
