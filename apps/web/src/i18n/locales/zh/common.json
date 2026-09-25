@@ -18,7 +18,9 @@
     "finish": "完成",
     "newRhythm": "新节奏",
     "login": "登录",
-    "logout": "退出"
+    "logout": "退出",
+    "cancel": "取消",
+    "logoutConfirmTitle": "要退出登录吗？"
   },
   "score": "得分：{{correct}}/{{total}}",
   "exercises": {

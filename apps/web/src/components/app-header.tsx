@@ -1,8 +1,10 @@
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { LogOut, SquareUser } from 'lucide-react'
 
 import { Nameplate } from '@/components/nameplate'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { loginHere } from '@/lib/auth'
 import { useAuthStore } from '@/stores/auth-store'
 import { LanguageKey, ThemeKey, iconGroup, iconKey } from '@oh-your-ear/shared/pref-controls'
@@ -19,6 +21,9 @@ export function AppHeader() {
   const location = useLocation()
   const user = useAuthStore((s) => s.user)
   const logout = useAuthStore((s) => s.logout)
+  // Signing out is one click away in a header full of one-click controls, and the click
+  // that does it is the same click as its neighbours'. It asks first now.
+  const [confirmingLogout, setConfirmingLogout] = useState(false)
 
   async function handleLogout() {
     await logout()
@@ -56,7 +61,7 @@ export function AppHeader() {
                       className={iconKey}
                       aria-label={t('actions.logout')}
                       title={t('actions.logout')}
-                      onClick={handleLogout}
+                      onClick={() => setConfirmingLogout(true)}
                     >
                       <LogOut aria-hidden="true" className={icon} strokeWidth={1.75} />
                     </button>
@@ -78,6 +83,14 @@ export function AppHeader() {
           )}
         </div>
       </div>
+
+      <ConfirmDialog
+        open={confirmingLogout}
+        title={t('actions.logoutConfirmTitle')}
+        confirmLabel={t('actions.logout')}
+        onConfirm={handleLogout}
+        onDismiss={() => setConfirmingLogout(false)}
+      />
     </header>
   )
 }

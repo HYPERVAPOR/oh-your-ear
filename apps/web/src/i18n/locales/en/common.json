@@ -18,7 +18,9 @@
     "finish": "Finish",
     "newRhythm": "New rhythm",
     "login": "Log in",
-    "logout": "Log out"
+    "logout": "Log out",
+    "cancel": "Cancel",
+    "logoutConfirmTitle": "Log out?"
   },
   "score": "Score: {{correct}}/{{total}}",
   "exercises": {
