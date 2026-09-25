@@ -10,6 +10,9 @@ const LANDING_URL = import.meta.env.VITE_LANDING_URL ?? 'https://ohyourear.com'
  *  landing page, the app's header and the login screen all wear it, so it is one object
  *  here rather than three copies.
  *
+ *  `inline-flex`, not `flex`: as a block-level box it stretches to whatever it is dropped
+ *  into, and inside the login card that made a wide empty frame around a 32px mark.
+ *
  *  It is also the way back to the marketing site — this is the product, not the front
  *  door — and its hover takes the hairline one step darker, because `hover:border-ink`
  *  jumped to near-white in the dark theme and glared. */
@@ -19,7 +22,7 @@ export function Nameplate() {
   return (
     <a
       href={LANDING_URL}
-      className="group flex items-center border border-hairline-strong text-ink transition-colors hover:border-hairline-hover"
+      className="group inline-flex items-center border border-hairline-strong text-ink transition-colors hover:border-hairline-hover"
     >
       <span className="flex h-8 w-8 shrink-0 items-center justify-center transition-colors sm:border-r sm:border-hairline-strong sm:group-hover:border-hairline-hover">
         <Ear aria-hidden="true" className="h-4 w-4" strokeWidth={1.75} />
