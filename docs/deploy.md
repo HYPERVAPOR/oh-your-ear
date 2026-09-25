@@ -102,7 +102,10 @@ GOOGLE_REDIRECT_URL=https://app.<domain>/api/v1/auth/google/callback
 DOMAIN=api.<domain>
 ACME_EMAIL=you@example.com
 
-# 邮件验证码投递：MAIL_DRIVER=log 只在开发用，验证码会打在容器日志里
+# 邮件验证码投递：MAIL_DRIVER=log 只在开发用（默认值也是它），
+# 验证码不会进任何收件箱，而是打在 API 容器的日志里：
+#   podman logs oh-your-ear-api-1 | grep "mail:log" | tail -3
+# 本地"收不到验证码"是设定，不是 bug。要真的收信再配下面的 SMTP。
 MAIL_DRIVER=smtp
 SMTP_HOST=smtp.example.com
 SMTP_PORT=587

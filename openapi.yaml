@@ -42,6 +42,35 @@ paths:
         '429':
           $ref: '#/components/responses/TooManyRequests'
 
+  /auth/email/check:
+    post:
+      operationId: checkEmail
+      summary: Whether an address already has an account
+      description: >
+        A deliberate exception to the rest of this surface. Signing in never says whether an
+        address is registered — /auth/code answers 204 for any address, /auth/login answers the
+        same way for an unknown address and a wrong password — but the sign-up screen asks the
+        question out loud, so that someone who already has an account is sent to the sign-in
+        screen instead of through a code they do not need. The answer is an oracle for "who has
+        an account here", which is why it shares the code endpoint's throttle.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailCodeRequest'
+      responses:
+        '200':
+          description: Whether the address has an account
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmailCheckResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
   /auth/register:
     post:
       operationId: register
@@ -651,6 +680,14 @@ components:
           type: string
           format: email
           example: user@example.com
+
+    EmailCheckResponse:
+      type: object
+      required:
+        - registered
+      properties:
+        registered:
+          type: boolean
 
     SetPasswordRequest:
       type: object
