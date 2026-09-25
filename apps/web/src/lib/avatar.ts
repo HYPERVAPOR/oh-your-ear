@@ -1,8 +1,11 @@
 /**
- * Two small jobs around the avatar: telling an upload from a provider picture, and
- * squaring an uploaded one before it is sent. The default picture itself is a bitmap in
- * `public/` — white paper, black pixels, the same in both themes — so nothing here draws
- * it.
+ * The generated avatar of an account with no picture, and the two small jobs around it.
+ *
+ * GitHub's recipe, near enough: the account's id is hashed once, and that hash picks both
+ * the pixels and the colour. The pattern is five columns of blocks mirrored around the
+ * middle, so it is symmetric like a face and stable for a given account; the ink and its
+ * ground are one hue from the same hash. Colours are written onto the elements rather than
+ * taken from tokens: an avatar must not change meaning with the theme.
  */
 
 /** How wide the picture is, once the browser has squared and scaled an upload. */
@@ -14,6 +17,43 @@ const UPLOADED_PREFIX = '/api/v1/me/avatar'
 /** Whether the URL in hand is one of ours (an upload) rather than the sign-in provider's. */
 export function isUploadedAvatar(url: string | null | undefined): boolean {
   return !!url && url.startsWith(UPLOADED_PREFIX)
+}
+
+/** FNV-1a, so that neighbouring ids do not produce neighbouring avatars. */
+function hash(seed: string): number {
+  let h = 2166136261
+  for (let i = 0; i < seed.length; i++) {
+    h ^= seed.charCodeAt(i)
+    h = Math.imul(h, 16777619)
+  }
+  return h >>> 0
+}
+
+/** Blocks across and down. Odd, so the middle column is its own. */
+export const AVATAR_COLUMNS = 5
+
+/** One row's left half, then the mirror of it. Deterministic for a given seed. */
+export function avatarPattern(seed: string): boolean[][] {
+  let state = hash(seed)
+  const half = Math.ceil(AVATAR_COLUMNS / 2)
+
+  return Array.from({ length: AVATAR_COLUMNS }, () => {
+    const left = Array.from({ length: half }, () => {
+      // A linear congruential step: many independent-looking draws from one seed.
+      state = (Math.imul(state, 1664525) + 1013904223) >>> 0
+      return (state & 0x8000) !== 0
+    })
+    return [...left, ...left.slice(0, AVATAR_COLUMNS - half).reverse()]
+  })
+}
+
+/**
+ * The ink and the ground it sits on, from the same hash: one hue, so an identicon reads as
+ * somebody's colour rather than a palette entry.
+ */
+export function avatarColors(seed: string): { ink: string; ground: string } {
+  const hue = hash(`${seed}:hue`) % 360
+  return { ink: `hsl(${hue} 45% 45%)`, ground: `hsl(${hue} 35% 93%)` }
 }
 
 /**
