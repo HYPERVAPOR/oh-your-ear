@@ -32,7 +32,9 @@ else
   exit 1
 fi
 
-if ! "$RUNTIME" container exists "$DB_CONTAINER"; then
+# `inspect`, not `container exists`: the latter is podman's spelling, and docker answers it
+# with "unknown command". Found by running it on the host that has docker.
+if ! "$RUNTIME" inspect "$DB_CONTAINER" >/dev/null 2>&1; then
   echo "database container $DB_CONTAINER not found" >&2
   exit 1
 fi
