@@ -1,7 +1,6 @@
-import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { Check, Lock } from 'lucide-react'
 
 import { apiClient } from '@/api/client'
@@ -42,11 +41,22 @@ export function Levels() {
   // One chain at a time: five chains stacked vertically meant scrolling past four of them
   // to reach the fifth. The tabs, their order and their names all come from the catalogue;
   // nothing here knows the five modules by name.
+  //
+  // Which tab you are on is in the URL, so the dashboard can link to one (PRD 7.1.4) and a
+  // tab is shareable. An unknown or absent value falls back to the first one rather than
+  // rendering nothing.
+  const [params, setParams] = useSearchParams()
   const sets = catalog ?? []
   const modules = [...new Set(sets.map((set) => set.module))]
-  const [picked, setPicked] = useState<ExerciseKind | null>(null)
-  const activeKind = picked ?? modules[0]
+  const asked = params.get('module')
+  const activeKind = modules.find((module) => module === asked) ?? modules[0]
   const shown = sets.filter((set) => set.module === activeKind)
+
+  // replace: a tab is not a place you navigated to, so the back button keeps meaning
+  // "leave this page" instead of walking back through the tabs you tried.
+  function pick(module: ExerciseKind) {
+    setParams({ module }, { replace: true })
+  }
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -87,7 +97,7 @@ export function Levels() {
                 key={value}
                 type="button"
                 aria-pressed={activeKind === value}
-                onClick={() => setPicked(value)}
+                onClick={() => pick(value)}
                 className={cn(
                   'h-10 shrink-0 px-3 text-[15px] transition-colors',
                   activeKind === value ? 'bg-surface-strong text-ink' : 'text-muted hover:text-ink',
