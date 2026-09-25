@@ -110,6 +110,25 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/me/avatar': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    /** Get the avatar this user uploaded */
+    get: operations['getMyAvatar']
+    put?: never
+    /** Upload or replace this user's avatar */
+    post: operations['putMyAvatar']
+    /** Remove this user's uploaded avatar */
+    delete: operations['deleteMyAvatar']
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/me/plan': {
     parameters: {
       query?: never
@@ -716,6 +735,92 @@ export interface operations {
     requestBody?: never
     responses: {
       /** @description Logged out successfully */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      401: components['responses']['Unauthorized']
+    }
+  }
+  getMyAvatar: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description The uploaded picture */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'image/png': string
+          'image/jpeg': string
+        }
+      }
+      401: components['responses']['Unauthorized']
+      /** @description This user has not uploaded one */
+      404: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+    }
+  }
+  putMyAvatar: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'multipart/form-data': {
+          /** Format: binary */
+          file: string
+        }
+      }
+    }
+    responses: {
+      /** @description The user, with the new avatar URL */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['UserResponse']
+        }
+      }
+      400: components['responses']['BadRequest']
+      401: components['responses']['Unauthorized']
+      /** @description The picture is larger than the limit */
+      413: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorResponse']
+        }
+      }
+    }
+  }
+  deleteMyAvatar: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description Removed; the account falls back to its provider picture or none */
       204: {
         headers: {
           [name: string]: unknown

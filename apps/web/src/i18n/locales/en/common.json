@@ -89,7 +89,10 @@
     "invalidCode": "Wrong or expired code.",
     "tooManyRequests": "Too many requests, try again later.",
     "loginWithGoogle": "Google login",
-    "loginMock": "Mock login (dev only)"
+    "loginMock": "Mock login (dev only)",
+    "avatarUpload": "Upload",
+    "avatarRemove": "Remove",
+    "avatarFailed": "That picture did not go through: PNG or JPEG, at least 16×16."
   },
   "feedback": {
     "correct": "Correct.",
@@ -205,7 +208,6 @@
     "passedOf": "{{passed}}/{{total}}",
     "startDaily": "Start daily practice",
     "extraRound": "One more round",
-    "adjustPlan": "Adjust the daily plan",
     "met": "Today's goal is met",
     "guestIdentity": "Not signed in",
     "modeLabel": "Practice mode"

@@ -89,7 +89,10 @@
     "invalidCode": "验证码错误或已过期。",
     "tooManyRequests": "操作过于频繁，请稍后再试。",
     "loginWithGoogle": "Google 登录",
-    "loginMock": "模拟登录（仅开发环境）"
+    "loginMock": "模拟登录（仅开发环境）",
+    "avatarUpload": "上传头像",
+    "avatarRemove": "移除",
+    "avatarFailed": "这张图没通过：请用 PNG 或 JPEG，不小于 16×16。"
   },
   "feedback": {
     "correct": "答对了。",
@@ -205,7 +208,6 @@
     "passedOf": "{{passed}}/{{total}}",
     "startDaily": "开始每日训练",
     "extraRound": "再来一轮",
-    "adjustPlan": "调整每日计划",
     "met": "今日已达标",
     "guestIdentity": "未登录",
     "modeLabel": "练习方式"

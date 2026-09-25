@@ -441,6 +441,13 @@
 - **description**: 五个模块一个棋盘（`grid-cols-2 lg:grid-cols-5`），Learn / Random test 用选项卡切换 —— 两边的格子内容完全同构，原本画了两遍。Learn 每格带闯关进度条（已通关数 / 总关卡数）加 `0/4`；Random 不带进度条（随机练习没有可显示的量），格子里只有模块名。选项卡沿用热力图那套压条词汇，取代原来的两个 h2；题单入口骑在选项卡行右侧（不挂网格下面，否则只在一个档出现会让页高抖动）。未登录时进度条显示 0、不显示假数据，点击才提示登录并回跳。**收藏夹与错题本的入口移进账号卡**（`today-panel` 底部发丝线之下），它们属于账号、不属于练习。文案一并清过（#115）：账号卡只剩值 / 动作 / 两个入口（删掉 `accountLabel` / `startHint` / `goalMet` / `loginCtaHint`，`guestIdentity` 缩成「未登录」），关链格子只剩模块名 + 进度条 + `0/4`，随机格只剩模块名，练习页顶部那句模块说明也删了。
 - **depends on**: 21.2, 14.4, 14.5
 
+### 21.5 头像：Google / 像素默认 / 允许上传
+
+- **issue**: #118
+- **status**: 🟡 doing
+- **description**: 账号卡与 `/me` 显示头像，三来源按优先级：用户上传的 > Google 给的 `picture`（`users.avatar_url` 早就存着了，只是前端一直没画）> 生成的像素头像（`lib/avatar.ts` 的 `avatarPattern`，从账号 id 派生 5×5 镜像图案，带单测：尺寸、镜像、同 id 稳定 / 不同 id 不同；`components/pixel-avatar.tsx` 渲染成 `grid-cols-5 grid-rows-5`）。上传：`POST /me/avatar`（multipart）、`GET /me/avatar`（字节，带 ETag 与 `immutable` 缓存）、`DELETE /me/avatar`（退回登录方式的头像）；新表 `user_avatars(user_id PK, image BYTEA, mime, updated_at)` —— 与 `users` 分开，列用户时不会拖着字节走，也不引入对象存储。校验在服务端（`validateAvatar`：PNG / JPEG、16×16–1024×1024、≤ 512KB，格式由字节判定，白名单外一律 400），缩放裁剪在浏览器（canvas → 256×256 JPEG）。账号卡同时补上「我的账号」按钮（进 `/me`），`调整每日计划` 随之下线。
+- **depends on**: 21.2
+
 ### 21.4 热力图四档倍率
 
 - **issue**: #107

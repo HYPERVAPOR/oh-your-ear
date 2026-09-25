@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { apiClient } from '@/api/client'
+import { Avatar } from '@/components/pixel-avatar'
 import { PracticeHeatmap } from '@/components/practice-heatmap'
 import { modulePath } from '@/components/round-summary'
 import { Button, buttonVariants } from '@/components/ui/button'
@@ -72,24 +73,26 @@ export function TodayPanel() {
       <Card className="flex min-w-0 flex-col justify-between p-6 sm:p-7">
         {user ? (
           <>
-            <p className="break-all text-[15px]">{user.email}</p>
-            <div className="mt-8">
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
-                <Button size="lg" onClick={startSession}>
-                  {met ? t('home.extraRound') : t('home.startDaily')}
-                </Button>
-                <Link
-                  to="/me"
-                  className="text-[14px] text-muted underline underline-offset-4 hover:text-ink"
-                >
-                  {t('home.adjustPlan')}
-                </Link>
-              </div>
+            <div className="flex items-center gap-3">
+              <Avatar user={user} />
+              <p className="break-all text-[15px]">{user.email}</p>
+            </div>
+            <div className="mt-8 flex flex-wrap items-center gap-2">
+              <Button size="lg" onClick={startSession}>
+                {met ? t('home.extraRound') : t('home.startDaily')}
+              </Button>
+              <Link to="/me" className={buttonVariants({ variant: 'outline', size: 'lg' })}>
+                {t('auth.account')}
+              </Link>
             </div>
           </>
         ) : (
           <>
-            <p className="text-[15px] text-body">{t('home.guestIdentity')}</p>
+            <div className="flex items-center gap-3">
+              {/* The same 40px slot, empty: signing in must not move the card. */}
+              <span aria-hidden="true" className="size-10 shrink-0 border border-hairline" />
+              <p className="text-[15px] text-body">{t('home.guestIdentity')}</p>
+            </div>
             <div className="mt-8">
               <Link to={loginHere()} className={buttonVariants({ size: 'lg' })}>
                 {t('actions.login')}
