@@ -237,6 +237,7 @@
     "randomTitle": "Random test",
     "passedOf": "{{passed}}/{{total}}",
     "accountLabel": "Account",
+    "guestLine": "Hmm, we don't know you yet — please <signIn>log in</signIn>.",
     "startDaily": "Start daily practice",
     "extraRound": "One more round",
     "met": "Today's goal is met",

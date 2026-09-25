@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { useTranslation } from 'react-i18next'
+import { useTranslation, Trans } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { apiClient } from '@/api/client'
@@ -114,16 +114,29 @@ export function TodayPanel() {
           </>
         ) : (
           <>
-            {/* The label stays — it is the card's title, and a title does not depend on
-                being signed in. What goes is the placeholder avatar and the "not signed
-                in" line: neither means anything until there is an account. The way in is
-                centred in what is left. The card keeps its size either way, because the
-                heatmap beside it sets the row's height. */}
+            {/* The label stays — it is the card's title, and a title does not depend on being
+                signed in. The sentence takes the space between it and the entries at the bottom
+                and sits in the middle of it: one line against the whole height of the card,
+                hung off the top, reads as a card that failed to load something. Left aligned —
+                centered horizontally would make it a placeholder rather than a sentence. */}
             <p className="badge-label text-muted">{t('home.accountLabel')}</p>
-            <div className="flex flex-1 items-center justify-center">
-              <Link to={loginHere()} className={buttonVariants({ size: 'lg' })}>
-                {t('actions.login')}
-              </Link>
+            <div className="flex flex-1 items-center">
+              <p className="text-[15px] text-body">
+                <Trans
+                  i18nKey="home.guestLine"
+                  // `signIn`, not `link`: i18next's parser treats an HTML void element name as
+                  // self-closing, so `<link>log in</link>` renders an empty anchor with the words
+                  // outside it.
+                  components={{
+                    signIn: (
+                      <Link
+                        to={loginHere()}
+                        className="font-medium text-ink underline underline-offset-4"
+                      />
+                    ),
+                  }}
+                />
+              </p>
             </div>
           </>
         )}
