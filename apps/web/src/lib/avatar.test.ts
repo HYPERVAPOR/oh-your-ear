@@ -1,7 +1,15 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
 
-import { AVATAR_COLUMNS, avatarColors, avatarPattern, isUploadedAvatar } from './avatar.ts'
+import {
+  AVATAR_COLUMNS,
+  AVATAR_MAX_BYTES,
+  avatarColors,
+  avatarFileProblem,
+  avatarPattern,
+  avatarShapeProblem,
+  isUploadedAvatar,
+} from './avatar.ts'
 
 test('the generated avatar is a full square of blocks', () => {
   const pattern = avatarPattern('f6a1c0de-0000-4000-8000-000000000001')
@@ -45,4 +53,28 @@ test('only our own URL counts as an uploaded avatar', () => {
   assert.equal(isUploadedAvatar('/avatar-default.png'), false)
   assert.equal(isUploadedAvatar(null), false)
   assert.equal(isUploadedAvatar(undefined), false)
+})
+
+test('only the two formats the API can decode', () => {
+  assert.equal(avatarFileProblem({ type: 'image/png', size: 1000 }), null)
+  assert.equal(avatarFileProblem({ type: 'image/jpeg', size: 1000 }), null)
+  assert.equal(avatarFileProblem({ type: 'image/webp', size: 1000 }), 'type')
+  assert.equal(avatarFileProblem({ type: 'application/pdf', size: 1000 }), 'type')
+})
+
+test('nothing over the API limit goes out', () => {
+  assert.equal(avatarFileProblem({ type: 'image/png', size: AVATAR_MAX_BYTES }), null)
+  assert.equal(avatarFileProblem({ type: 'image/png', size: AVATAR_MAX_BYTES + 1 }), 'size')
+})
+
+test('a picture that is mostly crop is refused', () => {
+  assert.equal(avatarShapeProblem(256, 256), null)
+  assert.equal(avatarShapeProblem(1920, 1080), null)
+  assert.equal(avatarShapeProblem(3000, 200), 'shape')
+  assert.equal(avatarShapeProblem(200, 3000), 'shape')
+})
+
+test('too small is a refusal, not a stretch', () => {
+  assert.equal(avatarShapeProblem(16, 16), null)
+  assert.equal(avatarShapeProblem(15, 400), 'small')
 })

@@ -2,15 +2,27 @@ import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { apiClient } from '@/api/client'
-import { Button, buttonVariants } from '@/components/ui/button'
-import { isUploadedAvatar, scaleToAvatar } from '@/lib/avatar'
+import { Avatar } from '@/components/avatar'
+import { isUploadedAvatar, prepareAvatar, type AvatarProblem } from '@/lib/avatar'
 import { useAuthStore } from '@/stores/auth-store'
-import { cn } from '@/lib/utils'
+
+/** One sentence per refusal, so the reader learns what to pick instead. */
+const PROBLEM_KEY: Record<AvatarProblem, string> = {
+  type: 'auth.avatarWrongType',
+  size: 'auth.avatarTooBig',
+  small: 'auth.avatarTooSmall',
+  shape: 'auth.avatarTooLopsided',
+  broken: 'auth.avatarUnreadable',
+}
 
 /**
- * The two controls that change the avatar: upload one, or drop back to the account's
- * provider picture (or its generated one). The picture is squared and scaled to 256x256
- * here, before it is sent — the server stores it and never resizes anything.
+ * The account's picture, and the one control that changes it: clicking the picture chooses
+ * a file (there is no separate upload button — the thing being replaced is the thing you
+ * click). What is checked before the request is everything the API would refuse anyway, so
+ * a wrong pick costs nothing; the API is still the judge.
+ *
+ * The caption line under the picture is always there, empty when it has nothing to say:
+ * the space a refusal needs is the space it keeps.
  */
 export function AvatarPicker() {
   const { t } = useTranslation('common')
@@ -18,17 +30,22 @@ export function AvatarPicker() {
   const setUser = useAuthStore((s) => s.setUser)
   const input = useRef<HTMLInputElement>(null)
   const [busy, setBusy] = useState(false)
-  const [failed, setFailed] = useState(false)
+  const [message, setMessage] = useState<string | null>(null)
 
   if (!user) return null
 
   async function upload(file: File) {
     setBusy(true)
-    setFailed(false)
+    setMessage(null)
     try {
-      const square = await scaleToAvatar(file)
+      const prepared = await prepareAvatar(file)
+      if (prepared.problem) {
+        setMessage(t(PROBLEM_KEY[prepared.problem]))
+        return
+      }
+
       const form = new FormData()
-      form.append('file', new File([square], 'avatar.jpg', { type: 'image/jpeg' }))
+      form.append('file', new File([prepared.blob], 'avatar.jpg', { type: 'image/jpeg' }))
 
       const { data, error } = await apiClient.POST('/me/avatar', {
         // The generated type calls the binary part a string; what actually goes on the
@@ -41,7 +58,7 @@ export function AvatarPicker() {
       if (error || !data) throw new Error('upload refused')
       setUser(data)
     } catch {
-      setFailed(true)
+      setMessage(t('auth.avatarFailed'))
     } finally {
       setBusy(false)
       // Let the same file be chosen again after a failure.
@@ -51,7 +68,7 @@ export function AvatarPicker() {
 
   async function remove() {
     setBusy(true)
-    setFailed(false)
+    setMessage(null)
     try {
       const { error } = await apiClient.DELETE('/me/avatar')
       if (error) throw new Error('remove refused')
@@ -59,41 +76,50 @@ export function AvatarPicker() {
       const { data } = await apiClient.GET('/auth/me')
       if (data) setUser(data)
     } catch {
-      setFailed(true)
+      setMessage(t('auth.avatarFailed'))
     } finally {
       setBusy(false)
     }
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
-      <label
-        className={cn(
-          buttonVariants({ variant: 'outline', size: 'sm' }),
-          busy ? 'pointer-events-none opacity-50' : 'cursor-pointer',
-        )}
+    <div className="flex shrink-0 flex-col items-start gap-1.5">
+      <button
+        type="button"
+        className="cursor-pointer disabled:cursor-default disabled:opacity-50"
+        aria-label={t('auth.avatarUpload')}
+        title={t('auth.avatarUpload')}
+        disabled={busy}
+        onClick={() => input.current?.click()}
       >
-        {t('auth.avatarUpload')}
-        <input
-          ref={input}
-          type="file"
-          accept="image/png,image/jpeg"
-          className="sr-only"
-          disabled={busy}
-          onChange={(event) => {
-            const file = event.target.files?.[0]
-            if (file) void upload(file)
-          }}
-        />
-      </label>
+        <Avatar user={user} size="lg" />
+      </button>
 
-      {isUploadedAvatar(user.avatarUrl) && (
-        <Button variant="ghost" size="sm" disabled={busy} onClick={() => void remove()}>
-          {t('auth.avatarRemove')}
-        </Button>
-      )}
+      <input
+        ref={input}
+        type="file"
+        accept="image/png,image/jpeg"
+        className="sr-only"
+        disabled={busy}
+        onChange={(event) => {
+          const file = event.target.files?.[0]
+          if (file) void upload(file)
+        }}
+      />
 
-      {failed && <p className="text-[13px] text-muted">{t('auth.avatarFailed')}</p>}
+      <p className="min-h-[20px] text-[13px] text-muted">
+        {message ??
+          (isUploadedAvatar(user.avatarUrl) && (
+            <button
+              type="button"
+              className="cursor-pointer underline underline-offset-4 hover:text-ink disabled:cursor-default disabled:opacity-50"
+              disabled={busy}
+              onClick={() => void remove()}
+            >
+              {t('auth.avatarRemove')}
+            </button>
+          ))}
+      </p>
     </div>
   )
 }

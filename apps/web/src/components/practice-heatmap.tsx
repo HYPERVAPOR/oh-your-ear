@@ -27,6 +27,7 @@ const SLOT_CLASS = ['bg-surface-strong', 'bg-success']
 export function PracticeHeatmap() {
   const { t, i18n } = useTranslation('common')
   const user = useAuthStore((s) => s.user)
+  const initialized = useAuthStore((s) => s.initialized)
   const [level, setLevel] = useState<Level>('day')
 
   const { data } = useQuery({
@@ -102,11 +103,19 @@ export function PracticeHeatmap() {
         </div>
       </div>
 
+      {/* Same box, same 152px: until the session is known the calendar would first draw a
+          year of empty days and then fill in. */}
       <div className={cn('mt-4', BODY)}>
-        {level === 'day' && <DayView day={todayBucket} />}
-        {level === 'week' && <WeekRow days={days} today={today} square={square} />}
-        {level === 'month' && <MonthGrid days={days} today={today} square={square} />}
-        {level === 'year' && <YearGrid days={days} square={square} language={i18n.language} />}
+        {!initialized ? (
+          <span className="h-full w-full animate-pulse bg-surface-strong" />
+        ) : (
+          <>
+            {level === 'day' && <DayView day={todayBucket} />}
+            {level === 'week' && <WeekRow days={days} today={today} square={square} />}
+            {level === 'month' && <MonthGrid days={days} today={today} square={square} />}
+            {level === 'year' && <YearGrid days={days} square={square} language={i18n.language} />}
+          </>
+        )}
       </div>
 
       <ul className="mt-4 flex items-center gap-4 text-[13px] text-muted">

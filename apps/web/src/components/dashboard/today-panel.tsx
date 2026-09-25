@@ -36,6 +36,7 @@ export function TodayPanel() {
   const { t } = useTranslation('common')
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
+  const initialized = useAuthStore((s) => s.initialized)
 
   const { data: plan } = useQuery({
     queryKey: ['study-plan'],
@@ -73,7 +74,24 @@ export function TodayPanel() {
       {/* min-w-0 on both: a grid item defaults to min-width auto, so the heatmap's
           intrinsic width would stretch the whole column past a phone screen. */}
       <Card className="flex min-w-0 flex-col justify-between p-6 sm:p-7">
-        {user ? (
+        {/* Until the session restore settles we do not know which card this is, so we draw
+            its shape instead of guessing a state: the guest card appearing first and being
+            swapped for the account is a jump, and the jump is the part a reader notices.
+            Every placeholder is the box of the thing it replaces — the avatar's own 40px,
+            a `lg` button's 48px — so this cannot move the row it sits in. */}
+        {!initialized ? (
+          <>
+            <p className="badge-label text-muted">{t('home.accountLabel')}</p>
+            <div className="mt-1.5 flex items-center gap-3">
+              <span className="size-10 shrink-0 animate-pulse bg-surface-strong" />
+              <span className="h-[15px] w-44 animate-pulse bg-surface-strong" />
+            </div>
+            <div className="mt-8 flex flex-wrap items-center gap-2">
+              <span className="h-12 w-44 animate-pulse bg-surface-strong" />
+              <span className="h-12 w-28 animate-pulse bg-surface-strong" />
+            </div>
+          </>
+        ) : user ? (
           <>
             <div>
               <p className="badge-label text-muted">{t('home.accountLabel')}</p>

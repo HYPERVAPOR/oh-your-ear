@@ -56,40 +56,89 @@ export function avatarColors(seed: string): { ink: string; ground: string } {
   return { ink: `hsl(${hue} 45% 45%)`, ground: `hsl(${hue} 35% 93%)` }
 }
 
+/** What the API will take: the two formats it can decode (`avatarMimeTypes`). */
+export const AVATAR_TYPES = ['image/png', 'image/jpeg'] as const
+
+/** The size the API enforces (`MaxAvatarBytes`), checked first so nothing huge is read. */
+export const AVATAR_MAX_BYTES = 512 << 10
+
+/** The API's floor (`validateAvatar`): under this it is not a picture of anything. */
+export const AVATAR_MIN_SIDE = 16
+
+/** Past this, squaring the picture keeps a strip of it: 3:1 either way. */
+export const AVATAR_MAX_RATIO = 3
+
+/** Why a picture was refused before it was sent. Each one gets its own sentence. */
+export type AvatarProblem = 'type' | 'size' | 'small' | 'shape' | 'broken'
+
+/** The free checks: the type the API accepts, and the size it accepts. No decoding. */
+export function avatarFileProblem(file: { type: string; size: number }): AvatarProblem | null {
+  if (!(AVATAR_TYPES as readonly string[]).includes(file.type)) return 'type'
+  if (file.size > AVATAR_MAX_BYTES) return 'size'
+  return null
+}
+
+/** Once decoded: what a centre crop would throw away. */
+export function avatarShapeProblem(width: number, height: number): AvatarProblem | null {
+  if (width < AVATAR_MIN_SIDE || height < AVATAR_MIN_SIDE) return 'small'
+  const long = Math.max(width, height)
+  const short = Math.min(width, height)
+  return long / short > AVATAR_MAX_RATIO ? 'shape' : null
+}
+
+/** A picture squared and encoded, or the reason it never leaves the browser. */
+export type AvatarUpload =
+  { blob: Blob; problem?: undefined } | { blob?: undefined; problem: AvatarProblem }
+
 /**
- * Squares an uploaded picture and scales it down, in the browser. The server validates
- * what it receives but never resizes anything, so this is where the work belongs — and it
- * happens before a single byte is uploaded.
+ * Everything that happens between choosing a file and sending it: the cheap checks, the
+ * decode, the shape check, then the square. Refusing here means the reason is known and the
+ * request is never made — the server still validates, it is just no longer the first to
+ * find out.
  */
-export async function scaleToAvatar(file: File): Promise<Blob> {
-  const bitmap = await createImageBitmap(file)
+export async function prepareAvatar(file: File): Promise<AvatarUpload> {
+  const fileProblem = avatarFileProblem(file)
+  if (fileProblem) return { problem: fileProblem }
+
+  const bitmap = await createImageBitmap(file).catch(() => null)
+  if (!bitmap) return { problem: 'broken' }
   try {
-    const side = Math.min(bitmap.width, bitmap.height)
-    const canvas = document.createElement('canvas')
-    canvas.width = AVATAR_UPLOAD_SIZE
-    canvas.height = AVATAR_UPLOAD_SIZE
-    const context = canvas.getContext('2d')
-    if (!context) throw new Error('canvas is not available')
-
-    // Centre crop: the middle of a portrait is the part worth keeping.
-    context.drawImage(
-      bitmap,
-      (bitmap.width - side) / 2,
-      (bitmap.height - side) / 2,
-      side,
-      side,
-      0,
-      0,
-      AVATAR_UPLOAD_SIZE,
-      AVATAR_UPLOAD_SIZE,
-    )
-
-    const blob = await new Promise<Blob | null>((resolve) =>
-      canvas.toBlob(resolve, 'image/jpeg', 0.9),
-    )
-    if (!blob) throw new Error('the browser could not encode the picture')
-    return blob
+    const shapeProblem = avatarShapeProblem(bitmap.width, bitmap.height)
+    if (shapeProblem) return { problem: shapeProblem }
+    return { blob: await squareToAvatar(bitmap) }
   } finally {
     bitmap.close()
   }
+}
+
+/**
+ * Squares a decoded picture and scales it down, in the browser. The server validates what
+ * it receives but never resizes anything, so this is where the work belongs.
+ */
+export async function squareToAvatar(bitmap: ImageBitmap): Promise<Blob> {
+  const side = Math.min(bitmap.width, bitmap.height)
+  const canvas = document.createElement('canvas')
+  canvas.width = AVATAR_UPLOAD_SIZE
+  canvas.height = AVATAR_UPLOAD_SIZE
+  const context = canvas.getContext('2d')
+  if (!context) throw new Error('canvas is not available')
+
+  // Centre crop: the middle of a portrait is the part worth keeping.
+  context.drawImage(
+    bitmap,
+    (bitmap.width - side) / 2,
+    (bitmap.height - side) / 2,
+    side,
+    side,
+    0,
+    0,
+    AVATAR_UPLOAD_SIZE,
+    AVATAR_UPLOAD_SIZE,
+  )
+
+  const blob = await new Promise<Blob | null>((resolve) =>
+    canvas.toBlob(resolve, 'image/jpeg', 0.9),
+  )
+  if (!blob) throw new Error('the browser could not encode the picture')
+  return blob
 }
