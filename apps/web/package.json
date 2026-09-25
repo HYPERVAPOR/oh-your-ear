@@ -13,7 +13,8 @@
     "format:write": "prettier --write .",
     "typecheck": "tsc -b",
     "clean": "rm -rf dist",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "node --test src/lib/*.test.ts"
   },
   "dependencies": {
     "@oh-your-ear/shared": "workspace:*",

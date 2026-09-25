@@ -60,6 +60,8 @@ Vercel 确实支持容器，但那条路是给 **Functions** 用的：项目根�
 
 **落地页的 `VITE_APP_URL` 必须配**：它决定「开始练习」跳到哪个 app 域名；不配会退回 `http://localhost:5173`。
 
+**app 的 `VITE_LANDING_URL` 不用配**：它决定顶栏铭牌跳到哪个落地页，默认就是真实域名，比落地页那边安全。只在想把 app 指向别的落地页（本地联调、预发）时才设，开发环境由 `compose.dev.yml` 设成 `http://localhost:5174`。
+
 **app 项目要改 `apps/web/vercel.json` 里的 API 地址**（仓库里的值只是占位）：
 
 ```bash

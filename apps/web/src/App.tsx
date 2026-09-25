@@ -17,7 +17,6 @@ import { Home } from '@/pages/home'
 import { Levels } from '@/pages/levels'
 import { Login } from '@/pages/login'
 import { Bookmarks } from '@/pages/bookmarks'
-import { Daily } from '@/pages/daily'
 import { Me } from '@/pages/me'
 import { Mistakes } from '@/pages/mistakes'
 
@@ -67,7 +66,6 @@ export default function App() {
       {/* Both modes are open to guests on purpose: they can see what is there, and
           starting anything asks them to sign in (PRD §6, non-blocking prompt). */}
       <Route path="/levels" element={<Levels />} />
-      <Route path="/daily" element={<Daily />} />
       <Route path="/bookmarks" element={<Bookmarks />} />
       <Route
         path="/mistakes"
