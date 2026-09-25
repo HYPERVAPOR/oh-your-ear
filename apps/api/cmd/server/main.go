@@ -43,8 +43,15 @@ func run() error {
 			return fmt.Errorf("MAIL_DRIVER=smtp requires SMTP_HOST")
 		}
 		mailer = services.NewSMTPMailer(cfg.SMTPHost, cfg.SMTPPort, cfg.SMTPUsername, cfg.SMTPPassword, cfg.SMTPFrom)
+		// Everything but the password. A delivery failure only ever shows up in this log —
+		// POST /auth/code answers 204 either way, on purpose (it must not reveal whether an
+		// address exists) — so "which relay was it actually using" has to be answerable from
+		// the log alone.
+		log.Printf("mail: driver=smtp host=%s port=%s from=%s auth=%t",
+			cfg.SMTPHost, cfg.SMTPPort, cfg.SMTPFrom, cfg.SMTPUsername != "")
+	} else {
+		log.Printf("mail: driver=log — verification codes go to this log, not to an inbox")
 	}
-	log.Printf("verification codes are delivered via the %s transport", mailer.Driver())
 
 	loc, err := time.LoadLocation(cfg.AppTimezone)
 	if err != nil {
