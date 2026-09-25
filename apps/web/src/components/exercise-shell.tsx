@@ -1,9 +1,11 @@
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useSearchParams } from 'react-router-dom'
 import { ArrowLeft, Check, X } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import type { ExerciseKind } from '@/components/ui/orb'
+import { pickText, type Level } from '@/lib/levels'
 
 /**
  * Shared frame for every exercise screen: 64px header, the module's orb blooming
@@ -13,18 +15,24 @@ import type { ExerciseKind } from '@/components/ui/orb'
 export function ExerciseShell({
   kind,
   onBack,
+  level,
   score,
   progress,
   children,
 }: {
   kind: ExerciseKind
   onBack?: () => void
+  /** The question set this round is running, when it came from one. */
+  level?: Level
   score: { correct: number; total: number }
   /** Questions done out of the round's size, when a round is running. */
   progress?: { done: number; size: number }
   children: ReactNode
 }) {
-  const { t } = useTranslation('common')
+  const { t, i18n } = useTranslation('common')
+  // A level's name arrives with the catalogue. Until it does, say nothing rather than
+  // "Random Test" on a level: the wrong word is worse than a wait.
+  const askedForALevel = useSearchParams()[0].has('level')
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -37,8 +45,14 @@ export function ExerciseShell({
             <h1 className="font-display text-[21px] font-medium leading-none">
               {t(`modules.${kind}`)}
             </h1>
+            {/* A level names itself here. This used to say "Random Test" on every screen,
+                which on a question set was simply the wrong thing to say. */}
             <span className="badge-label hidden pt-1 text-muted sm:inline">
-              {t('exercises.randomTest')}
+              {level
+                ? pickText(level.title, i18n.language)
+                : askedForALevel
+                  ? ''
+                  : t('exercises.randomTest')}
             </span>
           </div>
 

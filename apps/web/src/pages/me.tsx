@@ -56,7 +56,7 @@ export function Me() {
             <PracticeStats />
 
             <Link
-              to="/bookmarks"
+              to="/collections"
               className="flex items-center justify-between rounded-xl border border-hairline bg-surface px-6 py-5 transition-colors hover:border-hairline-strong"
             >
               <div>

@@ -197,10 +197,10 @@
     "levelFailed": "Not passed: {{mark}}% accuracy is needed.",
     "levelBest": "Best so far {{percent}}%.",
     "nextLevel": "Next level",
-    "allLevels": "Question sets"
+    "allLevels": "All levels"
   },
   "levels": {
-    "title": "Question sets",
+    "title": "All levels",
     "intro": "One chain per module, easy to hard. Pass a level to open the next one (80% accuracy).",
     "questions": "{{count}} questions",
     "best": "best {{percent}}%",
@@ -213,7 +213,7 @@
     "defaultName": "Saved",
     "collect": "Collect",
     "newFolder": "New folder",
-    "folderEmpty": "This folder is empty. Use the bookmark icon next to a level.",
+    "folderEmpty": "This folder is empty. Use the collect icon next to a level.",
     "remove": "Remove",
     "practise": "Practise",
     "rename": "Folder name",
@@ -248,6 +248,7 @@
       "partial": "Partly done",
       "none": "Nothing"
     },
-    "cell": "{{date}}: {{solved}} of {{goal}}"
+    "cell": "{{date}}: {{solved}} of {{goal}}",
+    "today": "Today"
   }
 }

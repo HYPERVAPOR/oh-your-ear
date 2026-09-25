@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
@@ -8,6 +8,7 @@ import { apiClient } from '@/api/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/field'
 import { loginHere } from '@/lib/auth'
+import { useDismiss } from '@/lib/use-dismiss'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/stores/auth-store'
 import type { components } from '@/api/schema'
@@ -41,6 +42,10 @@ export function CollectMenu({ levelSlug }: { levelSlug: string }) {
 
   const [open, setOpen] = useState(false)
   const [newName, setNewName] = useState('')
+  // The box holds the trigger as well as the panel: pressing the trigger is inside.
+  const box = useRef<HTMLDivElement>(null)
+  const close = useCallback(() => setOpen(false), [])
+  useDismiss(open, close, box)
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ['collections'] })
 
@@ -74,7 +79,7 @@ export function CollectMenu({ levelSlug }: { levelSlug: string }) {
   }
 
   return (
-    <div className="relative">
+    <div className="relative" ref={box}>
       <button
         type="button"
         aria-label={t('collections.collect')}

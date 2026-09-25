@@ -125,6 +125,7 @@ export function ChordExercise({ onBack }: { onBack?: () => void }) {
   return (
     <ExerciseShell
       kind="chord"
+      level={level}
       onBack={onBack}
       score={{ correct: round.correct, total: round.total }}
       progress={roundSize > 0 ? { done: round.total, size: roundSize } : undefined}

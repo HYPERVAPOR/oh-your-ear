@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
@@ -8,14 +9,16 @@ import { loginHere, loginPath } from '@/lib/auth'
 import { AppHeader } from '@/components/app-header'
 import { EmptyState } from '@/components/ui/card'
 import { CollectMenu } from '@/components/collect-menu'
-import { ModuleSwatch } from '@/components/ui/orb'
+import { ModuleSwatch, type ExerciseKind } from '@/components/ui/orb'
 import { useAuthStore } from '@/stores/auth-store'
 import { pickText, useLevelCatalog, type Level } from '@/lib/levels'
 import { modulePath } from '@/components/round-summary'
+import { cn } from '@/lib/utils'
 
 /**
- * Question sets: five chains, easy to hard, for signed-in users. A level is locked
- * until the one before it is passed, so the page is really a picture of progress.
+ * All levels: one chain per module, easy to hard, for signed-in users. A level is locked
+ * until the one before it is passed, so the page is really a picture of progress — one
+ * picture at a time, chosen by a tab.
  */
 export function Levels() {
   const { t, i18n } = useTranslation('common')
@@ -35,6 +38,15 @@ export function Levels() {
   })
 
   const progressById = new Map((data ?? []).map((entry) => [entry.levelId, entry]))
+
+  // One chain at a time: five chains stacked vertically meant scrolling past four of them
+  // to reach the fifth. The tabs, their order and their names all come from the catalogue;
+  // nothing here knows the five modules by name.
+  const sets = catalog ?? []
+  const modules = [...new Set(sets.map((set) => set.module))]
+  const [picked, setPicked] = useState<ExerciseKind | null>(null)
+  const activeKind = picked ?? modules[0]
+  const shown = sets.filter((set) => set.module === activeKind)
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -61,8 +73,33 @@ export function Levels() {
             </div>
           )}
 
-          <div className="mt-10 space-y-10">
-            {(catalog ?? []).map((set) => {
+          {/* The same welded group as the dashboard's Learn / Random switch and the
+              calendar's four magnifications: one outline, one rule between neighbours, the
+              selected one a shade darker. It scrolls sideways rather than wrapping when
+              five names do not fit on a phone. */}
+          <div
+            role="group"
+            aria-label={t('levels.title')}
+            className="mt-8 inline-flex max-w-full items-stretch divide-x divide-hairline-strong overflow-x-auto border border-hairline-strong"
+          >
+            {modules.map((value) => (
+              <button
+                key={value}
+                type="button"
+                aria-pressed={activeKind === value}
+                onClick={() => setPicked(value)}
+                className={cn(
+                  'h-10 shrink-0 px-3 text-[15px] transition-colors',
+                  activeKind === value ? 'bg-surface-strong text-ink' : 'text-muted hover:text-ink',
+                )}
+              >
+                {t(`modules.${value}`)}
+              </button>
+            ))}
+          </div>
+
+          <div className="mt-8 space-y-10">
+            {shown.map((set) => {
               const kind = set.module
               const chain: Level[] = set.levels
               // A level is open when it is the first, or the one before it is passed.
@@ -70,13 +107,16 @@ export function Levels() {
 
               return (
                 <section key={set.slug}>
-                  <div className="flex items-center gap-3">
-                    <ModuleSwatch kind={kind} />
-                    <h2 className="text-[20px] font-medium">
-                      {pickText(set.title, i18n.language)}
-                    </h2>
-                    <span className="text-[14px] text-muted">{t(`modules.${kind}`)}</span>
-                  </div>
+                  {/* The tab already names the module, so a heading only earns its line when
+                      this module has more than one set to tell apart. */}
+                  {shown.length > 1 && (
+                    <div className="flex items-center gap-3">
+                      <ModuleSwatch kind={kind} />
+                      <h2 className="text-[20px] font-medium">
+                        {pickText(set.title, i18n.language)}
+                      </h2>
+                    </div>
+                  )}
 
                   <ol className="mt-4 grid gap-2.5 sm:grid-cols-2">
                     {chain.map((level, index) => {

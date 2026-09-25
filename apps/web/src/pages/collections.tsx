@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
-import { Trash2 } from 'lucide-react'
+import { ArrowLeft, Trash2 } from 'lucide-react'
 
 import { apiClient } from '@/api/client'
 import { AppHeader } from '@/components/app-header'
@@ -15,6 +15,7 @@ import { ModuleSwatch, type ExerciseKind } from '@/components/ui/orb'
 import { loginHere } from '@/lib/auth'
 import { pickText, useLevelCatalog, type LevelSet } from '@/lib/levels'
 import { useAuthStore } from '@/stores/auth-store'
+import { iconKey } from '@oh-your-ear/shared/pref-controls'
 
 /** Levels are addressed by slug; this finds one in the catalog. */
 function findLevel(sets: LevelSet[], slug: string) {
@@ -26,7 +27,7 @@ function findLevel(sets: LevelSet[], slug: string) {
 }
 
 /** The user's folders, each with the levels inside it, openable straight away. */
-export function Bookmarks() {
+export function Collections() {
   const { t, i18n } = useTranslation('common')
   const queryClient = useQueryClient()
   const user = useAuthStore((s) => s.user)
@@ -70,6 +71,18 @@ export function Bookmarks() {
         {/* Gutter outside the 1200px box and the same width as the header: with the
             padding inside, this column sat 300px inboard of the bar above it. */}
         <div className="mx-auto w-full max-w-[1200px]">
+          {/* Up to the account screen, not home: these two pages are its sub-pages, and the
+              card on the dashboard is a shortcut into them, not their parent. Same 32px key
+              as the account page, in the content column and not in the bar. */}
+          <Link
+            to="/me"
+            className={`${iconKey} mb-5 no-underline`}
+            aria-label={t('actions.back')}
+            title={t('actions.back')}
+          >
+            <ArrowLeft aria-hidden="true" className="h-4 w-4" strokeWidth={1.75} />
+          </Link>
+
           <h1 className="text-[30px] font-medium leading-tight sm:text-[36px]">
             {t('collections.title')}
           </h1>

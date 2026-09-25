@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import i18n from '@/i18n'
-import { Route, Routes, useNavigate } from 'react-router-dom'
+import { Route, Routes, Navigate, useNavigate } from 'react-router-dom'
 
 import { RequireAuth } from '@/components/require-auth'
 import { Button } from '@/components/ui/button'
@@ -16,7 +16,7 @@ import { useAppStore } from '@oh-your-ear/shared/prefs'
 import { Home } from '@/pages/home'
 import { Levels } from '@/pages/levels'
 import { Login } from '@/pages/login'
-import { Bookmarks } from '@/pages/bookmarks'
+import { Collections } from '@/pages/collections'
 import { Me } from '@/pages/me'
 import { Mistakes } from '@/pages/mistakes'
 
@@ -66,7 +66,10 @@ export default function App() {
       {/* Both modes are open to guests on purpose: they can see what is there, and
           starting anything asks them to sign in (PRD §6, non-blocking prompt). */}
       <Route path="/levels" element={<Levels />} />
-      <Route path="/bookmarks" element={<Bookmarks />} />
+      <Route path="/collections" element={<Collections />} />
+      {/* The page was at /bookmarks: the name is collections everywhere else (the API, the
+          translation namespace, the Chinese), so the URL follows, and old links still work. */}
+      <Route path="/bookmarks" element={<Navigate to="/collections" replace />} />
       <Route
         path="/mistakes"
         element={
