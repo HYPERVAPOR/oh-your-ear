@@ -181,8 +181,7 @@
     "questions": "{{count}} questions",
     "best": "best {{percent}}%",
     "empty": "Nothing here yet. Start with level 1.",
-    "guestBanner": "Question-set progress lives in your account. Sign in to start from level 1.",
-    "viewAll": "See all levels"
+    "guestBanner": "Question-set progress lives in your account. Sign in to start from level 1."
   },
   "collections": {
     "title": "Collections",

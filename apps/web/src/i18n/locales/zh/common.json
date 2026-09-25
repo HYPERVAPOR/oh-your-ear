@@ -181,8 +181,7 @@
     "questions": "{{count}} 题",
     "best": "最好 {{percent}}%",
     "empty": "还没有记录。从第一关开始吧。",
-    "guestBanner": "题单进度保存在账号里，登录后即可从第一关开始。",
-    "viewAll": "查看全部关卡"
+    "guestBanner": "题单进度保存在账号里，登录后即可从第一关开始。"
   },
   "collections": {
     "title": "收藏夹",
