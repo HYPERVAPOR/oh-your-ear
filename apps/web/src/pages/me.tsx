@@ -4,7 +4,6 @@ import { ArrowLeft } from 'lucide-react'
 
 import { AppHeader } from '@/components/app-header'
 import { AvatarPicker } from '@/components/avatar-picker'
-import { PasswordForm } from '@/components/password-form'
 import { PracticeStats } from '@/components/practice-stats'
 import { StudyPlanForm } from '@/components/study-plan-form'
 import { useAuthStore } from '@/stores/auth-store'
@@ -50,8 +49,6 @@ export function Me() {
 
           <div className="mt-10 space-y-6">
             <StudyPlanForm />
-
-            <PasswordForm />
 
             <PracticeStats />
 
