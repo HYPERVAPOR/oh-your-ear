@@ -423,42 +423,42 @@
 ### 21.1 登录后回到触发登录的页面
 
 - **issue**: #106
-- **status**: 🟡 doing
+- **status**: 🟢 done
 - **description**: `?next=` 成为唯一的回跳机制：登录页读 `next`，`RequireAuth` 与首页各登录入口跳 `/login?next=…`。`RequireAuth` 现在只传 `location.pathname`，查询串丢失，所以 `/exercise/interval?level=xx` 登录回来会掉关卡参数。`next` 必须做同源校验（以 `/` 开头、不以 `//` 开头），否则是开放重定向。Google 流程把 `next` 带过 OAuth 回路（`/api/v1/auth/google?next=…` 存进 state cookie），回调重定向到它而不是固定的 `FrontendURL + "/#access_token=…"`；顺带不再把 access token 塞进 URL hash —— 回调已经设了 refresh cookie，客户端 `restoreSession()` 本来就会用它换 token，带着反而与 PRD 7.1.2「不在 URL 里传任何令牌」冲突。
 - **depends on**: 7.1
 
 ### 21.2 首页三段结构
 
 - **issue**: #107
-- **status**: 🟡 doing
+- **status**: 🟢 done
 - **description**: 首页改成 dashboard（PRD 7.1.4）：第一段左右布局 —— 左侧邮箱与显眼的「开始每日训练」（游客同一位置放登录引导，布局不跳），右侧今日进度与热力图；第二、三段是两个 2×3 网格。`daily.tsx` 的 `startSession()` 逻辑（还算差几题、从练得最少的重点模块开一轮、一轮最多 20 题）搬到首页。顶栏给游客一个**带字不带图标**的登录按钮，放在图标组外侧、与其他控件同为 32px 高。
 - **depends on**: 21.1
 
 ### 21.3 一个棋盘，两个 tab：Learn 与 Random
 
 - **issue**: #107 / #117
-- **status**: 🟡 doing
+- **status**: 🟢 done
 - **description**: 五个模块一个棋盘（`grid-cols-2 lg:grid-cols-5`），Learn / Random test 用选项卡切换 —— 两边的格子内容完全同构，原本画了两遍。Learn 每格带闯关进度条（已通关数 / 总关卡数）加 `0/4`；Random 不带进度条（随机练习没有可显示的量），格子里只有模块名。选项卡沿用热力图那套压条词汇，取代原来的两个 h2；题单入口骑在选项卡行右侧（不挂网格下面，否则只在一个档出现会让页高抖动）。未登录时进度条显示 0、不显示假数据，点击才提示登录并回跳。**收藏夹与错题本的入口移进账号卡**（`today-panel` 底部发丝线之下），它们属于账号、不属于练习。文案一并清过（#115）：账号卡只剩值 / 动作 / 两个入口（删掉 `accountLabel` / `startHint` / `goalMet` / `loginCtaHint`，`guestIdentity` 缩成「未登录」），关链格子只剩模块名 + 进度条 + `0/4`，随机格只剩模块名，练习页顶部那句模块说明也删了。
 - **depends on**: 21.2, 14.4, 14.5
 
 ### 21.5 头像：Google / 像素默认 / 允许上传
 
 - **issue**: #118
-- **status**: 🟡 doing
+- **status**: 🟢 done
 - **description**: 账号卡与 `/me` 显示头像，三来源按优先级：用户上传的 > Google 给的 `picture`（`users.avatar_url` 早就存着了，只是前端一直没画）> **生成的 identicon**（`lib/avatar.ts` 的 `avatarPattern` + `avatarColors`，都由账号 id 的 hash 决定：5×5 镜像方块 + 一个色相的深浅两档；`components/avatar.tsx` 渲染成 `grid-cols-5 grid-rows-5`，颜色 inline 不跟主题走；单测覆盖尺寸、镜像、同 id 稳定 / 不同 id 不同、颜色格式与稳定性）。上传：`POST /me/avatar`（multipart）、`GET /me/avatar`（字节，带 ETag 与 `immutable` 缓存）、`DELETE /me/avatar`（退回登录方式的头像）；新表 `user_avatars(user_id PK, image BYTEA, mime, updated_at)` —— 与 `users` 分开，列用户时不会拖着字节走，也不引入对象存储。校验在服务端（`validateAvatar`：PNG / JPEG、16×16–1024×1024、≤ 512KB，格式由字节判定，白名单外一律 400），缩放裁剪在浏览器（canvas → 256×256 JPEG）。账号卡同时补上「我的账号」按钮（进 `/me`），`调整每日计划` 随之下线。
 - **depends on**: 21.2
 
 ### 21.4 热力图四档倍率
 
 - **issue**: #107
-- **status**: 🟡 doing
+- **status**: 🟢 done
 - **description**: 热力图加日 / 周 / 月 / 年四个 tab，都是同一张日历的四种倍率，数据只有 `GET /me/daily` 一个来源，不新增接口：日档是当天目标的进度条（`已答 / 目标`，答满即满），周档是本周七天，月档是本月日历（30/31 个格子，随年份），年档是一年的热力图。**格子永远是一天，永远按那天自己的目标分档**，没有相对强度。星期缩写用英文。四个函数（`dayPercent` / `week` / `month` / `year`）在 `lib/heatmap.ts`，带表驱动单测。**日档是进度条**（复用闯关格子的那一套，8px 高、填充达标绿 `bg-success`；百分比逻辑在 `lib/heatmap.ts` 的 `dayPercent`，带单测）；**周 / 月共用 20px 格子**（2px 间距，周档就是月档的一行、同一个网格）；四档都铺满盒子宽度（七列均分、格子居中）；**年是第二个倍率**、格子随卡片宽度流式（`minmax(8px, 1fr)`，桌面 8px、宽卡最多 10px）；四个视图左边缘对齐（去掉年的 32px 星期名竖栏与缩进，年份视图因此不再横向溢出）；轴的字号跟着格子走（12px / 10px）。绘制在 `components/heatmap-views.tsx`，容器（数据 / tab / 图例）在 `components/practice-heatmap.tsx`。
 - **depends on**: 15.2
 
-### 21.5 删掉每日练习页
+### 21.6 删掉每日练习页
 
 - **issue**: #107
-- **status**: 🟡 doing
+- **status**: 🟢 done
 - **description**: 今日进度、开始按钮、热力图都已在首页，计划设置在 `/me`，`/daily` 没有存在意义了：删掉页面、路由与 `/daily` 的入口；`study-plan-form` 里指向它的链接改到首页；相关文案 key 迁进首页命名空间，中英同步。
 - **depends on**: 21.2
 
@@ -467,6 +467,15 @@
 ### 22.1 免费与开源，footer 归位
 
 - **issue**: #110
-- **status**: 🟡 doing
+- **status**: 🟢 done
 - **description**: 落地页 hero 之下加第二屏（PRD 7.1.5）：三句主张「开源 / 免费 / 没有额外费用」，用压条的词汇做成三个同高的格 —— 一整圈外框 + `divide-x`，不是三张卡片；不加第二个动作按钮，不用模块色。footer 落到整页末尾：内容不足一屏贴视口底，超过一屏跟在内容之后，品牌与许可证信息不在两处重复。中英文案同步。
 - **depends on**: 17.1
+
+## M23 登录屏
+
+### 23.1 登录屏：连体 nameplate、Continue with Google、错误内联
+
+- **issue**: #122
+- **status**: 🟡 doing
+- **description**: 登录页不再是一个没壳的卡片（PRD 7.1.9）。左上角改用**连体 nameplate** —— 从 `app-header.tsx` 抽成 `components/nameplate.tsx`，`app-header` 与 `login` 共用（落地页那份在另一个 app 里、是静态渲染，不动）。Google 入口文案改成 `Continue with Google`，前面加一个**单路径 `currentColor`** 的 Google 标记（四色版会是全页唯一的彩色）。**错误信息内联**：`ui/field.tsx` 增加 `error` 通道，与 `hint` 共用一行（`error ?? hint`），**只要调用方传了字符串就渲染**（`hint !== undefined`，不做真值判断），行高固定 18px；登录页错误拆成 `emailError` / `codeError` 两份，各自落在自己的字段下，改输入即清掉自己那份。实测五种状态（初始 / 邮箱不合法 / 改回合法 / 验证码已发送 / 验证码错误）卡片高度都是 579px，不再抖动。同时把 `codeSentHint` 那句长尾（"验证码打印在服务端日志里"）删掉 —— 它属于 `docs/deploy.md`，留在界面上会换行，把"高度恒定"破掉。
+- **depends on**: 21.2
