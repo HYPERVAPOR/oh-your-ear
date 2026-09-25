@@ -10,6 +10,7 @@ import { useQuery } from '@tanstack/react-query'
 import { apiClient } from '@/api/client'
 import { pickText, useLevelCatalog, type Level } from '@/lib/levels'
 import type { RoundEntry } from '@/lib/round'
+import { loginHere } from '@/lib/auth'
 import { useAuthStore } from '@/stores/auth-store'
 
 /** Route segment for a module, shared with the question-set page. */
@@ -201,7 +202,7 @@ export function RoundSummary({
         {!user && (
           <p className="mt-5 text-[14px] text-muted">
             {t('round.guestHint')}{' '}
-            <Link to="/login" className="underline underline-offset-4">
+            <Link to={loginHere()} className="underline underline-offset-4">
               {t('actions.login')}
             </Link>
           </p>

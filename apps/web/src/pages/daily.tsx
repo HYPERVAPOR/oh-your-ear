@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { apiClient } from '@/api/client'
+import { loginHere } from '@/lib/auth'
 import { AppHeader } from '@/components/app-header'
 import { DailyHeatmap } from '@/components/daily-heatmap'
 import { Button } from '@/components/ui/button'
@@ -72,8 +73,7 @@ export function Daily() {
             <div className="mt-8 flex flex-wrap items-center gap-4 rounded-xl border border-hairline bg-surface px-5 py-4">
               <p className="text-[15px] text-body">{t('daily.guestBanner')}</p>
               <Link
-                to="/login"
-                state={{ from: '/daily' }}
+                to={loginHere()}
                 className="inline-flex h-10 items-center rounded-none bg-primary px-5 text-[15px] font-medium text-on-primary transition-opacity hover:opacity-90"
               >
                 {t('actions.login')}

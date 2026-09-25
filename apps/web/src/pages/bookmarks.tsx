@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Card, EmptyState } from '@/components/ui/card'
 import { Input } from '@/components/ui/field'
 import { ModuleSwatch, type ExerciseKind } from '@/components/ui/orb'
+import { loginHere } from '@/lib/auth'
 import { pickText, useLevelCatalog, type LevelSet } from '@/lib/levels'
 import { useAuthStore } from '@/stores/auth-store'
 
@@ -78,8 +79,7 @@ export function Bookmarks() {
             <div className="mt-8 flex flex-wrap items-center gap-4 rounded-xl border border-hairline bg-surface px-5 py-4">
               <p className="text-[15px] text-body">{t('collections.guestBanner')}</p>
               <Link
-                to="/login"
-                state={{ from: '/bookmarks' }}
+                to={loginHere()}
                 className="inline-flex h-10 items-center rounded-none bg-primary px-5 text-[15px] font-medium text-on-primary transition-opacity hover:opacity-90"
               >
                 {t('actions.login')}

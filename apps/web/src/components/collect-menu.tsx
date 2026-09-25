@@ -7,6 +7,7 @@ import { Bookmark, BookmarkCheck, Plus } from 'lucide-react'
 import { apiClient } from '@/api/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/field'
+import { loginHere } from '@/lib/auth'
 import { cn } from '@/lib/utils'
 import { useAuthStore } from '@/stores/auth-store'
 import type { components } from '@/api/schema'
@@ -78,7 +79,7 @@ export function CollectMenu({ levelSlug }: { levelSlug: string }) {
         type="button"
         aria-label={t('collections.collect')}
         aria-expanded={open}
-        onClick={() => (user ? setOpen((prev) => !prev) : navigate('/login'))}
+        onClick={() => (user ? setOpen((prev) => !prev) : navigate(loginHere()))}
         className={cn(
           'flex h-9 w-9 items-center justify-center rounded-none transition-colors hover:bg-surface-strong',
           saved ? 'text-ink' : 'text-muted',
