@@ -514,3 +514,12 @@
 - **status**: 🟢 done
 - **description**: 顶栏的退出图标键与 `/me` 页头的「退出」都改成弹确认框（「要退出登录吗？」）。用的是浏览器原生 `<dialog>` + `showModal()`（`components/ui/confirm-dialog.tsx`，约 50 行，无依赖）：焦点锁、Esc、背景惰性、顶层堆叠、`::backdrop` 全是平台的。自己补三件事 —— 点背景 = 取消（原生不关）、Esc 关闭（`cancel` 事件）后把状态同步回来、以及**确认之后自己关框**（只有一个 `onDismiss` 承担所有关闭路径，确认只负责干活；把这条留给调用方的话，顶栏是常驻的，从首页确认登出后框会留在屏幕上）。实测：`:modal=true`、384×139 居中（视口 1265 宽时左 441 = 精确居中）、1px `hairline-strong` 边框、backdrop `ink/40`、**焦点落在「取消」**（第一个可聚焦元素，误触 Enter 落安全侧）、Esc / 点背景 / 取消三者都关框且不登出、确认后路径回 `/`、`/me` 链接消失。**顶栏一个键都没变**（130px，不是原地变形）。两个入口各挂一个 dialog，标题 id 用 `useId()` 按实例生成（固定 id 会重复，`aria-labelledby` 可能指到隐藏的那个）。
 - **depends on**: 21.1
+
+## M24 持续部署
+
+### 24.1 main 更新自动部署后端
+
+- **issue**: #134
+- **status**: 🟡 doing
+- **description**: 前端两个 Vercel 项目本来就自动部署，后端（api + db）一直是手动的。现在 `.github/workflows/deploy.yml` 等 CI 那一轮**通过**（`workflow_run`，不是并行）再 SSH 到 VPS 执行 `compose/deploy.sh`：先 `compose/backup.sh` dump 数据库 → `up -d --build` → 健康检查（30 次 × 2s）→ **不健康就 checkout 上一个提交重建**。部署脚本进仓库（逻辑跟着版本走，workflow 只触发），密钥用 forced command 锁死成"只能签出某个提交并跑部署脚本"，host key 用预先核对的 `known_hosts` 而不是现场 `ssh-keyscan`。没配 `DEPLOY_HOST` 时明确跳过而不是每次推 main 都红。回滚逻辑有测试（`compose/deploy.test.sh`，假 podman/curl + 临时克隆，覆盖健康 / 回滚成功 / 回滚失败三条路），CI 里跑。**数据库没有迁移步骤**：schema 在启动时幂等执行，代价是 schema 变更只许增不许改删（写进 deploy.md §6）。已知粗糙处：`up -d --build` 重建容器期间有几秒不可用。
+- **depends on**: 21.1

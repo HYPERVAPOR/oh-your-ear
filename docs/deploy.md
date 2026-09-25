@@ -324,3 +324,57 @@ curl -o /dev/null -w '%{http_code}\n' -X POST https://api.<domain>/api/v1/auth/m
 现在不动：单实例、有冷却与锁定在，收益小于复杂度。
 
 `api` 容器经 Vercel 的 rewrite 对内网暴露给 Vercel 的边缘网络。绕过 Vercel 直接打 `api.<domain>` 在能力上与从前端打没有区别（同一个 API、同一套鉴权、没有 CORS 所以浏览器无法跨站读取响应），区别只是少了一层边缘。要收紧的话，可以给 API 加一个只由 rewrite 注入的共享密钥头。
+
+## 6. 持续部署
+
+前端两个 Vercel 项目从 `main` 自动部署；**后端（api + db）由 `.github/workflows/deploy.yml` 部署**。它等 CI 那一轮跑完**并且通过**（`workflow_run`，不是和它并行），再 SSH 到 VPS 执行 `compose/deploy.sh`。
+
+**部署脚本进仓库，workflow 只负责触发。** 修部署流程和修代码因此是同一个 PR，而不是一份只活在某台机器上的 shell 历史。
+
+脚本按顺序做四件事：**先 dump 数据库** → `podman compose up -d --build` → 等健康检查（默认 30 次 × 2 秒）→ **不健康就 checkout 上一个提交重建**。这条回滚有测试：`bash compose/deploy.test.sh`，用假的 podman/curl 在临时克隆里跑，覆盖"健康"、"不健康 → 回滚成功"、"回滚也不健康"三条路；CI 里也会跑。
+
+### 一次性配置
+
+1. 在 VPS 上生成一把**专用**部署密钥（不要用你日常登录那把）：
+
+```bash
+ssh-keygen -t ed25519 -C "oye-deploy" -f ~/.ssh/oye-deploy -N ""
+```
+
+2. 公钥追加进 `~/.ssh/authorized_keys`，**并用 forced command 把它锁死**：这把钥匙只能"签出某个提交并跑部署脚本"，拿不到 shell，也转发不了端口。
+
+```
+command="cd /opt/oh-your-ear && git fetch --quiet origin && git checkout --quiet "$SSH_ORIGINAL_COMMAND" && bash compose/deploy.sh",no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty ssh-ed25519 AAAA… oye-deploy
+```
+
+3. 在自己机器上取一次 VPS 的 host key 并**核对**再存下来 —— 不要用 `ssh-keyscan` 现场取然后直通，那等于在同一根线路上问对方"你是不是你"：
+
+```bash
+ssh-keyscan -H <deploy-host>
+```
+
+4. 仓库 → Settings → Secrets and variables → Actions，加四个 secret：
+
+| Secret | 值 |
+| --- | --- |
+| `DEPLOY_HOST` | VPS 的 SSH 主机 |
+| `DEPLOY_USER` | 部署用的系统用户（第 1 步那个） |
+| `DEPLOY_SSH_KEY` | 私钥全文（`~/.ssh/oye-deploy`） |
+| `DEPLOY_KNOWN_HOSTS` | 第 3 步的输出 |
+
+**没配 `DEPLOY_HOST` 时 workflow 会明确说"未配置"并跳过**，不会因为少三个 secret 就每次推 main 都红一片。
+
+### 手动触发与回滚
+
+```bash
+gh workflow run deploy.yml            # 部署当前 main
+cd /opt/oh-your-ear && git checkout <某个旧提交> && bash compose/deploy.sh   # 手动回滚
+```
+
+### 数据库：没有迁移步骤，但有一条硬规矩
+
+schema 在 API 启动时幂等地跑（`CREATE TABLE IF NOT EXISTS` + `ALTER TABLE … ADD COLUMN IF NOT EXISTS`），所以"更新数据库"就是重启 api，不需要单独的迁移阶段。代价是：**schema 变更只许增，不许改或删。** 改列名、删列、改类型都需要真的迁移工具（还没做），真要做的时候别指望这条幂等路径。
+
+### 已知的粗糙处
+
+部署期间有几秒不可用：`up -d --build` 要重建 api 容器。要做到零停机得两个容器加一次代理切换，现在不值得。

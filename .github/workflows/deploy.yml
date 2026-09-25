@@ -1,0 +1,72 @@
+name: Deploy
+
+# After CI, not instead of it. A deploy that fires on push alone would ship a commit whose
+# checks are still running, and on a bad one it would ship the failure too.
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  # The escape hatch: deploy whatever is on the branch right now without pushing a commit.
+  workflow_dispatch:
+
+concurrency:
+  # One deploy at a time. Not cancelled mid-flight: interrupting a build leaves the stack
+  # half-updated, which is worse than waiting.
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    # A manual run is always allowed; an automatic one only for a CI run that passed.
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-24.04
+    environment: production
+    steps:
+      # Puts the host in plain text for the step condition below: `if` cannot read secrets
+      # directly, and a deploy job that fails loudly on every push until someone remembers
+      # to add three secrets is worse than one that says what is missing.
+      - name: Read deploy configuration
+        id: config
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+        run: |
+          if [ -n "$DEPLOY_HOST" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Deploy
+        if: steps.config.outputs.configured == 'true'
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+          # The commit CI approved (a workflow_run's github.sha is main's tip, not this run's).
+          TARGET: ${{ github.event.workflow_run.head_sha || github.sha }}
+        run: |
+          set -euo pipefail
+
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          # Pinned rather than ssh-keyscan'd: fetching the host key over the same connection
+          # it is meant to protect proves nothing.
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+          # Only the commit hash goes over the wire. The host-side key is locked to a forced
+          # command (docs/deploy.md 6), so this connection cannot run anything else.
+          ssh -i ~/.ssh/id_deploy \
+              -o IdentitiesOnly=yes \
+              -o StrictHostKeyChecking=yes \
+              "$DEPLOY_USER@$DEPLOY_HOST" "$TARGET"
+
+      - name: Nothing to deploy
+        if: steps.config.outputs.configured == 'false'
+        run: echo "DEPLOY_HOST is not configured; see docs/deploy.md 6"
