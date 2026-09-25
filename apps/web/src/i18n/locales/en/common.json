@@ -205,13 +205,9 @@
     "passedOf": "{{passed}}/{{total}}",
     "startDaily": "Start daily practice",
     "extraRound": "One more round",
-    "startHint": "{{count}} left today, picking up {{module}}.",
-    "goalMet": "Today's goal is met — another round if you want one.",
     "adjustPlan": "Adjust the daily plan",
     "met": "Today's goal is met",
-    "accountLabel": "Account",
-    "guestIdentity": "Not signed in — results last this session only.",
-    "loginCtaHint": "The plan, accuracy trends, mistake review, streaks and badges.",
+    "guestIdentity": "Not signed in",
     "modeLabel": "Practice mode"
   },
   "heatmap": {

@@ -25,6 +25,9 @@ const ACCOUNT_LINKS = [
  * The first band of the dashboard: who you are and what to do about today on the left,
  * how today and the year are going on the right (PRD 7.1.4). Guests get the same shape
  * with the numbers at zero, so nothing moves after signing in.
+ *
+ * The card carries a value, an action and two entries — no label over the value, no
+ * sentence under the action. The email is the account and the button says what it does.
  */
 export function TodayPanel() {
   const { t } = useTranslation('common')
@@ -69,10 +72,7 @@ export function TodayPanel() {
       <Card className="flex min-w-0 flex-col justify-between p-6 sm:p-7">
         {user ? (
           <>
-            <div>
-              <p className="badge-label text-muted">{t('home.accountLabel')}</p>
-              <p className="mt-1.5 break-all text-[15px]">{user.email}</p>
-            </div>
+            <p className="break-all text-[15px]">{user.email}</p>
             <div className="mt-8">
               <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
                 <Button size="lg" onClick={startSession}>
@@ -85,27 +85,15 @@ export function TodayPanel() {
                   {t('home.adjustPlan')}
                 </Link>
               </div>
-              <p className="mt-3 text-[14px] text-muted">
-                {met || !next
-                  ? t('home.goalMet')
-                  : t('home.startHint', {
-                      count: Math.min(remaining, MAX_SESSION),
-                      module: t(`modules.${next}`),
-                    })}
-              </p>
             </div>
           </>
         ) : (
           <>
-            <div>
-              <p className="badge-label text-muted">{t('home.accountLabel')}</p>
-              <p className="mt-1.5 text-[15px] text-body">{t('home.guestIdentity')}</p>
-            </div>
+            <p className="text-[15px] text-body">{t('home.guestIdentity')}</p>
             <div className="mt-8">
               <Link to={loginHere()} className={buttonVariants({ size: 'lg' })}>
                 {t('actions.login')}
               </Link>
-              <p className="mt-3 max-w-[42ch] text-[14px] text-muted">{t('home.loginCtaHint')}</p>
             </div>
           </>
         )}

@@ -205,13 +205,9 @@
     "passedOf": "{{passed}}/{{total}}",
     "startDaily": "开始每日训练",
     "extraRound": "再来一轮",
-    "startHint": "今天还差 {{count}} 题，从「{{module}}」开始。",
-    "goalMet": "今天已经达标了，想练就再开一轮。",
     "adjustPlan": "调整每日计划",
     "met": "今日已达标",
-    "accountLabel": "账号",
-    "guestIdentity": "未登录，成绩只留在本次会话。",
-    "loginCtaHint": "学习计划、正确率趋势、错题重练、连续打卡与徽章。",
+    "guestIdentity": "未登录",
     "modeLabel": "练习方式"
   },
   "heatmap": {
