@@ -22,6 +22,7 @@
 4. **推 `dev` 不部署任何东西**：Vercel 被显式忽略（`git.deploymentEnabled`），API 只在「CI 在 main 上通过」时才部署。合进 `main` 才是上线。这条是为了省 Vercel 每天 100 次部署的额度——详见 `docs/deploy.md` §7。
 5. 小改动（错别字、文档微调）直接 push `dev`，无需分支和 PR。
 6. **PR 里的 `Closes #N` 只在验收条件全部满足时才写**；没满足就写 `Refs #N`，让 issue 开着。踩过：一个核心验收还没通过的 issue 被 `Closes` 关掉，还得手工 reopen —— 而那个 issue 开着正是为了记住"这件事还没验"（#136）。
+7. **合进 `dev` 的 PR 不会自动关闭 issue**：GitHub 只在合进**默认分支**（`main`）时才处理 `Closes`。所以合完 `dev` 的 PR 要**手动关**（或留到提升到 main 时一起关）。踩过：四个 PR 都写了 `Closes #N`，八个 issue 一条都没关，而且是几天后翻列表才发现的。
 
 ## 长期记忆系统
 
