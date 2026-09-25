@@ -393,11 +393,14 @@ schema 在 API 启动时幂等地跑（`CREATE TABLE IF NOT EXISTS` + `ALTER TAB
 // apps/web/vercel.json 与 apps/landing/vercel.json
 "git": {
   "deploymentEnabled": {
+    "main": true,
     "dev": false, "fix/*": false, "feat/*": false,
     "feature/*": false, "docs/*": false, "chore/*": false
   }
 }
 ```
+
+**`"main": true` 是故意的、也是必需的**：官方语义是「多条规则命中时，只要有一条是 `true` 就部署」，所以这条能挡住将来有人加 `*` 或 `**` 通配时把生产一起关掉。没有它，一次手滑就是静默不部署。
 
 功能分支的预览也一起关了：在额度紧张时它是纯消耗，而视觉改动在本地 5173 / 5174 就能看。想恢复某个前缀的预览，把它那条删掉即可。
 
