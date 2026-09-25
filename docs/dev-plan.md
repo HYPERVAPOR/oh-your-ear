@@ -584,3 +584,10 @@
 - **status**: 🟡 doing
 - **description**: 五条链竖着堆，想练第五条得先滚过四条。改成按模块分选项卡：`modules` 由目录数据去重得到（顺序即目录顺序，不硬编码五个模块名），选中态沿用首页 Learn / Random 与热力图四档那套焊接组（`role="group"` + `aria-pressed` + 一圈外框 + `divide-x` + `bg-surface-strong`）。窄屏五个名字横向滚动而不折行。每段的标题只在**该模块有多于一个题单**时才画 —— 选项卡已经报了模块名，再写一遍就是重复。
 - **depends on**: 14.4, 7.1.4
+
+### 27.4 首页模块格子跳对应选项卡，选项卡进 URL
+
+- **issue**: #155
+- **status**: 🟡 doing
+- **description**: `/levels` 的档位原是组件内 `useState`，地址栏看不出在哪一档、也没法从别处链进来；而首页 Learn 档的格子直接进「下一关」，等于替读者挑了一关。改成：档位写进 `?module=<目录里的模块名>`（非法或缺失回退第一档），切档用 `replace`；首页 Learn 档五个格子跳 `/levels?module=<模块>`，Random 档不变（自由练习就是它的意思）；游客也直接进目录，不再先拦去登录。实测：深链 `/levels?module=interval` 打开就是音程档、点 tab 地址栏跟着变而历史条数 2→2 不变、非法值退回单音、首页点「音程」落在音程档（首关二三度）、游客时 Learn 的 href 依旧指 `/levels?module=…`。
+- **depends on**: 27.3
