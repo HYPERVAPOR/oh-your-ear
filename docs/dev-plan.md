@@ -523,3 +523,12 @@
 - **status**: 🟡 doing
 - **description**: 前端两个 Vercel 项目本来就自动部署，后端（api + db）一直是手动的。现在 `.github/workflows/deploy.yml` 等 CI 那一轮**通过**（`workflow_run`，不是并行）再 SSH 到 VPS 执行 `compose/deploy.sh`：先 `compose/backup.sh` dump 数据库 → `up -d --build` → 健康检查（30 次 × 2s）→ **不健康就 checkout 上一个提交重建**。部署脚本进仓库（逻辑跟着版本走，workflow 只触发），密钥用 forced command 锁死成"只能签出某个提交并跑部署脚本"，host key 用预先核对的 `known_hosts` 而不是现场 `ssh-keyscan`。没配 `DEPLOY_HOST` 时明确跳过而不是每次推 main 都红。回滚逻辑有测试（`compose/deploy.test.sh`，假 podman/curl + 临时克隆，覆盖健康 / 回滚成功 / 回滚失败三条路），CI 里跑。**数据库没有迁移步骤**：schema 在启动时幂等执行，代价是 schema 变更只许增不许改删（写进 deploy.md §6）。已知粗糙处：`up -d --build` 重建容器期间有几秒不可用。
 - **depends on**: 21.1
+
+## M25 Vercel 部署额度与分支策略
+
+### 25.1 dev 集成分支 + 按项目判断要不要构建
+
+- **issue**: #136
+- **status**: 🟡 doing
+- **description**: 2026-09-25 一天之内把 Vercel 免费额度（每天 100 次部署）烧光，两个项目都被 `Deployment rate limited` 挡住，于是再推 main 前端也不更新。三个手段：①**`dev` 集成分支**——两个 `vercel.json` 里 `git.deploymentEnabled: {dev: false}`（根本不创建部署），CI 的 push / pull_request 都监听 `main` 与 `dev`，所以进 dev 也要过检查，而 API 只在「CI 在 main 上通过」时部署；②**每个项目自己判断**——`ignoreCommand: git diff --quiet HEAD^ HEAD -- . ../../packages/shared`（退出码 0 = 跳过；`.` 是项目根，`../../packages/shared` 是共享包），实测只改后端/文档时两个前端都跳过、改 web 只建 web、改 shared 两个都建；③**零碎提交先推 dev**，别直接推 main。注意 ② 的额度效果官方没有明确说明（社区在问被忽略的构建是否仍计数），所以 ① 才是确定解。
+- **depends on**: 24.1
