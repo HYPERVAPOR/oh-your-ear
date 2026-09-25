@@ -24,8 +24,8 @@ const GAP = 0.55
  * makes an issue like "no sound in the WeChat browser" (#88) get filed by someone who
  * would never have gone looking for a repository to file it in.
  *
- * A few lines of the landing's own Web Audio (lib/keys.ts), the same synth the hero's roll
- * plays — this page still ships no piano samples.
+ * The hero's own piano (lib/keys.ts) — the same three samples the roll plays, fetched rather
+ * than bundled, so this screen proves the sound on a page that still ships no engine.
  */
 export function SoundCheck() {
   const { t } = useTranslation()
