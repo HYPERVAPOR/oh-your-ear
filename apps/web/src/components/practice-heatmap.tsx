@@ -15,7 +15,7 @@ const BODY = 'flex h-[152px] items-center overflow-x-auto'
 const CALENDAR_LEGEND = ['none', 'partial', 'met'] as const
 /** The day view is a bar, not squares, so its key is the bar's two halves. */
 const SLOT_LEGEND = ['todo', 'done'] as const
-const SLOT_CLASS = ['bg-surface-strong', 'bg-primary']
+const SLOT_CLASS = ['bg-surface-strong', 'bg-success']
 
 /**
  * The practice history as one calendar at four magnifications (PRD 7.1.4): today's goal as
