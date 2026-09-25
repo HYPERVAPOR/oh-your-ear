@@ -326,6 +326,23 @@ func hashEmailCode(email, code string) string {
 	return hex.EncodeToString(sum[:])
 }
 
+// EmailRegistered answers whether an address already has an account.
+//
+// This is the one place on the sign-in surface that tells the caller whether an address is
+// known: everywhere else answers the same way for both cases (see RequestEmailCode and
+// LoginWithPassword). It exists so the sign-up screen can send someone who already has an
+// account to the sign-in screen instead of through a code they do not need. The price is an
+// oracle for "who has an account here", which is why the endpoint shares the code throttle —
+// asking has to stay expensive.
+func (s *AuthService) EmailRegistered(ctx context.Context, email string) (bool, error) {
+	var registered bool
+	err := s.pool.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM users WHERE email = $1)`, email).Scan(&registered)
+	if err != nil {
+		return false, fmt.Errorf("failed to look up email: %w", err)
+	}
+	return registered, nil
+}
+
 // UpsertEmailUser returns the user for an address, creating it on first login.
 func (s *AuthService) UpsertEmailUser(ctx context.Context, email string, name *string) (*models.User, error) {
 	query := `

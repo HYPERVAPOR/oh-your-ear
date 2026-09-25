@@ -42,6 +42,26 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/auth/email/check': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /**
+     * Whether an address already has an account
+     * @description A deliberate exception to the rest of this surface. Signing in never says whether an address is registered — /auth/code answers 204 for any address, /auth/login answers the same way for an unknown address and a wrong password — but the sign-up screen asks the question out loud, so that someone who already has an account is sent to the sign-in screen instead of through a code they do not need. The answer is an oracle for "who has an account here", which is why it shares the code endpoint's throttle.
+     */
+    post: operations['checkEmail']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/auth/register': {
     parameters: {
       query?: never
@@ -435,6 +455,9 @@ export interface components {
        */
       email: string
     }
+    EmailCheckResponse: {
+      registered: boolean
+    }
     SetPasswordRequest: {
       /** @description Required when the account already has a password. */
       currentPassword?: string | null
@@ -719,6 +742,32 @@ export interface operations {
           [name: string]: unknown
         }
         content?: never
+      }
+      400: components['responses']['BadRequest']
+      429: components['responses']['TooManyRequests']
+    }
+  }
+  checkEmail: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['EmailCodeRequest']
+      }
+    }
+    responses: {
+      /** @description Whether the address has an account */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['EmailCheckResponse']
+        }
       }
       400: components['responses']['BadRequest']
       429: components['responses']['TooManyRequests']

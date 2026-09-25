@@ -2,11 +2,12 @@ import type { ReactNode } from 'react'
 import { useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
+import { ArrowLeft } from 'lucide-react'
 
-import { Nameplate } from '@/components/nameplate'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { useAuthStore } from '@/stores/auth-store'
+import { iconKey } from '@oh-your-ear/shared/pref-controls'
 
 /** Google's mark, in its own four colours. A brand mark is allowed to be the one thing on
  *  the page that is not our palette: it has to be recognised at a glance, and a monochrome
@@ -36,9 +37,10 @@ function GoogleMark() {
 
 /**
  * The card all three account screens are built from: sign in, sign up, reset. They are the
- * same object — the nameplate the landing page and the app's header wear, one title, the
- * form, then Google — and only the form changes. Keeping them one component is what keeps
- * them from drifting into three similar-looking cards.
+ * same object — one title, the form, then Google — and only the form changes. Keeping them one
+ * component is what keeps them from drifting into three similar-looking cards. There is no
+ * nameplate: this is a form, not the product introducing itself, and a wordmark costs a line
+ * of height on the one screen where nothing is being sold.
  *
  * `subtitle` is optional and only used where it says something the page does not: the reset
  * screen has to promise where the code is going. "Sign in with a password" under a title that
@@ -78,12 +80,19 @@ export function AuthCard({
     <div className="flex min-h-screen items-center justify-center px-6 py-12">
       <div className="w-full max-w-[440px]">
         <Card className="p-7">
-          {/* The nameplate the landing page and the app's header wear, at the top-left of
-              the card: this box is the page, so the mark belongs to it rather than to a
-              bar above it. Nothing beside it — the card is a form, not a room. */}
-          <Nameplate />
+          {/* Where the nameplate used to be: a 32px key instead of a wordmark, and it is the
+              same key as the one on the account pages. `-ml-2` puts the glyph on the card's
+              text edge rather than the key's box edge. */}
+          <Link
+            to="/"
+            className={`${iconKey} -ml-2 no-underline`}
+            aria-label={t('actions.back')}
+            title={t('actions.back')}
+          >
+            <ArrowLeft aria-hidden="true" className="h-4 w-4" strokeWidth={1.75} />
+          </Link>
 
-          <h1 className="font-display mt-6 text-[28px] font-medium leading-tight">{title}</h1>
+          <h1 className="font-display mt-5 text-[28px] font-medium leading-tight">{title}</h1>
           {subtitle && <p className="mt-2 text-[15px] text-body">{subtitle}</p>}
 
           {children}
@@ -110,12 +119,6 @@ export function AuthCard({
         </Card>
 
         {footer && <p className="mt-6 text-center text-[14px] text-muted">{footer}</p>}
-
-        <p className="mt-3 text-center text-[14px] text-muted">
-          <Link to="/" className="underline underline-offset-4">
-            {t('auth.backHome')}
-          </Link>
-        </p>
       </div>
     </div>
   )

@@ -28,7 +28,10 @@ export function Login() {
   const location = useLocation()
   const setSession = useAuthStore((s) => s.setSession)
 
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState(
+    // Arriving from the sign-up screen, which knows the address already.
+    new URLSearchParams(location.search).get('email') ?? '',
+  )
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string>()
   const [busy, setBusy] = useState(false)

@@ -93,6 +93,31 @@ func (s *Server) RequestEmailCode(c *gin.Context) {
 	}
 }
 
+// CheckEmail handles POST /auth/email/check: whether an address already has an account. It is
+// the one endpoint on this surface allowed to answer that; the OpenAPI description says why.
+func (s *Server) CheckEmail(c *gin.Context) {
+	// The same budget as sending a code, because the answer is the same kind of thing: a way
+	// to learn who has an account here.
+	if !s.codeLimiter.RateLimit(c) {
+		return
+	}
+
+	var body EmailCodeRequest
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "invalid request body"})
+		return
+	}
+
+	registered, err := s.auth.EmailRegistered(c.Request.Context(), string(body.Email))
+	if err != nil {
+		log.Printf("failed to check email: %v", err)
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "failed to check email"})
+		return
+	}
+
+	c.JSON(http.StatusOK, EmailCheckResponse{Registered: registered})
+}
+
 // deliverEmailCode hands the code to the mailer and answers 204 immediately.
 //
 // The 204 never meant "delivered": it means "this endpoint will not tell you whether that
