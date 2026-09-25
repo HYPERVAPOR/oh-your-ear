@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { apiClient } from '@/api/client'
+import { Avatar } from '@/components/avatar'
 import { PracticeHeatmap } from '@/components/practice-heatmap'
 import { modulePath } from '@/components/round-summary'
 import { Button, buttonVariants } from '@/components/ui/button'
@@ -26,8 +27,10 @@ const ACCOUNT_LINKS = [
  * how today and the year are going on the right (PRD 7.1.4). Guests get the same shape
  * with the numbers at zero, so nothing moves after signing in.
  *
- * The card carries a value, an action and two entries — no label over the value, no
- * sentence under the action. The email is the account and the button says what it does.
+ * The card carries a label, a value, an action and two entries — and the same four in
+ * both states, so signing in changes what the card says, never what it looks like. No
+ * sentence under the action: the button says what it does, and the heatmap next door says
+ * how much of today is done.
  */
 export function TodayPanel() {
   const { t } = useTranslation('common')
@@ -72,25 +75,31 @@ export function TodayPanel() {
       <Card className="flex min-w-0 flex-col justify-between p-6 sm:p-7">
         {user ? (
           <>
-            <p className="break-all text-[15px]">{user.email}</p>
-            <div className="mt-8">
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
-                <Button size="lg" onClick={startSession}>
-                  {met ? t('home.extraRound') : t('home.startDaily')}
-                </Button>
-                <Link
-                  to="/me"
-                  className="text-[14px] text-muted underline underline-offset-4 hover:text-ink"
-                >
-                  {t('home.adjustPlan')}
-                </Link>
+            <div>
+              <p className="badge-label text-muted">{t('home.accountLabel')}</p>
+              <div className="mt-1.5 flex items-center gap-3">
+                <Avatar user={user} />
+                <p className="break-all text-[15px]">{user.email}</p>
               </div>
+            </div>
+            <div className="mt-8 flex flex-wrap items-center gap-2">
+              <Button size="lg" onClick={startSession}>
+                {met ? t('home.extraRound') : t('home.startDaily')}
+              </Button>
+              <Link to="/me" className={buttonVariants({ variant: 'outline', size: 'lg' })}>
+                {t('auth.account')}
+              </Link>
             </div>
           </>
         ) : (
           <>
-            <p className="text-[15px] text-body">{t('home.guestIdentity')}</p>
-            <div className="mt-8">
+            {/* The label stays — it is the card's title, and a title does not depend on
+                being signed in. What goes is the placeholder avatar and the "not signed
+                in" line: neither means anything until there is an account. The way in is
+                centred in what is left. The card keeps its size either way, because the
+                heatmap beside it sets the row's height. */}
+            <p className="badge-label text-muted">{t('home.accountLabel')}</p>
+            <div className="flex flex-1 items-center justify-center">
               <Link to={loginHere()} className={buttonVariants({ size: 'lg' })}>
                 {t('actions.login')}
               </Link>

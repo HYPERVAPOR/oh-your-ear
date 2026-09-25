@@ -2,6 +2,8 @@ import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { AppHeader } from '@/components/app-header'
+import { AvatarPicker } from '@/components/avatar-picker'
+import { Avatar } from '@/components/avatar'
 import { PracticeStats } from '@/components/practice-stats'
 import { StudyPlanForm } from '@/components/study-plan-form'
 import { Button } from '@/components/ui/button'
@@ -27,19 +29,26 @@ export function Me() {
         {/* Gutter outside the 1200px box and the same width as the header: with the
             padding inside, this column sat 300px inboard of the bar above it. */}
         <div className="mx-auto w-full max-w-[1200px]">
-          <header className="flex flex-wrap items-end justify-between gap-4">
-            <div>
-              <p className="badge-label text-muted">{t('auth.account')}</p>
-              <h1 className="mt-2 font-display text-[28px] font-medium leading-tight sm:text-[32px]">
-                {user?.name || t('auth.account')}
-              </h1>
-              <p className="mt-1.5 text-[15px] text-muted">{user?.email}</p>
+          <header className="flex flex-wrap items-start justify-between gap-4">
+            <div className="flex items-center gap-4">
+              {user && <Avatar user={user} size="lg" />}
+              <div>
+                <p className="badge-label text-muted">{t('auth.account')}</p>
+                <h1 className="mt-2 font-display text-[28px] font-medium leading-tight sm:text-[32px]">
+                  {user?.name || t('auth.account')}
+                </h1>
+                <p className="mt-1.5 text-[15px] text-muted">{user?.email}</p>
+              </div>
             </div>
 
             <Button variant="outline" size="sm" onClick={handleLogout}>
               {t('actions.logout')}
             </Button>
           </header>
+
+          <div className="mt-6">
+            <AvatarPicker />
+          </div>
 
           <div className="mt-10 space-y-6">
             <StudyPlanForm />

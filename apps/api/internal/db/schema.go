@@ -22,6 +22,16 @@ CREATE TABLE IF NOT EXISTS users (
 
 CREATE INDEX IF NOT EXISTS idx_users_google_id ON users(google_id);
 
+-- Pictures a reader uploaded themselves. Kept in its own table so that listing users never
+-- drags the bytes along; the sign-in provider's picture stays in users.avatar_url, and
+-- neither one existing means the client draws its generated pixel avatar.
+CREATE TABLE IF NOT EXISTS user_avatars (
+	user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+	image BYTEA NOT NULL,
+	mime TEXT NOT NULL,
+	updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS study_plans (
 user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
 daily_goal INT NOT NULL DEFAULT 20 CHECK (daily_goal BETWEEN 1 AND 500),

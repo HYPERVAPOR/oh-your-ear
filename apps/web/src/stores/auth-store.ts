@@ -10,6 +10,8 @@ interface AuthState {
   /** False until the boot-time session restore settles, so guards can wait for it. */
   initialized: boolean
   setSession: (accessToken: string | null, user: User | null) => void
+  /** Replace the account in hand — after an avatar change, say — without touching tokens. */
+  setUser: (user: User) => void
   setInitialized: () => void
   logout: () => Promise<void>
 }
@@ -19,6 +21,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   initialized: false,
   setSession: (accessToken, user) => set({ accessToken, user }),
+  setUser: (user) => set({ user }),
   setInitialized: () => set({ initialized: true }),
   logout: async () => {
     try {

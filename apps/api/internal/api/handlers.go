@@ -146,14 +146,28 @@ func (s *Server) GetMe(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, UserResponse{
+	c.JSON(http.StatusOK, s.userResponse(c, *user))
+}
+
+// userResponse is the account as the client sees it. The avatar URL is the picture this
+// reader uploaded when there is one — versioned by its timestamp, so a replacement is not
+// served from a cache — otherwise whatever the sign-in provider gave us, otherwise empty,
+// and the client draws its generated pixel avatar.
+func (s *Server) userResponse(c *gin.Context, user models.User) UserResponse {
+	avatar := user.AvatarURL
+	if updatedAt, ok := s.auth.AvatarUpdatedAt(c.Request.Context(), user.ID); ok {
+		url := fmt.Sprintf("/api/v1/me/avatar?v=%d", updatedAt.Unix())
+		avatar = &url
+	}
+
+	return UserResponse{
 		Id:        user.ID,
 		Email:     openapi_types.Email(user.Email),
 		Name:      user.Name,
-		AvatarUrl: user.AvatarURL,
+		AvatarUrl: avatar,
 		CreatedAt: user.CreatedAt.UTC(),
 		UpdatedAt: user.UpdatedAt.UTC(),
-	})
+	}
 }
 
 // IssueTokens signs a fresh access/refresh pair for a user.
@@ -187,16 +201,11 @@ func (s *Server) RespondWithSession(c *gin.Context, user *models.User) {
 	}
 
 	s.SetRefreshCookie(c, refreshToken)
+	// Through the same builder as GET /me: an uploaded avatar must be in the session the
+	// client receives, not only in the next read of the account.
 	c.JSON(http.StatusOK, AuthResponse{
 		AccessToken: accessToken,
-		User: UserResponse{
-			Id:        user.ID,
-			Email:     openapi_types.Email(user.Email),
-			Name:      user.Name,
-			AvatarUrl: user.AvatarURL,
-			CreatedAt: user.CreatedAt.UTC(),
-			UpdatedAt: user.UpdatedAt.UTC(),
-		},
+		User:        s.userResponse(c, *user),
 	})
 }
 
