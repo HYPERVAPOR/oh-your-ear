@@ -22,10 +22,5 @@
         }
       ]
     }
-  ],
-  "git": {
-    "deploymentEnabled": {
-      "dev": false
-    }
-  }
+  ]
 }

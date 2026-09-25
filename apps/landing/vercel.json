@@ -1,10 +1,5 @@
 {
   "ignoreCommand": "git diff --quiet HEAD^ HEAD -- . ../../packages/shared",
   "installCommand": "pnpm install --frozen-lockfile",
-  "buildCommand": "pnpm build",
-  "git": {
-    "deploymentEnabled": {
-      "dev": false
-    }
-  }
+  "buildCommand": "pnpm build"
 }

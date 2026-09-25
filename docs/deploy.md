@@ -387,13 +387,15 @@ schema 在 API 启动时幂等地跑（`CREATE TABLE IF NOT EXISTS` + `ALTER TAB
 
 ### 1. 分支策略：`dev` 优先（最可靠）
 
-`dev` 是集成分支：从它切功能分支，PR 合进 `dev`，`dev` 攒够了再一个 PR 合进 `main`。**推 `dev` 不创建任何部署**——两个项目的 `vercel.json` 里都写了：
+`dev` 是集成分支：从它切功能分支，PR 合进 `dev`，`dev` 攒够了再一个 PR 合进 `main`。**推 `dev` 不创建任何部署**，靠的是**仓库根目录**的 `vercel.json`：
 
 ```json
-"git": { "deploymentEnabled": { "dev": false } }
+{ "git": { "deploymentEnabled": { "dev": false } } }
 ```
 
-这是「根本不创建部署」，不是「创建了再跳过」，所以额度问题上没有疑问。API 侧同样不会动：部署 workflow 只在 **CI 在 main 上通过**时触发（`workflow_run` 的 `branches: [main]`）。
+这是「根本不创建部署」，不是「创建了再跳过」，所以额度问题上没有疑问。
+
+**必须放在仓库根，放在 `apps/*/vercel.json` 里没用**，而且不会报错——这是踩出来的：两个子项目里都写了 `git` 段，结果 dev 上的推送照样出现两条 `Deployment rate limited` 状态。原因是 Git 集成在「知道这个项目根目录是哪个」之前就得决定要不要部署，所以它只读**仓库根**那一份；子项目那份只影响构建（`installCommand` / `ignoreCommand` 之类），不影响「要不要创建部署」。证据：把配置挪到根目录之后，dev 上再推一个提交，该提交上**一条 Vercel 状态都没有**。API 侧同样不会动：部署 workflow 只在 **CI 在 main 上通过**时触发（`workflow_run` 的 `branches: [main]`）。
 
 ### 2. 每个项目各自判断该不该构建
 
