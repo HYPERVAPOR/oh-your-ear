@@ -44,9 +44,11 @@ const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 /**
  * Today: the count, and one bar. Twenty squares said the same thing a bar says, only one
  * question at a time — the bar is the same length as the week's row, so the two tabs read
- * as the same line, and it reuses the progress bar the rest of the app already draws
- * (track `surface-strong`, fill `primary`). It sits at 8px rather than the 4px of the rack
- * rows: this one is the whole view.
+ * as the same line, and it is the progress bar the rest of the app already draws (track
+ * `surface-strong`), except that its fill is the calendar's met green: answered progress
+ * and 达标 are the same statement here, and the bar turning green as it fills is what the
+ * year, month and week squares say about a day. It sits at 8px rather than the 4px of the
+ * rack rows, because this one is the whole view.
  */
 export function DayView({ day }: { day: DailyBucket | undefined }) {
   const { t } = useTranslation('common')
@@ -63,7 +65,7 @@ export function DayView({ day }: { day: DailyBucket | undefined }) {
         {day?.met && <p className="text-[13px] font-medium text-success-text">{t('home.met')}</p>}
       </div>
       <div aria-hidden="true" className="mt-4 h-2 w-full overflow-hidden bg-surface-strong">
-        <div className="h-full bg-primary" style={{ width: `${percent}%` }} />
+        <div className="h-full bg-success" style={{ width: `${percent}%` }} />
       </div>
     </div>
   )
