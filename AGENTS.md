@@ -20,6 +20,7 @@
 2. **从 `dev` 切分支开发，CI 通过后提 PR 合进 `dev`**；`dev` 攒够了再提一个 PR 合进 `main`。命名遵循常规：`feature/12-tonejs-playback`、`feat: ...`、`Closes #12`。
 3. **推 `dev` 不部署任何东西**：Vercel 被显式忽略（`git.deploymentEnabled`），API 只在「CI 在 main 上通过」时才部署。合进 `main` 才是上线。这条是为了省 Vercel 每天 100 次部署的额度——详见 `docs/deploy.md` §7。
 4. 小改动（错别字、文档微调）直接 push `dev`，无需分支和 PR。
+5. **PR 里的 `Closes #N` 只在验收条件全部满足时才写**；没满足就写 `Refs #N`，让 issue 开着。踩过：一个核心验收还没通过的 issue 被 `Closes` 关掉，还得手工 reopen —— 而那个 issue 开着正是为了记住"这件事还没验"（#136）。
 
 ## 长期记忆系统
 
