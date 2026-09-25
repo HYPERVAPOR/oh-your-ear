@@ -492,6 +492,13 @@
 ### 23.3 Google 登录按邮箱认领，不另建账号
 
 - **issue**: #124
-- **status**: 🟡 doing
+- **status**: 🟢 done
 - **description**: `UpsertGoogleUser` 原来只声明 `ON CONFLICT (google_id)`，而 `users.email` 也是 UNIQUE —— 先用验证码注册过、再用 Google 登录同一邮箱会撞 email 唯一键 → 500。改写成按顺序三段（PRD §5.10）：①按 `google_id` 命中 → 刷新建号方拥有的字段（`name` / `avatar_url` 用 `COALESCE(NULLIF(...))`，空值保留原值）；②按 `email` 命中且 `google_id IS NULL` → 挂上 google_id 认领；③邮箱已被**另一个** Google 账号占用 → `ErrEmailLinked` → 409，绝不改绑。`scanUser` 之上拆出 `findUser`（"没有这一行"是一个返回值而不是错误），唯一键冲突统一映射成 `ErrEmailLinked`。回调加 `verified_email` 检查（v2 userinfo 的字段名，discovery 文档核对过，有单测钉住拼写）。单测：解析 `verified_email`（含缺省与 false 都算未验证）、数据库支持的三段认领（`TEST_DATABASE_URL` 存在才跑，CI 无库则 skip）。
 - **depends on**: 23.2
+
+### 23.4 dev compose 的 Google 变量改成读环境
+
+- **issue**: #129
+- **status**: 🟢 done
+- **description**: `compose/compose.dev.yml` 里 `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` / `GOOGLE_REDIRECT_URL` 原来写死成空字符串（同一份文件里邮件那组是 `${...:-}`），于是本地想试 Google 登录只能把 client secret 贴进受版本控制的文件。三个变量改成读环境，名字与本地默认值不变；`.env.example` 补上 `FRONTEND_URL` 与 `MAIL_DRIVER`（`FRONTEND_URL` 决定登录后跳哪、以及 cookie 带不带 `Secure`，模板里漏掉它就会得到"本地好用、线上 cookie 被丢"这种问题）。实测：未配置 501，`--env-file .env` 起栈后 307 到 `accounts.google.com`，Location 带 client_id 与回调地址，同时下发 `oauth_state` / `oauth_next`。
+- **depends on**: 21.1
