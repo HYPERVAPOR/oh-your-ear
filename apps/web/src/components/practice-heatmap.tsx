@@ -64,7 +64,9 @@ export function PracticeHeatmap() {
         className={cn(
           cell,
           TIER_CLASS[item.tier === 3 ? 2 : item.tier],
-          item.date === today && 'ring-1 ring-ink',
+          // Today is marked, not shouted at: a muted 1px ring instead of one in ink,
+          // which in the dark theme was a white outline and in the light theme black.
+          item.date === today && 'ring-1 ring-muted',
         )}
       />
     )
