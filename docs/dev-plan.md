@@ -529,8 +529,8 @@
 ### 25.1 dev 集成分支 + 按项目判断要不要构建
 
 - **issue**: #136
-- **status**: 🟡 doing
-- **description**: 2026-09-25 一天之内把 Vercel 免费额度（每天 100 次部署）烧光，两个项目都被 `Deployment rate limited` 挡住，于是再推 main 前端也不更新。三个手段：①**`dev` 集成分支**——三个 `vercel.json`（仓库根 + 两个子项目）里都写 `git.deploymentEnabled: {dev: false}`（三处同值不冲突；到底读哪一份在额度耗尽的窗口内验不出来，详见 deploy.md §7），CI 的 push / pull_request 都监听 `main` 与 `dev`，所以进 dev 也要过检查，而 API 只在「CI 在 main 上通过」时部署；②**每个项目自己判断**——`ignoreCommand: git diff --quiet HEAD^ HEAD -- . ../../packages/shared`（退出码 0 = 跳过；`.` 是项目根，`../../packages/shared` 是共享包），实测只改后端/文档时两个前端都跳过、改 web 只建 web、改 shared 两个都建；③**零碎提交先推 dev**，别直接推 main。注意 ② 的额度效果官方没有明确说明（社区在问被忽略的构建是否仍计数），所以 ① 才是确定解。
+- **status**: 🟢 done
+- **description**: 2026-09-25 一天之内把 Vercel 免费额度（每天 100 次部署）烧光，两个项目都被 `Deployment rate limited` 挡住，于是再推 main 前端也不更新。①**`dev` 集成分支**：`git.deploymentEnabled: {dev: false}` **必须写在项目自己的 `vercel.json` 里**（仓库根那份不生效，这条查了很久，期间根目录一直有配置而 dev 照常部署）；而且它跟着 git 走，`#139` 之后 `dev` 被强推回更早的 main，配置就此从 dev 的历史里消失——**对集成分支做 `reset --hard main` 会丢掉这期间落在 main 上的 PR**，合并 main 回 dev 才安全。已在额度耗尽的窗口里验证：加上配置后推 dev，该提交上一条 Vercel 状态都没有（规则不生效时必然留下一条 rate-limited）。CI 的 push / pull_request 监听 `main` 与 `dev`，API 只在「CI 在 main 上通过」时部署。②**每个项目自己判断**：`ignoreCommand: git diff --quiet HEAD^ HEAD -- . ../../packages/shared`（退出码 0 = 跳过；`.` 是项目根，`../../packages/shared` 是共享包），实测只改后端/文档时两个前端都跳过、改 web 只建 web、改 shared 两个都建；它是否影响额度另开 issue 跟踪。③**零碎提交先推 dev**。
 - **depends on**: 24.1
 
 ## M26 体验走查修复

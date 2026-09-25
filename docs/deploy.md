@@ -387,18 +387,20 @@ schema 在 API 启动时幂等地跑（`CREATE TABLE IF NOT EXISTS` + `ALTER TAB
 
 ### 1. 分支策略：`dev` 优先（最可靠）
 
-`dev` 是集成分支：从它切功能分支，PR 合进 `dev`，`dev` 攒够了再一个 PR 合进 `main`。目标是**推 `dev` 不创建任何部署**，靠官方字段：
+`dev` 是集成分支：从它切功能分支，PR 合进 `dev`，`dev` 攒够了再一个 PR 合进 `main`。目标是**推 `dev` 不创建任何部署**：
 
 ```json
-{ "git": { "deploymentEnabled": { "dev": false } } }
+// apps/web/vercel.json 与 apps/landing/vercel.json
+"git": { "deploymentEnabled": { "dev": false } }
 ```
 
-**这个字段现在写在三个地方**：仓库根的 `vercel.json`，以及 `apps/web/vercel.json` 和 `apps/landing/vercel.json`。三处同值，不会冲突。为什么都写：Git 集成到底读哪一份，在**额度耗尽的窗口内无法验证**——那个窗口里它给每个提交都挂一条 `Deployment rate limited`，分不清是"配置生效所以没创建"还是"创建了但被额度挡下"。（我先只写在子项目里、观察到一个提交没有状态，就下了"必须放根目录"的结论并写进文档；等再验一次，同一个实验给出了相反的现象，所以那个结论收回了。）
+**必须写在项目自己的 `vercel.json` 里**（即该项目 Root Directory 下那一份）。仓库根那份**不生效**——这条踩了很久：根目录的 `vercel.json` 从 13:14 起一直有这段配置，而期间每一次 dev 推送都照常部署；把同一段配置放进两个项目文件之后，dev 推送立刻不再触发部署（下面有验证）。
 
-**怎么最终确认**（等额度恢复之后）：
+字段本身按官方文档写就对（`git.deploymentEnabled`，值可以按分支给布尔，键支持 minimatch，多条命中只要有一条是 `true` 就部署）。**别用 `*` 或 `**` 当通配**：`main` 也是不含斜杠的分支名，通配一旦把它也关掉，生产就静默不部署了——宁可少关几个分支，也不能有这种配置。
 
-- 往 `dev` 推一个提交，然后在 Vercel 面板看这个项目的部署列表：**里面没有对应条目**才是真的没创建部署；如果出现一条 `Canceled` 或 `rate limited` 的记录，说明部署还是被创建了。
-- 顺带能看清第二个问题：**被 `ignoreCommand` 跳过的构建是否仍计入每天 100 次**。社区在问，Vercel 没明确答复，而面板上的计数是准的。
+**这个设置跟着 git 走，所以它必须出现在被推送的那个提交里。** 这正是它一开始失效的原因：`#139` 把配置加进了 `main` 的文件，但随后 `dev` 被强推回一个更早的 `main` 提交，于是 `dev` 的历史里永远没有那一次变更，从 `dev` 切出来的分支也就都没有它。**给集成分支做 `reset --hard main` 会悄悄丢掉这期间落在 main 上的 PR** —— 合并 main 回 dev 才是安全的补救方式。
+
+**怎么验证**（不需要等额度恢复）：在额度耗尽的窗口里，判据是干净的——规则不生效时 Vercel 一定会尝试一次，从而留下一条 `Deployment rate limited` 状态；规则生效时该提交上**一条 Vercel 状态都没有**。这样试过一次：加上配置后推一个 dev 提交，`gh api repos/…/commits/<sha>/status` 返回空，同时 Vercel 的部署列表里没有新条目。
 
 ### 2. 每个项目各自判断该不该构建
 
