@@ -115,7 +115,31 @@ SMTP_FROM=no-reply@<domain>
 TRUSTED_PROXIES=10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
 ```
 
-`MAIL_DRIVER=smtp` 走 STARTTLS（587 常见），不引第三方 SDK：`net/smtp` 直接对话。发信失败只写日志、接口照旧返回 204 —— 否则响应差异会泄漏"这个邮箱存不存在"。
+### 邮件投递（`MAIL_DRIVER=smtp`）
+
+不引第三方 SDK：`net/smtp` 直接对话。两个端口都支持：
+
+| 端口 | 模式 | 说明 |
+| --- | --- | --- |
+| 587 | STARTTLS | 明文起手、`EHLO` 之后升级，最常见 |
+| 465 | 隐式 TLS | 握手即加密。国内厂商常把这个叫「SSL」，只给这一个口的情况很常见 |
+
+**公网中继必须提供 STARTTLS**，不提供就**拒绝发信**：中继不升级、我们又照发，等于让路上的中间人把验证码剥成明文。只有中继落在**私网 / loopback / link-local**（例如自建中继、或 podman 的 `host.containers.internal`，它解析成 169.254.1.2）时才允许明文 —— 那种情况下两端之间没有别的网络，没人能来剥。
+
+`SMTP_FROM` 必须是**裸地址**（`no-reply@example.com`），**不要**写 `Oh Your Ear <no-reply@example.com>`：同一个值还会被用作 SMTP 信封的发件人（`MAIL FROM`），带尖括号会让信封非法。
+
+送达率上，给发信域名配好服务商给的 **SPF 与 DKIM** 记录，`SMTP_FROM` 用该域名下的地址；DMARC 可以先 `p=none` 看报告。验证码邮件是中英双语的（同一封里两段）。
+
+**发信失败不会让接口失败**：`POST /auth/code` 无论投递成功与否都返回 204 —— 否则响应差异会泄漏"这个邮箱存不存在"。代价是**配置错了的症状是"接口正常、邮件不来"**，所以：
+
+```bash
+# 启动时就会打一行，写清用的哪个中继（不含密码）
+podman logs oh-your-ear-api-1 | grep 'mail:'
+#   mail: driver=smtp host=smtp.example.com port=587 from=no-reply@example.com auth=true
+
+# 每次投递失败都在日志里
+podman logs oh-your-ear-api-1 | grep 'failed to deliver'
+```
 
 `JWT_SECRET`、`POSTGRES_PASSWORD`、`FRONTEND_URL` **没有默认值，没设就直接拒绝启动**。这是故意的：一个已知的兜底密钥等于任何人都能签发 token。
 

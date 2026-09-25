@@ -502,3 +502,10 @@
 - **status**: 🟢 done
 - **description**: `compose/compose.dev.yml` 里 `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` / `GOOGLE_REDIRECT_URL` 原来写死成空字符串（同一份文件里邮件那组是 `${...:-}`），于是本地想试 Google 登录只能把 client secret 贴进受版本控制的文件。三个变量改成读环境，名字与本地默认值不变；`.env.example` 补上 `FRONTEND_URL` 与 `MAIL_DRIVER`（`FRONTEND_URL` 决定登录后跳哪、以及 cookie 带不带 `Secure`，模板里漏掉它就会得到"本地好用、线上 cookie 被丢"这种问题）。实测：未配置 501，`--env-file .env` 起栈后 307 到 `accounts.google.com`，Location 带 client_id 与回调地址，同时下发 `oauth_state` / `oauth_next`。
 - **depends on**: 21.1
+
+### 23.5 邮件投递加固（可用于真实中继）
+
+- **issue**: #85
+- **status**: 🟡 doing
+- **description**: 代码这一半。`SMTPMailer` 原来在**中继不提供 STARTTLS 时静默降级成明文**发送，等于给中间人留了剥离升级的路子，而验证码就是被剥的那个东西；现在**公网中继必须提供 STARTTLS，否则拒绝发信**，只有私网 / loopback / link-local 中继允许明文（自建中继那类场景）。**新增 465 隐式 TLS**（国内厂商常只给这个「SSL」口）。**加超时**（`net/smtp` 自己没有超时，中继卡住会把 `POST /auth/code` 一起挂住；现在拨号带 20s 上限并给整条会话设 deadline）。补 `Date` 与 `Message-ID` 头（缺了要扣送达率，对验证码来说就是收不到）。头注入防护：`to` 是调用方给的地址，CRLF 会凭空造出调用方想要的头，现在清洗掉。验证码邮件改成**中英双语**（这个产品是双语的，猜错语言等于寄了一封没人看得懂的邮件）。启动时打一行 `mail: driver=… host=… port=… from=… auth=…`（不含密码）——发信失败只写日志、接口永远 204，所以"到底用的哪个中继"必须能从日志里读出来。单测：头与头注入、私网判断、**假中继**上的完整投递（不带 TLS 的私网中继放行；自称支持 TLS 却完不成的必须失败）。**剩下的另一半是用户侧**：选服务商、配 SPF/DKIM、把 `SMTP_*` 填进 `.env`。
+- **depends on**: 21.1
