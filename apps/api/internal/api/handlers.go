@@ -98,16 +98,9 @@ func (s *Server) RequestEmailCode(c *gin.Context) {
 func (s *Server) deliverEmailCode(c *gin.Context, email, code string) {
 	// Bilingual, because the product is: one of these two lines is always the reader's
 	// language, and guessing wrong means a code nobody can read.
-	minutes := int(services.EmailCodeTTL.Minutes())
-	subject := "Oh Your Ear 验证码 / verification code"
-	body := fmt.Sprintf(
-		"你的验证码是 %s，%d 分钟内有效。\n\n"+
-			"Your verification code is %s. It expires in %d minutes.\n\n"+
-			"不是你本人操作的话，忽略这封邮件即可。 / If this was not you, ignore this mail.\n",
-		code, minutes, code, minutes,
-	)
+	subject, text, html := verificationEmail(code, int(services.EmailCodeTTL.Minutes()))
 
-	if err := s.mailer.Send(c.Request.Context(), email, subject, body); err != nil {
+	if err := s.mailer.Send(c.Request.Context(), email, subject, text, html); err != nil {
 		log.Printf("failed to deliver verification code to %s via %s: %v", email, s.mailer.Driver(), err)
 	}
 	c.Status(http.StatusNoContent)

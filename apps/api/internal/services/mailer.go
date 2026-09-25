@@ -3,12 +3,14 @@ package services
 import (
 	"context"
 	"crypto/tls"
+	"encoding/base64"
 	"fmt"
 	"log"
 	"net"
 	"net/smtp"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/google/uuid"
 )
@@ -22,9 +24,10 @@ const smtpTimeout = 20 * time.Second
 // Chinese providers call "SSL" and offer instead of 587.
 const implicitTLSPort = "465"
 
-// Mailer delivers a message to a user.
+// Mailer delivers a message to a user. `text` is the fallback every client can render;
+// `html` is what most of them will show instead.
 type Mailer interface {
-	Send(ctx context.Context, to, subject, body string) error
+	Send(ctx context.Context, to, subject, text, html string) error
 	// Driver names the delivery path, for logs and health reporting.
 	Driver() string
 }
@@ -38,9 +41,10 @@ func NewLogMailer() *LogMailer {
 	return &LogMailer{}
 }
 
-// Send logs the message.
-func (m *LogMailer) Send(_ context.Context, to, subject, body string) error {
-	log.Printf("[mail:log] to=%s subject=%q body=%q", to, subject, body)
+// Send logs the message. Only the text part: the HTML is a rendering of the same thing, and
+// a wall of markup in the log helps nobody.
+func (m *LogMailer) Send(_ context.Context, to, subject, text, _ string) error {
+	log.Printf("[mail:log] to=%s subject=%q body=%q", to, subject, text)
 	return nil
 }
 
@@ -64,7 +68,7 @@ func NewSMTPMailer(host, port, username, password, from string) *SMTPMailer {
 }
 
 // Send delivers one message.
-func (m *SMTPMailer) Send(_ context.Context, to, subject, body string) error {
+func (m *SMTPMailer) Send(_ context.Context, to, subject, text, html string) error {
 	client, err := m.dial()
 	if err != nil {
 		return err
@@ -109,7 +113,7 @@ func (m *SMTPMailer) Send(_ context.Context, to, subject, body string) error {
 	if err != nil {
 		return fmt.Errorf("smtp DATA failed: %w", err)
 	}
-	if _, err := writer.Write([]byte(m.message(to, subject, body))); err != nil {
+	if _, err := writer.Write([]byte(m.message(to, subject, text, html))); err != nil {
 		return fmt.Errorf("smtp write failed: %w", err)
 	}
 	if err := writer.Close(); err != nil {
@@ -168,20 +172,66 @@ func (m *SMTPMailer) isPrivateRelay() bool {
 	return ip.IsLoopback() || ip.IsPrivate() || ip.IsLinkLocalUnicast()
 }
 
-// message builds the raw message. Date and Message-ID are not decoration: a message missing
-// either costs deliverability points, and for a verification code that means a code that
-// never arrives.
-func (m *SMTPMailer) message(to, subject, body string) string {
+// message builds the raw message: multipart/alternative, plain text first. A client shows
+// the last part it understands, so the HTML goes second.
+//
+// Date and Message-ID are not decoration: a message missing either costs deliverability
+// points, and for a verification code that means a code that never arrives.
+func (m *SMTPMailer) message(to, subject, text, html string) string {
+	boundary := "oye-" + uuid.NewString()
+
 	headers := []string{
 		"From: " + headerValue(m.from),
 		"To: " + headerValue(to),
-		"Subject: " + headerValue(subject),
+		"Subject: " + encodeHeader(subject),
 		"Date: " + time.Now().Format(time.RFC1123Z),
 		"Message-ID: " + fmt.Sprintf("<%s@%s>", uuid.NewString(), fromDomain(m.from)),
 		"MIME-Version: 1.0",
-		"Content-Type: text/plain; charset=UTF-8",
+		`Content-Type: multipart/alternative; boundary="` + boundary + `"`,
 	}
-	return strings.Join(headers, "\r\n") + "\r\n\r\n" + body + "\r\n"
+
+	var message strings.Builder
+	message.WriteString(strings.Join(headers, "\r\n") + "\r\n\r\n")
+	for _, part := range []struct{ contentType, body string }{
+		{"text/plain; charset=UTF-8", text},
+		{"text/html; charset=UTF-8", html},
+	} {
+		message.WriteString("--" + boundary + "\r\n")
+		message.WriteString("Content-Type: " + part.contentType + "\r\n")
+		// base64 rather than raw UTF-8: both bodies are Chinese, and a relay that never
+		// advertised 8BITMIME would be within its rights to mangle them.
+		message.WriteString("Content-Transfer-Encoding: base64\r\n\r\n")
+		message.WriteString(encodeBody(part.body))
+		message.WriteString("\r\n")
+	}
+	message.WriteString("--" + boundary + "--\r\n")
+
+	return message.String()
+}
+
+// encodeBody wraps base64 at 76 columns, the line limit RFC 2045 sets.
+func encodeBody(body string) string {
+	encoded := base64.StdEncoding.EncodeToString([]byte(body))
+
+	var out strings.Builder
+	for len(encoded) > 76 {
+		out.WriteString(encoded[:76] + "\r\n")
+		encoded = encoded[76:]
+	}
+	out.WriteString(encoded)
+	return out.String()
+}
+
+// encodeHeader turns a non-ASCII header value into an RFC 2047 encoded word. The subject is
+// bilingual, and a raw UTF-8 header is not valid — some clients show it as mojibake.
+func encodeHeader(value string) string {
+	value = headerValue(value)
+	for _, r := range value {
+		if r > unicode.MaxASCII {
+			return "=?UTF-8?B?" + base64.StdEncoding.EncodeToString([]byte(value)) + "?="
+		}
+	}
+	return value
 }
 
 // headerValue keeps header injection out of the message: `to` is an address a caller

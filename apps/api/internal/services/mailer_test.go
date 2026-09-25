@@ -3,8 +3,13 @@ package services
 import (
 	"bufio"
 	"context"
+	"encoding/base64"
 	"fmt"
+	"io"
+	"mime"
+	"mime/multipart"
 	"net"
+	"net/mail"
 	"strings"
 	"testing"
 	"time"
@@ -89,7 +94,7 @@ func TestSMTPMailerSendsThroughAPrivateRelay(t *testing.T) {
 	host, port, received := fakeRelay(t, false)
 	m := NewSMTPMailer(host, port, "", "", "no-reply@ohyourear.test")
 
-	if err := m.Send(context.Background(), "reader@example.com", "Oh Your Ear 验证码", "123456"); err != nil {
+	if err := m.Send(context.Background(), "reader@example.com", "Oh Your Ear 验证码", "code: 123456", "<p>123456</p>"); err != nil {
 		t.Fatalf("send failed: %v", err)
 	}
 
@@ -100,7 +105,7 @@ func TestSMTPMailerSendsThroughAPrivateRelay(t *testing.T) {
 			"Date: ",
 			"Message-ID: <",
 			"MIME-Version: 1.0",
-			"123456",
+			"Content-Type: multipart/alternative",
 		} {
 			if !strings.Contains(message, want) {
 				t.Errorf("the delivered message is missing %q:\n%s", want, message)
@@ -116,13 +121,76 @@ func TestSMTPMailerSendsThroughAPrivateRelay(t *testing.T) {
 	}
 }
 
+// A message we build has to *parse* as MIME, not merely contain the right-looking strings:
+// a broken multipart is exactly the sort of thing one mail client forgives and the next one
+// shows as a wall of base64.
+func TestMessageIsValidMultipart(t *testing.T) {
+	m := &SMTPMailer{from: "no-reply@ohyourear.test"}
+	raw := m.message("reader@example.com", "Oh Your Ear 验证码", "code: 123456", "<p>123456</p>")
+
+	parsed, err := mail.ReadMessage(strings.NewReader(raw))
+	if err != nil {
+		t.Fatalf("the message does not parse: %v", err)
+	}
+	mediaType, params, err := mime.ParseMediaType(parsed.Header.Get("Content-Type"))
+	if err != nil || mediaType != "multipart/alternative" {
+		t.Fatalf("Content-Type = %q (%v), want multipart/alternative", mediaType, err)
+	}
+
+	parts := map[string]string{}
+	reader := multipart.NewReader(parsed.Body, params["boundary"])
+	for {
+		part, err := reader.NextPart()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			t.Fatalf("failed to read a part: %v", err)
+		}
+		decoded, err := io.ReadAll(base64.NewDecoder(base64.StdEncoding, part))
+		if err != nil {
+			t.Fatalf("part %s is not valid base64: %v", part.Header.Get("Content-Type"), err)
+		}
+		parts[part.Header.Get("Content-Type")] = string(decoded)
+	}
+
+	if !strings.Contains(parts["text/plain; charset=UTF-8"], "123456") {
+		t.Errorf("the text part lost the code: %q", parts["text/plain; charset=UTF-8"])
+	}
+	if !strings.Contains(parts["text/html; charset=UTF-8"], "123456") {
+		t.Errorf("the html part lost the code: %q", parts["text/html; charset=UTF-8"])
+	}
+	if !strings.HasPrefix(parsed.Header.Get("Subject"), "=?UTF-8?B?") {
+		t.Errorf("the bilingual subject was not RFC 2047 encoded: %q", parsed.Header.Get("Subject"))
+	}
+}
+
+// A raw UTF-8 header is not valid, and a pure-ASCII one should be left alone rather than
+// wrapped in an encoded word nobody needed.
+func TestEncodeHeader(t *testing.T) {
+	if got := encodeHeader("plain ascii"); got != "plain ascii" {
+		t.Errorf("encodeHeader(ascii) = %q", got)
+	}
+	got := encodeHeader("验证码")
+	if !strings.HasPrefix(got, "=?UTF-8?B?") || !strings.HasSuffix(got, "?=") {
+		t.Errorf("encodeHeader(chinese) = %q, want an RFC 2047 encoded word", got)
+	}
+	decoded, err := base64.StdEncoding.DecodeString(strings.TrimSuffix(strings.TrimPrefix(got, "=?UTF-8?B?"), "?="))
+	if err != nil || string(decoded) != "验证码" {
+		t.Errorf("the encoded word does not decode back: %q (%v)", decoded, err)
+	}
+	if got := encodeHeader("a\r\nBcc: x"); strings.Contains(got, "\r") {
+		t.Errorf("encodeHeader kept a CR: %q", got)
+	}
+}
+
 // A relay that offers STARTTLS and then cannot complete it must fail the send. Continuing
 // would put the code — and, with a username set, the credentials — on the wire.
 func TestSMTPMailerFailsWhenTLSIsBroken(t *testing.T) {
 	host, port, _ := fakeRelay(t, true)
 	m := NewSMTPMailer(host, port, "", "", "no-reply@ohyourear.test")
 
-	err := m.Send(context.Background(), "reader@example.com", "code", "123456")
+	err := m.Send(context.Background(), "reader@example.com", "code", "123456", "<p>123456</p>")
 	if err == nil {
 		t.Fatal("the send succeeded although the relay could not speak TLS")
 	}
@@ -160,7 +228,7 @@ func TestIsPrivateRelay(t *testing.T) {
 // caller's choosing.
 func TestMessageDropsHeaderInjection(t *testing.T) {
 	m := &SMTPMailer{from: "no-reply@ohyourear.test"}
-	message := m.message("victim@example.com\r\nBcc: attacker@example.com", "code", "123456")
+	message := m.message("victim@example.com\r\nBcc: attacker@example.com", "code", "123456", "<p>1</p>")
 
 	if strings.Contains(message, "\r\nBcc:") {
 		t.Errorf("the injected header survived:\n%s", message)
