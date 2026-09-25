@@ -80,8 +80,6 @@
     "loginTitle": "Log in",
     "signupTitle": "Create an account",
     "resetTitle": "Reset your password",
-    "loginSubtitle": "Sign in with your password, or with Google.",
-    "signupSubtitle": "Your account is created on first login.",
     "resetSubtitle": "We will send a code to this address, then you can set a new password.",
     "account": "My account",
     "backHome": "Back home",

@@ -60,7 +60,6 @@ export function Login() {
   return (
     <AuthCard
       title={t('auth.loginTitle')}
-      subtitle={t('auth.loginSubtitle')}
       next={next}
       footer={
         <>

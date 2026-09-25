@@ -80,8 +80,6 @@
     "loginTitle": "登录",
     "signupTitle": "注册",
     "resetTitle": "重设密码",
-    "loginSubtitle": "用密码登录，也可以直接用 Google。",
-    "signupSubtitle": "首次登录即自动创建账号。",
     "resetSubtitle": "验证码会发到这个邮箱，验证之后就能设置新密码。",
     "account": "我的账号",
     "backHome": "返回首页",

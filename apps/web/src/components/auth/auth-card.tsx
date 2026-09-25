@@ -37,8 +37,12 @@ function GoogleMark() {
 /**
  * The card all three account screens are built from: sign in, sign up, reset. They are the
  * same object — the nameplate the landing page and the app's header wear, one title, the
- * form, then Google — and only the form and the sentence above it change. Keeping them one
- * component is what keeps them from drifting into three similar-looking cards.
+ * form, then Google — and only the form changes. Keeping them one component is what keeps
+ * them from drifting into three similar-looking cards.
+ *
+ * `subtitle` is optional and only used where it says something the page does not: the reset
+ * screen has to promise where the code is going. "Sign in with a password" under a title that
+ * says 登录 and a field marked 密码 is the page explaining itself.
  *
  * `next` is where the reader was headed. It has to be carried by the Google button too: that
  * leaves this page entirely, so the query string is all that survives.
@@ -51,7 +55,7 @@ export function AuthCard({
   children,
 }: {
   title: string
-  subtitle: string
+  subtitle?: string
   next: string
   /** One line under the card, for the link to the other account screens. */
   footer?: ReactNode
@@ -80,7 +84,7 @@ export function AuthCard({
           <Nameplate />
 
           <h1 className="font-display mt-6 text-[28px] font-medium leading-tight">{title}</h1>
-          <p className="mt-2 text-[15px] text-body">{subtitle}</p>
+          {subtitle && <p className="mt-2 text-[15px] text-body">{subtitle}</p>}
 
           {children}
 

@@ -78,7 +78,6 @@ export function Signup() {
   return (
     <AuthCard
       title={t('auth.signupTitle')}
-      subtitle={t('auth.signupSubtitle')}
       next={next}
       footer={
         <>
