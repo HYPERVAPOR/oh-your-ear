@@ -42,9 +42,15 @@ function GoogleMark() {
  * nameplate: this is a form, not the product introducing itself, and a wordmark costs a line
  * of height on the one screen where nothing is being sold.
  *
+ * `withGoogle` is off for the reset screen. That screen exists because the reader cannot get in;
+ * anyone who can come in through Google does not need it, and "sign in another way" is already
+ * the link at the bottom of the card. The divider goes with the button, so nothing is left
+ * hanging.
+ *
  * `subtitle` is optional and only used where it says something the page does not: the reset
- * screen has to promise where the code is going. "Sign in with a password" under a title that
- * says 登录 and a field marked 密码 is the page explaining itself.
+ * screen has to promise where the code is going, and sign-up's last step has to say what the
+ * password is for. "Sign in with a password" under a title that says 登录 and a field marked
+ * 密码 is the page explaining itself.
  *
  * `next` is where the reader was headed. It has to be carried by the Google button too: that
  * leaves this page entirely, so the query string is all that survives.
@@ -53,12 +59,14 @@ export function AuthCard({
   title,
   subtitle,
   next,
+  withGoogle = true,
   footer,
   children,
 }: {
   title: string
   subtitle?: string
   next: string
+  withGoogle?: boolean
   /** One line under the card, for the link to the other account screens. */
   footer?: ReactNode
   children: ReactNode
@@ -97,25 +105,29 @@ export function AuthCard({
 
           {children}
 
-          <div className="my-6 border-t border-hairline" />
+          {withGoogle && (
+            <>
+              <div className="my-6 border-t border-hairline" />
 
-          <div className="space-y-2">
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => {
-                window.location.href = `/api/v1/auth/google?next=${encodeURIComponent(next)}`
-              }}
-            >
-              <GoogleMark />
-              {t('auth.loginWithGoogle')}
-            </Button>
-            {import.meta.env.DEV && (
-              <Button variant="ghost" className="w-full" onClick={loginWithMock}>
-                {t('auth.loginMock')}
-              </Button>
-            )}
-          </div>
+              <div className="space-y-2">
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => {
+                    window.location.href = `/api/v1/auth/google?next=${encodeURIComponent(next)}`
+                  }}
+                >
+                  <GoogleMark />
+                  {t('auth.loginWithGoogle')}
+                </Button>
+                {import.meta.env.DEV && (
+                  <Button variant="ghost" className="w-full" onClick={loginWithMock}>
+                    {t('auth.loginMock')}
+                  </Button>
+                )}
+              </div>
+            </>
+          )}
         </Card>
 
         {footer && <p className="mt-6 text-center text-[14px] text-muted">{footer}</p>}

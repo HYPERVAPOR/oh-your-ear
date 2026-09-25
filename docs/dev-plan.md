@@ -633,3 +633,10 @@
 - **status**: 🟡 doing
 - **description**: 验证码验证完（账号已建、已是登录态）之后加第三步：密码 + 再输一次。上一轮把登录改成只认密码之后，「没设过密码的账号」只能靠「忘记密码」绕一圈；注册结束时顺手设一个，这个绕圈就不该发生。不需要新接口：此时是登录态且 `has_password` 为 false，`PUT /me/password` 本来就允许不带旧密码设第一个。两次不一致落在确认框那一行、少于 8 位不许提交（与服务端同一条线）。步骤写在 URL 里（`?step=password`），与第二步同理：刷新与前进后退都不会掉回上一步。
 - **depends on**: 28.1, 28.2
+
+### 28.7 重设页去掉 Google，行内箭头抽成共享组件
+
+- **issue**: #167
+- **status**: 🟡 doing
+- **description**: ①重设密码页不该有「Continue with Google」：这一页的前提是「我进不去」，能用 Google 进来的人不需要重设，而「换个方式登录」就是卡片底部那条链接；开发环境的模拟登录同理。`AuthCard` 因此多一个 `withGoogle`（默认 true），关掉时分隔线一起走，不留一条悬空的线。②注册与重设的第一步问了同一件事，于是抽成 `components/auth/email-arrow.tsx`（`EmailArrow`：焊接组 + 只在 `type="email"` 的 validity 为真时出现的 `→`），两处共用而不是各写一份。实测两页行为一致（空/`abc` 无箭头、合法邮箱出现、间隙 0.00px）。
+- **depends on**: 28.4, 28.5

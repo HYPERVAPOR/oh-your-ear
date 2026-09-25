@@ -1,16 +1,15 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
-import { ArrowRight } from 'lucide-react'
 
 import { apiClient } from '@/api/client'
 import { AuthCard } from '@/components/auth/auth-card'
+import { EmailArrow } from '@/components/auth/email-arrow'
 import { Button } from '@/components/ui/button'
 import { Field, Input } from '@/components/ui/field'
 import { loginPath, safeNext } from '@/lib/auth'
 import { useEmailCode } from '@/lib/use-email-code'
 import { useAuthStore } from '@/stores/auth-store'
-import { cn } from '@/lib/utils'
 
 /** The shortest a password may be, mirroring the server's policy (PRD 5.10). */
 const MIN_PASSWORD = 8
@@ -57,10 +56,6 @@ export function Signup() {
   const [busy, setBusy] = useState(false)
 
   const next = safeNext(new URLSearchParams(location.search).get('next'))
-
-  /** The arrow is there only once there is an address to submit — the browser's own validity,
-   *  so an empty field and a half-typed address look the same to this screen: not yet. */
-  const [addressReady, setAddressReady] = useState(false)
 
   async function askForCode(event: React.FormEvent) {
     event.preventDefault()
@@ -157,48 +152,18 @@ export function Signup() {
     >
       {step === 'email' && (
         <form className="mt-6 space-y-5" onSubmit={askForCode}>
-          {/* Welded, like the code row: one outline around the pair, no gap, and the rule
-              between them sits on the input's right edge — a border on the button would
-              disappear whenever it is disabled (the shared button base drops it). */}
-          <Field
+          <EmailArrow
+            id="email"
             label={t('auth.email')}
-            htmlFor="email"
-            hint=""
+            value={email}
             error={failure?.field === 'email' ? t(failure.key) : code.error}
-          >
-            <div className="flex items-stretch border border-hairline-strong focus-within:border-ink">
-              <Input
-                id="email"
-                type="email"
-                required
-                autoFocus
-                autoComplete="email"
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value)
-                  setAddressReady(e.target.validity.valid)
-                  setFailure(undefined)
-                  code.clearError()
-                }}
-                className={cn(
-                  'border-0 bg-transparent focus:border-transparent',
-                  addressReady && 'border-r border-hairline-strong',
-                )}
-              />
-              {addressReady && (
-                <Button
-                  type="submit"
-                  variant="ghost"
-                  className="h-auto shrink-0 px-3"
-                  disabled={busy}
-                  aria-label={t('auth.continue')}
-                  title={t('auth.continue')}
-                >
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
-          </Field>
+            busy={busy}
+            onChange={(value) => {
+              setEmail(value)
+              setFailure(undefined)
+              code.clearError()
+            }}
+          />
         </form>
       )}
 

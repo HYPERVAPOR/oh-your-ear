@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-do
 
 import { apiClient } from '@/api/client'
 import { AuthCard } from '@/components/auth/auth-card'
+import { EmailArrow } from '@/components/auth/email-arrow'
 import { Button } from '@/components/ui/button'
 import { Field, Input } from '@/components/ui/field'
 import { loginPath, safeNext } from '@/lib/auth'
@@ -22,6 +23,8 @@ const MIN_PASSWORD = 8
  *
  * As on sign-up, the step lives in the URL (`?email=`) so a reload does not send the reader
  * back to the address step with a code already in hand.
+ *
+ * No Google button on this card: see AuthCard.
  */
 export function Reset() {
   const { t } = useTranslation('common')
@@ -88,6 +91,7 @@ export function Reset() {
       title={t('auth.resetTitle')}
       subtitle={t('auth.resetSubtitle')}
       next={next}
+      withGoogle={false}
       footer={
         <>
           {t('auth.haveAccount')}{' '}
@@ -99,29 +103,17 @@ export function Reset() {
     >
       {!emailed ? (
         <form className="mt-6 space-y-5" onSubmit={askForCode}>
-          <Field label={t('auth.email')} htmlFor="email" hint="" error={code.error}>
-            <Input
-              id="email"
-              type="email"
-              required
-              autoFocus
-              autoComplete="email"
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value)
-                code.clearError()
-              }}
-            />
-          </Field>
-
-          <Button
-            type="submit"
-            size="lg"
-            className="w-full"
-            disabled={code.busy || !email.includes('@')}
-          >
-            {t('auth.continue')}
-          </Button>
+          <EmailArrow
+            id="email"
+            label={t('auth.email')}
+            value={email}
+            error={code.error}
+            busy={code.busy}
+            onChange={(value) => {
+              setEmail(value)
+              code.clearError()
+            }}
+          />
         </form>
       ) : (
         <form className="mt-6 space-y-5" onSubmit={reset}>
