@@ -16,6 +16,8 @@ import { useAppStore } from '@oh-your-ear/shared/prefs'
 import { Home } from '@/pages/home'
 import { Levels } from '@/pages/levels'
 import { Login } from '@/pages/login'
+import { Reset } from '@/pages/reset'
+import { Signup } from '@/pages/signup'
 import { Collections } from '@/pages/collections'
 import { Me } from '@/pages/me'
 import { Mistakes } from '@/pages/mistakes'
@@ -55,6 +57,10 @@ export default function App() {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
+      {/* Signing in and registering are the same mechanism on the server (a code logs in and
+          creates the account), but they are two questions, so two pages (PRD 7.1.9). */}
+      <Route path="/signup" element={<Signup />} />
+      <Route path="/reset" element={<Reset />} />
       <Route
         path="/me"
         element={

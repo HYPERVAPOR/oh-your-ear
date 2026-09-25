@@ -15,6 +15,16 @@ export function loginPath(next: string): string {
   return `/login?next=${encodeURIComponent(next)}`
 }
 
+/** The sign-up URL that remembers where the reader was headed. */
+export function signupPath(next: string): string {
+  return `/signup?next=${encodeURIComponent(next)}`
+}
+
+/** The password-reset URL that remembers where the reader was headed. */
+export function resetPath(next: string): string {
+  return `/reset?next=${encodeURIComponent(next)}`
+}
+
 /** The login URL that comes back to where the reader is now, parameters included. */
 export function loginHere(): string {
   return loginPath(window.location.pathname + window.location.search)

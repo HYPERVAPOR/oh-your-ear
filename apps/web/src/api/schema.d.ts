@@ -79,6 +79,26 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/auth/password/reset': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /**
+     * Set a new password using an email verification code
+     * @description For the reader who cannot sign in because the password is gone: the code stands in for the current password, which is exactly what a forgotten one is not. Everything else about a password is unchanged — the same length floor, one success per code, the same throttle. Signing in is part of the answer, since the code already proved the address. An address with no account gets one, the way a first code login does, so this cannot be used to ask whether an address is registered.
+     */
+    post: operations['resetPassword']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/auth/me': {
     parameters: {
       query?: never
@@ -424,6 +444,21 @@ export interface components {
        */
       newPassword: string
     }
+    /** @description A new password for an address proven by a code, for someone who is not signed in. */
+    ResetPasswordRequest: {
+      /**
+       * Format: email
+       * @example user@example.com
+       */
+      email: string
+      /** @example 123456 */
+      code: string
+      /**
+       * @description At least 8 characters, at most 72 bytes (bcrypt's limit).
+       * @example correct horse battery staple
+       */
+      newPassword: string
+    }
     /**
      * @description The five exercise modules. Melody and rhythm are scored as a whole.
      * @enum {string}
@@ -725,6 +760,33 @@ export interface operations {
     requestBody: {
       content: {
         'application/json': components['schemas']['EmailAuthRequest']
+      }
+    }
+    responses: {
+      /** @description Authenticated user with tokens */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['AuthResponse']
+        }
+      }
+      400: components['responses']['BadRequest']
+      401: components['responses']['Unauthorized']
+      429: components['responses']['TooManyRequests']
+    }
+  }
+  resetPassword: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ResetPasswordRequest']
       }
     }
     responses: {

@@ -233,6 +233,38 @@ func (s *Server) SetMyPassword(c *gin.Context) {
 	}
 }
 
+// ResetPassword handles POST /auth/password/reset: a new password for an address proven by
+// a code. It is not under /me on purpose — the caller is exactly the reader who has no
+// session and no current password to offer.
+func (s *Server) ResetPassword(c *gin.Context) {
+	if !s.loginLimiter.RateLimit(c) {
+		return
+	}
+
+	var body ResetPasswordRequest
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "invalid request body"})
+		return
+	}
+
+	user, err := s.auth.ResetPassword(c.Request.Context(), string(body.Email), body.Code, body.NewPassword)
+	switch {
+	case errors.Is(err, services.ErrTooManyAttempts):
+		c.JSON(http.StatusTooManyRequests, ErrorResponse{Error: "too many attempts"})
+	case errors.Is(err, services.ErrInvalidCode):
+		c.JSON(http.StatusUnauthorized, ErrorResponse{Error: "invalid or expired code"})
+	case errors.Is(err, services.ErrPasswordTooShort), errors.Is(err, services.ErrPasswordTooLong):
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+	case err != nil:
+		log.Printf("failed to reset password: %v", err)
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "failed to reset password"})
+	default:
+		// The code already proved the address, so signing in is part of the answer rather
+		// than a second request with a password the reader just typed.
+		s.RespondWithSession(c, user)
+	}
+}
+
 // GetMe handles GET /auth/me.
 func (s *Server) GetMe(c *gin.Context) {
 	userID, ok := s.requireUser(c)

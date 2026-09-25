@@ -392,6 +392,39 @@ func (s *AuthService) SetPassword(ctx context.Context, userID uuid.UUID, current
 	return nil
 }
 
+// ResetPassword sets a new password for an address proven by an email code.
+//
+// The code takes the place of the current password, which is the whole point of the path:
+// it exists for the reader who no longer has one. Everything else about a password still
+// holds — the same length floor, and the code is spent, so this works once. The password is
+// checked before the code is spent, so a rejected password does not cost a new code.
+//
+// An address with no account gets one, exactly as a first code login does, which keeps this
+// from being a way to ask whether an address is registered.
+func (s *AuthService) ResetPassword(ctx context.Context, email, code, newPassword string) (*models.User, error) {
+	if err := validatePassword(newPassword); err != nil {
+		return nil, err
+	}
+	if err := s.ConsumeEmailCode(ctx, email, code); err != nil {
+		return nil, err
+	}
+
+	user, err := s.UpsertEmailUser(ctx, email, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	newHash, err := hashPassword(newPassword)
+	if err != nil {
+		return nil, fmt.Errorf("failed to hash password: %w", err)
+	}
+	if _, err := s.pool.Exec(ctx, `UPDATE users SET password_hash = $2, updated_at = NOW() WHERE id = $1`, user.ID, newHash); err != nil {
+		return nil, fmt.Errorf("failed to store password: %w", err)
+	}
+
+	return user, nil
+}
+
 // validatePassword is the whole policy: a floor on characters, a ceiling on bytes.
 func validatePassword(password string) error {
 	if utf8.RuneCountInString(password) < PasswordMinLength {
