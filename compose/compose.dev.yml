@@ -72,9 +72,12 @@ services:
       SERVER_ADDR: ":8080"
       DATABASE_URL: "postgres://postgres:postgres@db:5432/ohyourear?sslmode=disable"
       JWT_SECRET: "dev-secret"
-      GOOGLE_CLIENT_ID: ""
-      GOOGLE_CLIENT_SECRET: ""
-      GOOGLE_REDIRECT_URL: "http://localhost:8080/api/v1/auth/google/callback"
+      # Read from the environment so a developer can try Google sign-in locally
+      # without writing a client secret into this tracked file: put them in the
+      # repo-root .env and pass --env-file .env, exactly as production does.
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      GOOGLE_REDIRECT_URL: ${GOOGLE_REDIRECT_URL:-http://localhost:8080/api/v1/auth/google/callback}
       MOCK_AUTH_EMAIL: "dev@ohyourear.test"
       MOCK_AUTH_NAME: "Developer"
       # MAIL_DRIVER=smtp + SMTP_HOST/SMTP_PORT to try real delivery locally,
