@@ -1,9 +1,11 @@
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { AppHeader } from '@/components/app-header'
 import { AvatarPicker } from '@/components/avatar-picker'
 import { Avatar } from '@/components/avatar'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { PasswordForm } from '@/components/password-form'
 import { PracticeStats } from '@/components/practice-stats'
 import { StudyPlanForm } from '@/components/study-plan-form'
@@ -16,6 +18,7 @@ export function Me() {
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
   const logout = useAuthStore((s) => s.logout)
+  const [confirmingLogout, setConfirmingLogout] = useState(false)
 
   async function handleLogout() {
     await logout()
@@ -42,7 +45,7 @@ export function Me() {
               </div>
             </div>
 
-            <Button variant="outline" size="sm" onClick={handleLogout}>
+            <Button variant="outline" size="sm" onClick={() => setConfirmingLogout(true)}>
               {t('actions.logout')}
             </Button>
           </header>
@@ -88,6 +91,14 @@ export function Me() {
           </div>
         </div>
       </main>
+
+      <ConfirmDialog
+        open={confirmingLogout}
+        title={t('actions.logoutConfirmTitle')}
+        confirmLabel={t('actions.logout')}
+        onConfirm={handleLogout}
+        onDismiss={() => setConfirmingLogout(false)}
+      />
     </div>
   )
 }
