@@ -53,14 +53,21 @@ export function EmailArrow({
             onChange(event.target.value)
           }}
           className={cn(
-            'border-0 bg-transparent focus:border-transparent',
+            // `focus:border-hairline-strong` overrides the base `focus:border-ink` for the same
+            // reason the code row does it: the frame that lights up on focus is the wrapper's
+            // (`focus-within:border-ink`), and the rule between the field and the arrow has to
+            // stay put. Making it transparent on focus made the divider vanish instead.
+            'border-0 bg-transparent focus:border-hairline-strong',
             ready && 'border-r border-hairline-strong',
           )}
         />
         {ready && (
           <Button
             type="submit"
-            variant="ghost"
+            // Filled, not ghost: this is the one action on the field, and it wears the same ink
+            // as every other primary action in the app — black on white, white on black, so the
+            // arrow reads against the field it sits in rather than dissolving into it.
+            variant="primary"
             className="h-auto shrink-0 px-3"
             disabled={busy}
             aria-label={t('auth.continue')}
