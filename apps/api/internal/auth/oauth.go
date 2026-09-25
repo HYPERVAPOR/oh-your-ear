@@ -39,11 +39,17 @@ func SafeNextPath(raw string) string {
 }
 
 // GoogleUser represents the data returned by Google's userinfo endpoint.
+//
+// `verified_email` is named for the **v2** endpoint this app calls. The v3/OIDC userinfo
+// endpoint calls the same fact `email_verified`; binding the wrong name would silently
+// report every Google address as unverified, and nothing else would fail. There is a test
+// pinning the spelling against the discovery document's Userinfo schema.
 type GoogleUser struct {
-	ID      string `json:"id"`
-	Email   string `json:"email"`
-	Name    string `json:"name"`
-	Picture string `json:"picture"`
+	ID            string `json:"id"`
+	Email         string `json:"email"`
+	VerifiedEmail bool   `json:"verified_email"`
+	Name          string `json:"name"`
+	Picture       string `json:"picture"`
 }
 
 // NewGoogleOAuthConfig builds an OAuth2 config for Google.

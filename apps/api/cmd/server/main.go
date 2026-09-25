@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -131,8 +132,25 @@ func registerAuthRoutes(r *gin.Engine, cfg config.Config, server *api.Server, au
 			return
 		}
 
+		// The whole "one address, several keys" rule (PRD 5.10) rests on Google having
+		// checked this address: an unverified one could claim an account that belongs to
+		// somebody else. Google's v2 userinfo calls it `verified_email`.
+		if !gUser.VerifiedEmail {
+			log.Printf("refusing google sign-in for unverified address %s", gUser.Email)
+			c.JSON(http.StatusBadRequest, api.ErrorResponse{Error: "google account email is not verified"})
+			return
+		}
+
 		user, err := authSvc.UpsertGoogleUser(c.Request.Context(), gUser.ID, gUser.Email, gUser.Name, gUser.Picture)
-		if err != nil {
+		switch {
+		case errors.Is(err, services.ErrEmailLinked):
+			// Not a server fault: this address already signs in another way, and picking a
+			// winner silently is how one person's practice history becomes another's.
+			c.JSON(http.StatusConflict, api.ErrorResponse{
+				Error: "this email already belongs to another sign-in method",
+			})
+			return
+		case err != nil:
 			c.JSON(http.StatusInternalServerError, api.ErrorResponse{Error: "failed to save user"})
 			return
 		}
