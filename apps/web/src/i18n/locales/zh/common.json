@@ -237,6 +237,7 @@
     "randomTitle": "随机练习",
     "passedOf": "{{passed}}/{{total}}",
     "accountLabel": "账号",
+    "guestLine": "嗯……我们还不认识你，请<signIn>登录</signIn>。",
     "startDaily": "开始每日训练",
     "extraRound": "再来一轮",
     "met": "今日已达标",
