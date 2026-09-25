@@ -230,7 +230,6 @@
   },
   "heatmap": {
     "title": "练习进度",
-    "streaks": "连续练习 {{current}} 天 · 最长 {{longest}} 天",
     "slot": {
       "todo": "未答",
       "done": "已答"

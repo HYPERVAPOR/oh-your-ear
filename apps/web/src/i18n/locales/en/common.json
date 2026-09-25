@@ -230,7 +230,6 @@
   },
   "heatmap": {
     "title": "Progress",
-    "streaks": "{{current}}-day streak · longest {{longest}}",
     "slot": {
       "todo": "Not yet",
       "done": "Answered"

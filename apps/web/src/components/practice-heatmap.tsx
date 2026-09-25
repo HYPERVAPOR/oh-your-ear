@@ -74,17 +74,9 @@ export function PracticeHeatmap() {
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
-        <div>
-          <p className="badge-label text-muted">{t('heatmap.title')}</p>
-          {user && data && (
-            <p className="tabular mt-1.5 text-[15px]">
-              {t('heatmap.streaks', {
-                current: data.currentStreak,
-                longest: data.longestStreak,
-              })}
-            </p>
-          )}
-        </div>
+        {/* No streak line: the calendar is the history, and a sentence restating it is the
+            same fact twice. The count lives on the account page, where the numbers are. */}
+        <p className="badge-label text-muted">{t('heatmap.title')}</p>
 
         {/* One welded piece, like every other group of switches: one outline, a rule
             between neighbours. */}
