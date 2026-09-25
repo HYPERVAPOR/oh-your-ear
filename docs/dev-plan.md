@@ -530,5 +530,5 @@
 
 - **issue**: #136
 - **status**: 🟡 doing
-- **description**: 2026-09-25 一天之内把 Vercel 免费额度（每天 100 次部署）烧光，两个项目都被 `Deployment rate limited` 挡住，于是再推 main 前端也不更新。三个手段：①**`dev` 集成分支**——两个 `vercel.json` 里 `git.deploymentEnabled: {dev: false}`（根本不创建部署），CI 的 push / pull_request 都监听 `main` 与 `dev`，所以进 dev 也要过检查，而 API 只在「CI 在 main 上通过」时部署；②**每个项目自己判断**——`ignoreCommand: git diff --quiet HEAD^ HEAD -- . ../../packages/shared`（退出码 0 = 跳过；`.` 是项目根，`../../packages/shared` 是共享包），实测只改后端/文档时两个前端都跳过、改 web 只建 web、改 shared 两个都建；③**零碎提交先推 dev**，别直接推 main。注意 ② 的额度效果官方没有明确说明（社区在问被忽略的构建是否仍计数），所以 ① 才是确定解。
+- **description**: 2026-09-25 一天之内把 Vercel 免费额度（每天 100 次部署）烧光，两个项目都被 `Deployment rate limited` 挡住，于是再推 main 前端也不更新。三个手段：①**`dev` 集成分支**——三个 `vercel.json`（仓库根 + 两个子项目）里都写 `git.deploymentEnabled: {dev: false}`（三处同值不冲突；到底读哪一份在额度耗尽的窗口内验不出来，详见 deploy.md §7），CI 的 push / pull_request 都监听 `main` 与 `dev`，所以进 dev 也要过检查，而 API 只在「CI 在 main 上通过」时部署；②**每个项目自己判断**——`ignoreCommand: git diff --quiet HEAD^ HEAD -- . ../../packages/shared`（退出码 0 = 跳过；`.` 是项目根，`../../packages/shared` 是共享包），实测只改后端/文档时两个前端都跳过、改 web 只建 web、改 shared 两个都建；③**零碎提交先推 dev**，别直接推 main。注意 ② 的额度效果官方没有明确说明（社区在问被忽略的构建是否仍计数），所以 ① 才是确定解。
 - **depends on**: 24.1

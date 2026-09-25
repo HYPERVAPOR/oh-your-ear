@@ -387,15 +387,18 @@ schema 在 API 启动时幂等地跑（`CREATE TABLE IF NOT EXISTS` + `ALTER TAB
 
 ### 1. 分支策略：`dev` 优先（最可靠）
 
-`dev` 是集成分支：从它切功能分支，PR 合进 `dev`，`dev` 攒够了再一个 PR 合进 `main`。**推 `dev` 不创建任何部署**，靠的是**仓库根目录**的 `vercel.json`：
+`dev` 是集成分支：从它切功能分支，PR 合进 `dev`，`dev` 攒够了再一个 PR 合进 `main`。目标是**推 `dev` 不创建任何部署**，靠官方字段：
 
 ```json
 { "git": { "deploymentEnabled": { "dev": false } } }
 ```
 
-这是「根本不创建部署」，不是「创建了再跳过」，所以额度问题上没有疑问。
+**这个字段现在写在三个地方**：仓库根的 `vercel.json`，以及 `apps/web/vercel.json` 和 `apps/landing/vercel.json`。三处同值，不会冲突。为什么都写：Git 集成到底读哪一份，在**额度耗尽的窗口内无法验证**——那个窗口里它给每个提交都挂一条 `Deployment rate limited`，分不清是"配置生效所以没创建"还是"创建了但被额度挡下"。（我先只写在子项目里、观察到一个提交没有状态，就下了"必须放根目录"的结论并写进文档；等再验一次，同一个实验给出了相反的现象，所以那个结论收回了。）
 
-**必须放在仓库根，放在 `apps/*/vercel.json` 里没用**，而且不会报错——这是踩出来的：两个子项目里都写了 `git` 段，结果 dev 上的推送照样出现两条 `Deployment rate limited` 状态。原因是 Git 集成在「知道这个项目根目录是哪个」之前就得决定要不要部署，所以它只读**仓库根**那一份；子项目那份只影响构建（`installCommand` / `ignoreCommand` 之类），不影响「要不要创建部署」。证据：把配置挪到根目录之后，dev 上再推一个提交，该提交上**一条 Vercel 状态都没有**。API 侧同样不会动：部署 workflow 只在 **CI 在 main 上通过**时触发（`workflow_run` 的 `branches: [main]`）。
+**怎么最终确认**（等额度恢复之后）：
+
+- 往 `dev` 推一个提交，然后在 Vercel 面板看这个项目的部署列表：**里面没有对应条目**才是真的没创建部署；如果出现一条 `Canceled` 或 `rate limited` 的记录，说明部署还是被创建了。
+- 顺带能看清第二个问题：**被 `ignoreCommand` 跳过的构建是否仍计入每天 100 次**。社区在问，Vercel 没明确答复，而面板上的计数是准的。
 
 ### 2. 每个项目各自判断该不该构建
 
