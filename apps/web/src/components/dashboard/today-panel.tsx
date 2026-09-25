@@ -27,8 +27,10 @@ const ACCOUNT_LINKS = [
  * how today and the year are going on the right (PRD 7.1.4). Guests get the same shape
  * with the numbers at zero, so nothing moves after signing in.
  *
- * The card carries a value, an action and two entries — no label over the value, no
- * sentence under the action. The email is the account and the button says what it does.
+ * The card carries a label, a value, an action and two entries — and the same four in
+ * both states, so signing in changes what the card says, never what it looks like. No
+ * sentence under the action: the button says what it does, and the heatmap next door says
+ * how much of today is done.
  */
 export function TodayPanel() {
   const { t } = useTranslation('common')
@@ -73,9 +75,12 @@ export function TodayPanel() {
       <Card className="flex min-w-0 flex-col justify-between p-6 sm:p-7">
         {user ? (
           <>
-            <div className="flex items-center gap-3">
-              <Avatar user={user} />
-              <p className="break-all text-[15px]">{user.email}</p>
+            <div>
+              <p className="badge-label text-muted">{t('home.accountLabel')}</p>
+              <div className="mt-1.5 flex items-center gap-3">
+                <Avatar user={user} />
+                <p className="break-all text-[15px]">{user.email}</p>
+              </div>
             </div>
             <div className="mt-8 flex flex-wrap items-center gap-2">
               <Button size="lg" onClick={startSession}>
@@ -88,10 +93,14 @@ export function TodayPanel() {
           </>
         ) : (
           <>
-            <div className="flex items-center gap-3">
-              {/* The same 40px slot, empty: signing in must not move the card. */}
-              <span aria-hidden="true" className="size-10 shrink-0 border border-hairline" />
-              <p className="text-[15px] text-body">{t('home.guestIdentity')}</p>
+            <div>
+              {/* The same label and the same 40px slot as the signed-in card, empty:
+                  signing in must not change the card's shape. */}
+              <p className="badge-label text-muted">{t('home.accountLabel')}</p>
+              <div className="mt-1.5 flex items-center gap-3">
+                <span aria-hidden="true" className="size-10 shrink-0 border border-hairline" />
+                <p className="text-[15px] text-body">{t('home.guestIdentity')}</p>
+              </div>
             </div>
             <div className="mt-8">
               <Link to={loginHere()} className={buttonVariants({ size: 'lg' })}>

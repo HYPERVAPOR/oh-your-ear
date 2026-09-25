@@ -206,6 +206,7 @@
     "learnTitle": "闯关",
     "randomTitle": "随机练习",
     "passedOf": "{{passed}}/{{total}}",
+    "accountLabel": "账号",
     "startDaily": "开始每日训练",
     "extraRound": "再来一轮",
     "met": "今日已达标",

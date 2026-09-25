@@ -206,6 +206,7 @@
     "learnTitle": "Learn",
     "randomTitle": "Random test",
     "passedOf": "{{passed}}/{{total}}",
+    "accountLabel": "Account",
     "startDaily": "Start daily practice",
     "extraRound": "One more round",
     "met": "Today's goal is met",
