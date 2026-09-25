@@ -227,3 +227,15 @@ jobs:
 
       - name: Build
         run: go build -o /tmp/server ./cmd/server
+
+  deploy-script:
+    name: Deploy script
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4.2.2
+
+      # The deploy script only ever runs when something is already wrong, so its rollback
+      # path is the one thing nobody tries by hand. No server and no podman needed: the test
+      # puts shims on PATH and works in a throwaway clone.
+      - name: Test
+        run: bash compose/deploy.test.sh
