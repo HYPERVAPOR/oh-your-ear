@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
-import { LogOut, SquareUser } from 'lucide-react'
+import { LogOut } from 'lucide-react'
 
 import { Nameplate } from '@/components/nameplate'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
@@ -42,29 +42,21 @@ export function AppHeader() {
             <LanguageKey />
             <ThemeKey />
 
-            {/* The same two keys on every page, including the account page: the bar is one
-                component and no screen gets a different one. The account page used to hide
-                them and carry its own logout button, which made the bar unequal. */}
+            {/* One key, because there is one thing left to do with an account from here. The
+                way into the account is the button on the dashboard's card, where the account's
+                own page is one of the two things that card is for; a key up here in the same
+                square as the logout key made signing out look like the second of two equal
+                choices. The bar is still the same bar on every page. */}
             {user && (
-              <>
-                <Link
-                  to="/me"
-                  className={`${iconKey} no-underline`}
-                  aria-label={t('auth.account')}
-                  title={t('auth.account')}
-                >
-                  <SquareUser aria-hidden="true" className={icon} strokeWidth={1.75} />
-                </Link>
-                <button
-                  type="button"
-                  className={iconKey}
-                  aria-label={t('actions.logout')}
-                  title={t('actions.logout')}
-                  onClick={() => setConfirmingLogout(true)}
-                >
-                  <LogOut aria-hidden="true" className={icon} strokeWidth={1.75} />
-                </button>
-              </>
+              <button
+                type="button"
+                className={iconKey}
+                aria-label={t('actions.logout')}
+                title={t('actions.logout')}
+                onClick={() => setConfirmingLogout(true)}
+              >
+                <LogOut aria-hidden="true" className={icon} strokeWidth={1.75} />
+              </button>
             )}
           </nav>
 

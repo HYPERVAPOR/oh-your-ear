@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"strings"
 	"time"
 	"unicode/utf8"
 
@@ -35,6 +36,10 @@ const (
 	// than failing, so longer input is rejected instead of silently truncated — otherwise
 	// two different passwords could open the same account.
 	PasswordMaxBytes = 72
+	// NameMaxRunes is a label's length, not a bio's: room for a full name in any script,
+	// short enough that it cannot push the account card it sits in out of shape. The same
+	// number is the `maxLength` in openapi.yaml.
+	NameMaxRunes = 50
 )
 
 // bcryptCost is above the library's default of 10. Raising it stays possible: the cost is
@@ -61,6 +66,12 @@ var (
 	// ErrEmailLinked means the address already belongs to an account whose Google identity
 	// is a different one.
 	ErrEmailLinked = errors.New("email already linked to another account")
+	// ErrNameEmpty and ErrNameTooLong are refusals of a *new* display name. Empty is
+	// refused rather than stored as a blank one: an account with no name has a null one,
+	// and the client draws its own placeholder for that — two ways to say "no name" would
+	// be one too many.
+	ErrNameEmpty   = errors.New("name is empty")
+	ErrNameTooLong = errors.New("name is too long")
 )
 
 // AuthService handles authentication-related operations.
@@ -469,6 +480,39 @@ func verifyPassword(hash, password string) bool {
 // GetUserByID fetches a user by ID.
 func (s *AuthService) GetUserByID(ctx context.Context, id uuid.UUID) (*models.User, error) {
 	return s.scanUser(ctx, userByIDQuery, id)
+}
+
+// SetName stores the display name. Google fills one in for its accounts; everyone else starts
+// without one, and this is how they get one without making a new account.
+//
+// The row is written and then read back through the same path /auth/me uses, so what the
+// client gets is the account as it is, not a second hand-built copy of it that can drift.
+func (s *AuthService) SetName(ctx context.Context, userID uuid.UUID, name string) (*models.User, error) {
+	name, err := validateName(name)
+	if err != nil {
+		return nil, err
+	}
+
+	if _, err := s.pool.Exec(ctx,
+		`UPDATE users SET name = $2, updated_at = NOW() WHERE id = $1`, userID, name); err != nil {
+		return nil, fmt.Errorf("set name: %w", err)
+	}
+
+	return s.GetUserByID(ctx, userID)
+}
+
+// validateName trims a display name and checks that it is one, returning the version that is
+// stored. Trimmed here rather than at the call site so that what was checked is what is kept:
+// a name of nothing but spaces would otherwise be stored as a name.
+func validateName(name string) (string, error) {
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return "", ErrNameEmpty
+	}
+	if utf8.RuneCountInString(name) > NameMaxRunes {
+		return "", ErrNameTooLong
+	}
+	return name, nil
 }
 
 func (s *AuthService) scanUser(ctx context.Context, query string, args ...interface{}) (*models.User, error) {

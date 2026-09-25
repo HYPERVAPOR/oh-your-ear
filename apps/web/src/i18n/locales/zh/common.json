@@ -94,13 +94,8 @@
     "invalidEmail": "邮箱格式不正确。",
     "invalidCode": "验证码错误或已过期。",
     "password": "密码",
-    "passwordHint": "设个密码，之后可以直接用密码登录。",
-    "currentPassword": "当前密码",
     "newPassword": "新密码",
     "setPassword": "设置密码",
-    "changePassword": "修改密码",
-    "passwordSaved": "已保存。",
-    "wrongPassword": "当前密码不正确。",
     "passwordTooShort": "密码至少 8 位。",
     "passwordMismatch": "两次输入不一致。",
     "confirmPassword": "再输入一次",
@@ -260,5 +255,10 @@
     },
     "cell": "{{date}}：{{solved}} / {{goal}} 题",
     "today": "今天"
+  },
+  "account": {
+    "addName": "添加用户名",
+    "editName": "改用户名",
+    "nameFailed": "没能保存用户名，请再试一次"
   }
 }

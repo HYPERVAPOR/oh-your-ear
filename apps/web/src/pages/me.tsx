@@ -3,17 +3,14 @@ import { Link } from 'react-router-dom'
 import { ArrowLeft } from 'lucide-react'
 
 import { AppHeader } from '@/components/app-header'
-import { AvatarPicker } from '@/components/avatar-picker'
-import { PasswordForm } from '@/components/password-form'
+import { AccountIdentity } from '@/components/account-identity'
 import { PracticeStats } from '@/components/practice-stats'
 import { StudyPlanForm } from '@/components/study-plan-form'
-import { useAuthStore } from '@/stores/auth-store'
 import { iconKey } from '@oh-your-ear/shared/pref-controls'
 
 /** Account page: who you are, your plan, your progress, your mistake notebook. */
 export function Me() {
   const { t } = useTranslation('common')
-  const user = useAuthStore((s) => s.user)
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -35,23 +32,14 @@ export function Me() {
             <ArrowLeft aria-hidden="true" className="h-4 w-4" strokeWidth={1.75} />
           </Link>
 
-          <header className="flex flex-wrap items-start gap-4">
-            <div className="flex items-center gap-4">
-              <AvatarPicker />
-              <div>
-                <p className="badge-label text-muted">{t('auth.account')}</p>
-                <h1 className="mt-2 font-display text-[28px] font-medium leading-tight sm:text-[32px]">
-                  {user?.name || t('auth.account')}
-                </h1>
-                <p className="mt-1.5 text-[15px] text-muted">{user?.email}</p>
-              </div>
-            </div>
+          {/* Who you are, as the one thing that says it everywhere: the same three the
+              dashboard's card shows, at the size this page gives them. */}
+          <header>
+            <AccountIdentity size="lg" />
           </header>
 
           <div className="mt-10 space-y-6">
             <StudyPlanForm />
-
-            <PasswordForm />
 
             <PracticeStats />
 

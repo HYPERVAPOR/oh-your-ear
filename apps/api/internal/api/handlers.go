@@ -230,6 +230,34 @@ func (s *Server) loginWithPassword(c *gin.Context, email, password string) {
 	s.RespondWithSession(c, user)
 }
 
+// SetMyName handles PUT /me/name: the word the account is called by, which sign-in providers
+// supply and which an account that signed up with a code does not have yet.
+func (s *Server) SetMyName(c *gin.Context) {
+	userID, ok := s.requireUser(c)
+	if !ok {
+		return
+	}
+
+	var body SetNameRequest
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "invalid request body"})
+		return
+	}
+
+	user, err := s.auth.SetName(c.Request.Context(), userID, body.Name)
+	switch {
+	case errors.Is(err, services.ErrNameEmpty), errors.Is(err, services.ErrNameTooLong):
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+	case err != nil:
+		log.Printf("failed to set name: %v", err)
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "failed to save name"})
+	default:
+		// The account back, not 204: the client shows it straight away and this is how it
+		// learns the trimmed version it actually stored.
+		c.JSON(http.StatusOK, s.userResponse(c, *user))
+	}
+}
+
 // SetMyPassword handles PUT /me/password: setting a first password, or replacing one.
 func (s *Server) SetMyPassword(c *gin.Context) {
 	userID, ok := s.requireUser(c)
