@@ -1,29 +1,20 @@
-import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
+import { ArrowLeft } from 'lucide-react'
 
 import { AppHeader } from '@/components/app-header'
 import { AvatarPicker } from '@/components/avatar-picker'
 import { Avatar } from '@/components/avatar'
-import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { PasswordForm } from '@/components/password-form'
 import { PracticeStats } from '@/components/practice-stats'
 import { StudyPlanForm } from '@/components/study-plan-form'
-import { Button } from '@/components/ui/button'
 import { useAuthStore } from '@/stores/auth-store'
+import { iconKey } from '@oh-your-ear/shared/pref-controls'
 
 /** Account page: who you are, your plan, your progress, your mistake notebook. */
 export function Me() {
   const { t } = useTranslation('common')
-  const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
-  const logout = useAuthStore((s) => s.logout)
-  const [confirmingLogout, setConfirmingLogout] = useState(false)
-
-  async function handleLogout() {
-    await logout()
-    navigate('/', { replace: true })
-  }
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -33,7 +24,19 @@ export function Me() {
         {/* Gutter outside the 1200px box and the same width as the header: with the
             padding inside, this column sat 300px inboard of the bar above it. */}
         <div className="mx-auto w-full max-w-[1200px]">
-          <header className="flex flex-wrap items-start justify-between gap-4">
+          {/* Where you came from, at the top left of the content and not in the bar: the bar
+              is identical on every page and stays that way. A 32px square, the size and
+              shape of the keys up there. */}
+          <Link
+            to="/"
+            className={`${iconKey} mb-5 no-underline`}
+            aria-label={t('actions.back')}
+            title={t('actions.back')}
+          >
+            <ArrowLeft aria-hidden="true" className="h-4 w-4" strokeWidth={1.75} />
+          </Link>
+
+          <header className="flex flex-wrap items-start gap-4">
             <div className="flex items-center gap-4">
               {user && <Avatar user={user} size="lg" />}
               <div>
@@ -44,10 +47,6 @@ export function Me() {
                 <p className="mt-1.5 text-[15px] text-muted">{user?.email}</p>
               </div>
             </div>
-
-            <Button variant="outline" size="sm" onClick={() => setConfirmingLogout(true)}>
-              {t('actions.logout')}
-            </Button>
           </header>
 
           <div className="mt-6">
@@ -91,14 +90,6 @@ export function Me() {
           </div>
         </div>
       </main>
-
-      <ConfirmDialog
-        open={confirmingLogout}
-        title={t('actions.logoutConfirmTitle')}
-        confirmLabel={t('actions.logout')}
-        onConfirm={handleLogout}
-        onDismiss={() => setConfirmingLogout(false)}
-      />
     </div>
   )
 }

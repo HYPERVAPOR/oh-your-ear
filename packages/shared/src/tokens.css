@@ -243,6 +243,12 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    /* The landing always scrolls and the app's dashboard is exactly one screen, so with a
+       scrollbar on one side and not the other the centred 1200px box sat half a scrollbar
+       off in the other site. Reserving the gutter makes the content width independent of
+       the page's height. Measured at a 1440px viewport: both headers are x=120 w=1200, but
+       one document is 900 tall and the other 3526. */
+    scrollbar-gutter: stable;
   }
 
   body {

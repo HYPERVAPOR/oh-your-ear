@@ -532,3 +532,26 @@
 - **status**: 🟡 doing
 - **description**: 2026-09-25 一天之内把 Vercel 免费额度（每天 100 次部署）烧光，两个项目都被 `Deployment rate limited` 挡住，于是再推 main 前端也不更新。三个手段：①**`dev` 集成分支**——两个 `vercel.json` 里 `git.deploymentEnabled: {dev: false}`（根本不创建部署），CI 的 push / pull_request 都监听 `main` 与 `dev`，所以进 dev 也要过检查，而 API 只在「CI 在 main 上通过」时部署；②**每个项目自己判断**——`ignoreCommand: git diff --quiet HEAD^ HEAD -- . ../../packages/shared`（退出码 0 = 跳过；`.` 是项目根，`../../packages/shared` 是共享包），实测只改后端/文档时两个前端都跳过、改 web 只建 web、改 shared 两个都建；③**零碎提交先推 dev**，别直接推 main。注意 ② 的额度效果官方没有明确说明（社区在问被忽略的构建是否仍计数），所以 ① 才是确定解。
 - **depends on**: 24.1
+
+## M26 体验走查修复
+
+### 26.1 账号页导航与顶栏一致、热力图去掉连续天数、滚动条不再挪动宽度
+
+- **issue**: #141
+- **status**: 🟡 doing
+- **description**: 走查发现四件小事。①`/me` 没有返回入口 → 内容区左上角加 32px `←` 图标键（放内容区而不是顶栏，因为顶栏要在每个页面完全一致）。②`/me` 的顶栏与其他页面不一样（`AppHeader` 里对 `/me` 隐藏了两个图标键，页内又自带一个退出按钮）→ 删掉例外与页内按钮，退出只剩顶栏一处。③landing 与 app 切换时内容宽度横向抖动 → 实测两边容器都是 `x=120 w=1200`，差别在滚动条（落地页文档高 3526、app 首页 900）→ `html { scrollbar-gutter: stable }` 写进共享 tokens，两个站点同时生效。④热力图上的「连续 N 天 · 最长 M 天」删掉（中英两个键一起删），日历本身就是历史，连续天数只在 `/me` 统计卡里出现。
+- **depends on**: 7.1.4
+
+### 26.2 登录态恢复前先渲染骨架屏（尺寸不变）
+
+- **issue**: #142
+- **status**: 🟡 todo
+- **description**: 已登录进 app 时账号卡先渲染游客态再跳成登录态。`auth-store` 已有 `initialized`，`TodayPanel` 与热力图都没看它。改成 `!initialized` 渲染与真卡片同形状的骨架，**高度不变**（卡片高度由旁边热力图决定，见 7.1.4），否则等于把一个跳变换成另一个。热力图同理（它的查询 `enabled: !!user`，也会先渲染空态）。
+- **depends on**: 7.1.4
+
+### 26.3 头像即上传入口，并在上传前校验
+
+- **issue**: #143
+- **status**: 🟡 todo
+- **description**: `/me` 上头像与「上传头像」按钮是分开的两样，点头像没反应；除了 `accept` 这个提示之外没有前置校验，大图与细长条都会先被读进来。改成：点头像即选文件（按钮删掉、键盘可达）；上传前校验格式（PNG/JPEG/WebP）、体积（≤512KB，与 `MaxAvatarBytes` 同源）、长宽比（>3:1 拒绝）、能否解码，四类失败各给一条文案；校验做成 `lib/avatar.ts` 里的纯函数加单测。
+- **depends on**: 5.0.3
