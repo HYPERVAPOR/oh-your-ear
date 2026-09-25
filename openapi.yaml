@@ -93,6 +93,37 @@ paths:
         '429':
           $ref: '#/components/responses/TooManyRequests'
 
+  /auth/password/reset:
+    post:
+      operationId: resetPassword
+      summary: Set a new password using an email verification code
+      description: >
+        For the reader who cannot sign in because the password is gone: the code stands in
+        for the current password, which is exactly what a forgotten one is not. Everything
+        else about a password is unchanged — the same length floor, one success per code,
+        the same throttle. Signing in is part of the answer, since the code already proved
+        the address. An address with no account gets one, the way a first code login does,
+        so this cannot be used to ask whether an address is registered.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+      responses:
+        '200':
+          description: Authenticated user with tokens
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
   /auth/me:
     get:
       operationId: getMe
@@ -630,6 +661,29 @@ components:
           type: string
           description: Required when the account already has a password.
           nullable: true
+        newPassword:
+          type: string
+          description: At least 8 characters, at most 72 bytes (bcrypt's limit).
+          example: correct horse battery staple
+
+    ResetPasswordRequest:
+      type: object
+      description: >
+        A new password for an address proven by a code, for someone who is not signed in.
+      required:
+        - email
+        - code
+        - newPassword
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        code:
+          type: string
+          minLength: 6
+          maxLength: 6
+          example: '123456'
         newPassword:
           type: string
           description: At least 8 characters, at most 72 bytes (bcrypt's limit).
