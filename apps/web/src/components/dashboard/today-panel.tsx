@@ -10,7 +10,7 @@ import { Button, buttonVariants } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { MODULES, type ExerciseKind } from '@/components/ui/orb'
 import { DEFAULT_GOAL } from '@/lib/heatmap'
-import { useDelayed } from '@/lib/use-delayed'
+import { useDelayedLoading } from '@/lib/use-delayed'
 import { loginHere, loginPath } from '@/lib/auth'
 import { useAuthStore } from '@/stores/auth-store'
 
@@ -39,7 +39,7 @@ export function TodayPanel() {
   const user = useAuthStore((s) => s.user)
   const initialized = useAuthStore((s) => s.initialized)
   // Only draw the skeleton if the session restore is actually taking a moment.
-  const loading = useDelayed(!initialized)
+  const loading = useDelayedLoading(!initialized)
 
   const { data: plan } = useQuery({
     queryKey: ['study-plan'],
