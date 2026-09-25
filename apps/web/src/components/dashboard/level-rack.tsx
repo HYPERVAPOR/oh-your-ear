@@ -7,19 +7,12 @@ import { RackCell } from '@/components/dashboard/rack-cell'
 import { modulePath } from '@/components/round-summary'
 import { MODULES, MODULE_SWATCH, type ExerciseKind } from '@/components/ui/orb'
 import { loginPath } from '@/lib/auth'
-import {
-  chainComplete,
-  currentLevel,
-  levelsFor,
-  pickText,
-  useLevelCatalog,
-  type LevelProgressEntry,
-} from '@/lib/levels'
+import { currentLevel, levelsFor, useLevelCatalog, type LevelProgressEntry } from '@/lib/levels'
 import { useAuthStore } from '@/stores/auth-store'
 
 /**
- * One chain: how far along it is, and where to pick it up. Progress is levels passed out
- * of levels in the chain — there is nothing else to count.
+ * One chain: how far along it is, and where to pick it up. The cell carries the module's
+ * name, its bar and `passed/total` — no sentence saying what the bar already says.
  */
 function ChainCell({
   kind,
@@ -30,7 +23,7 @@ function ChainCell({
   signedIn: boolean
   progress: Map<string, LevelProgressEntry>
 }) {
-  const { t, i18n } = useTranslation('common')
+  const { t } = useTranslation('common')
   const { data: catalog } = useLevelCatalog()
   const sets = catalog ?? []
 
@@ -38,16 +31,6 @@ function ChainCell({
   const passed = levels.filter((level) => progress.get(level.slug)?.passed).length
   const percent = levels.length > 0 ? Math.round((passed / levels.length) * 100) : 0
   const level = currentLevel(sets, kind, progress)
-  const entry = level ? progress.get(level.slug) : undefined
-
-  const line = chainComplete(sets, kind, progress)
-    ? t('levels.allPassed')
-    : entry
-      ? t('levels.continueAt', {
-          level: pickText(level?.title, i18n.language),
-          percent: Math.round(entry.bestAccuracy * 100),
-        })
-      : t('levels.startAtName', { level: pickText(level?.title, i18n.language) })
 
   const target = level ? `/exercise/${modulePath(kind)}?level=${level.slug}` : '/levels'
 
@@ -65,7 +48,6 @@ function ChainCell({
           {t('home.passedOf', { passed, total: levels.length })}
         </span>
       </span>
-      <span className="mt-2 block text-[13px] leading-snug text-body">{line}</span>
     </RackCell>
   )
 }

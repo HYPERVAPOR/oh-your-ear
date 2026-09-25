@@ -83,15 +83,6 @@ export function currentLevel(
 }
 
 /** True when every level of the chain is passed. */
-export function chainComplete(
-  sets: LevelSet[],
-  module: ExerciseKind,
-  progress: Map<string, LevelProgressEntry>,
-): boolean {
-  const chain = levelsFor(sets, module)
-  return chain.length > 0 && chain.every((level) => progress.get(level.slug)?.passed)
-}
-
 /**
  * The level the current screen was opened with, if any. A level pins the exercise
  * configuration and the round size, which is what lets a question set run through

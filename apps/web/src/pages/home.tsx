@@ -5,7 +5,6 @@ import { AppHeader } from '@/components/app-header'
 import { LevelRack } from '@/components/dashboard/level-rack'
 import { RandomRack } from '@/components/dashboard/random-rack'
 import { TodayPanel } from '@/components/dashboard/today-panel'
-import { useAuthStore } from '@/stores/auth-store'
 
 /**
  * The hub, laid out as a dashboard: today first, then what to learn, then somewhere to
@@ -14,7 +13,6 @@ import { useAuthStore } from '@/stores/auth-store'
  */
 export function Home() {
   const { t } = useTranslation('common')
-  const user = useAuthStore((s) => s.user)
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -28,9 +26,6 @@ export function Home() {
 
           <section>
             <h2 className="text-[26px] font-medium sm:text-[32px]">{t('home.learnTitle')}</h2>
-            <p className="mt-3 max-w-[60ch] text-[14px] text-muted">
-              {user ? t('levels.modeHint') : t('levels.entryHintGuest')}
-            </p>
             <div className="mt-8">
               <LevelRack />
             </div>
@@ -46,7 +41,6 @@ export function Home() {
 
           <section>
             <h2 className="text-[26px] font-medium sm:text-[32px]">{t('home.randomTitle')}</h2>
-            <p className="mt-3 max-w-[60ch] text-[14px] text-muted">{t('home.practiceHint')}</p>
             <div className="mt-8">
               <RandomRack />
             </div>
