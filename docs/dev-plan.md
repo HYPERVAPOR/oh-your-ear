@@ -545,13 +545,13 @@
 ### 26.2 登录态恢复前先渲染骨架屏（尺寸不变）
 
 - **issue**: #142
-- **status**: 🟡 todo
+- **status**: 🟡 doing
 - **description**: 已登录进 app 时账号卡先渲染游客态再跳成登录态。`auth-store` 已有 `initialized`，`TodayPanel` 与热力图都没看它。改成 `!initialized` 渲染与真卡片同形状的骨架，**高度不变**（卡片高度由旁边热力图决定，见 7.1.4），否则等于把一个跳变换成另一个。热力图同理（它的查询 `enabled: !!user`，也会先渲染空态）。
 - **depends on**: 7.1.4
 
 ### 26.3 头像即上传入口，并在上传前校验
 
 - **issue**: #143
-- **status**: 🟡 todo
+- **status**: 🟡 doing
 - **description**: `/me` 上头像与「上传头像」按钮是分开的两样，点头像没反应；除了 `accept` 这个提示之外没有前置校验，大图与细长条都会先被读进来。改成：点头像即选文件（按钮删掉、键盘可达）；上传前校验格式（PNG/JPEG/WebP）、体积（≤512KB，与 `MaxAvatarBytes` 同源）、长宽比（>3:1 拒绝）、能否解码，四类失败各给一条文案；校验做成 `lib/avatar.ts` 里的纯函数加单测。
 - **depends on**: 5.0.3

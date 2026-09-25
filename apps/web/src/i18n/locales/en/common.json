@@ -106,9 +106,14 @@
     "tooManyRequests": "Too many requests, try again later.",
     "loginWithGoogle": "Continue with Google",
     "loginMock": "Mock login (dev only)",
-    "avatarUpload": "Upload",
+    "avatarUpload": "Change avatar",
     "avatarRemove": "Remove",
-    "avatarFailed": "That picture did not go through: PNG or JPEG, at least 16×16."
+    "avatarFailed": "That picture did not go through. Try again.",
+    "avatarWrongType": "PNG or JPEG, please.",
+    "avatarTooBig": "That file is over 512KB.",
+    "avatarTooSmall": "That picture is smaller than 16×16.",
+    "avatarTooLopsided": "That picture is too long and thin to square up.",
+    "avatarUnreadable": "That file could not be read as a picture."
   },
   "feedback": {
     "correct": "Correct.",

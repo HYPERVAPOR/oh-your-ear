@@ -4,7 +4,6 @@ import { ArrowLeft } from 'lucide-react'
 
 import { AppHeader } from '@/components/app-header'
 import { AvatarPicker } from '@/components/avatar-picker'
-import { Avatar } from '@/components/avatar'
 import { PasswordForm } from '@/components/password-form'
 import { PracticeStats } from '@/components/practice-stats'
 import { StudyPlanForm } from '@/components/study-plan-form'
@@ -38,7 +37,7 @@ export function Me() {
 
           <header className="flex flex-wrap items-start gap-4">
             <div className="flex items-center gap-4">
-              {user && <Avatar user={user} size="lg" />}
+              <AvatarPicker />
               <div>
                 <p className="badge-label text-muted">{t('auth.account')}</p>
                 <h1 className="mt-2 font-display text-[28px] font-medium leading-tight sm:text-[32px]">
@@ -48,10 +47,6 @@ export function Me() {
               </div>
             </div>
           </header>
-
-          <div className="mt-6">
-            <AvatarPicker />
-          </div>
 
           <div className="mt-10 space-y-6">
             <StudyPlanForm />
