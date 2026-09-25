@@ -38,9 +38,10 @@ export function Reset() {
   const [email, setEmail] = useState(emailed)
   const [typed, setTyped] = useState('')
   const [password, setPassword] = useState('')
-  // Which field the failure belongs to: a wrong code is about the code, a refused password
-  // is about the password. One message, drawn under the field it is about.
-  const [failure, setFailure] = useState<{ field: 'code' | 'password'; key: string }>()
+  const [confirm, setConfirm] = useState('')
+  // Which field the failure belongs to: a wrong code is about the code, a refused or repeated
+  // password is about the password. One message, drawn under the field it is about.
+  const [failure, setFailure] = useState<{ field: 'code' | 'password' | 'confirm'; key: string }>()
   const [busy, setBusy] = useState(false)
 
   const next = safeNext(new URLSearchParams(location.search).get('next'))
@@ -65,6 +66,13 @@ export function Reset() {
 
   async function reset(event: React.FormEvent) {
     event.preventDefault()
+    // Twice, and checked here rather than by the server: a repeated field exists for the typo in
+    // front of it, and a round trip cannot catch that — both copies would be the same typo.
+    if (password !== confirm) {
+      setFailure({ field: 'confirm', key: 'auth.passwordMismatch' })
+      return
+    }
+
     setBusy(true)
     setFailure(undefined)
     const { data, response } = await apiClient.POST('/auth/password/reset', {
@@ -89,7 +97,6 @@ export function Reset() {
   return (
     <AuthCard
       title={t('auth.resetTitle')}
-      subtitle={t('auth.resetSubtitle')}
       next={next}
       withGoogle={false}
       footer={
@@ -171,11 +178,30 @@ export function Reset() {
             />
           </Field>
 
+          <Field
+            label={t('auth.confirmPassword')}
+            htmlFor="confirm-password"
+            hint=""
+            error={failure?.field === 'confirm' ? t(failure.key) : undefined}
+          >
+            <Input
+              id="confirm-password"
+              type="password"
+              required
+              autoComplete="new-password"
+              value={confirm}
+              onChange={(e) => {
+                setConfirm(e.target.value)
+                setFailure(undefined)
+              }}
+            />
+          </Field>
+
           <Button
             type="submit"
             size="lg"
             className="w-full"
-            disabled={busy || typed.length !== 6 || password.length < MIN_PASSWORD}
+            disabled={busy || typed.length !== 6 || password.length < MIN_PASSWORD || !confirm}
           >
             {t('auth.resetSubmit')}
           </Button>
