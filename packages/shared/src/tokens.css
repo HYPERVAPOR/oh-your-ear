@@ -185,7 +185,7 @@
   --hairline-strong: #d6d3d1;
   /* One step darker than `strong`, for the pointer: a hairline that jumps straight to
      ink reads as a glare in the dark theme, where ink is near-white. */
-  --hairline-hover: #a8a29e;
+  --hairline-hover: #9a948f;
   --primary: #0c0a09;
   --on-primary: #ffffff;
 
