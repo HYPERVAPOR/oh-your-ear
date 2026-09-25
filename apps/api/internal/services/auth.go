@@ -9,11 +9,13 @@ import (
 	"fmt"
 	"math/big"
 	"time"
+	"unicode/utf8"
 
 	"github.com/HYPERVAPOR/oh-your-ear/apps/api/internal/models"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"golang.org/x/crypto/bcrypt"
 )
 
 const (
@@ -23,7 +25,20 @@ const (
 	EmailCodeCooldown = 60 * time.Second
 	// EmailCodeMaxAttempts locks a code before its TTL, blunting brute force on 6 digits.
 	EmailCodeMaxAttempts = 5
+	// PasswordMinLength is counted in characters, not bytes, so a Chinese passphrase is not
+	// held to a different bar than an English one. No composition rules and no forced
+	// rotation: length is the part that helps, and the rest makes people pick worse
+	// passwords and write them down (NIST SP 800-63B).
+	PasswordMinLength = 8
+	// PasswordMaxBytes is bcrypt's own limit. It ignores everything past 72 bytes rather
+	// than failing, so longer input is rejected instead of silently truncated — otherwise
+	// two different passwords could open the same account.
+	PasswordMaxBytes = 72
 )
+
+// bcryptCost is above the library's default of 10. Raising it stays possible: the cost is
+// stored inside every hash, so old hashes keep verifying after a bump.
+const bcryptCost = 12
 
 var (
 	// ErrCodeCooldown means a code was sent to this address too recently.
@@ -32,12 +47,29 @@ var (
 	ErrInvalidCode = errors.New("invalid or expired code")
 	// ErrTooManyAttempts means the code was locked after too many wrong guesses.
 	ErrTooManyAttempts = errors.New("too many attempts")
+	// ErrPasswordTooShort and ErrPasswordTooLong are refusals of a *new* password.
+	ErrPasswordTooShort = errors.New("password too short")
+	ErrPasswordTooLong  = errors.New("password too long")
+	// ErrBadCredentials covers an unknown address and a wrong password alike: the caller
+	// must not be able to tell which of the two it was.
+	ErrBadCredentials = errors.New("bad credentials")
+	// ErrWrongPassword means the account has a password and the one supplied is not it.
+	ErrWrongPassword = errors.New("wrong password")
 )
 
 // AuthService handles authentication-related operations.
 type AuthService struct {
 	pool *pgxpool.Pool
 }
+
+// The two queries that return a whole user. They have to agree on the column list, and
+// `has_password` is computed in SQL on purpose: the hash itself never reaches a Go struct
+// that might find its way into a response.
+const (
+	userColumns      = `id, email, name, avatar_url, (password_hash IS NOT NULL), created_at, updated_at`
+	userByIDQuery    = `SELECT ` + userColumns + ` FROM users WHERE id = $1`
+	userByEmailQuery = `SELECT ` + userColumns + ` FROM users WHERE email = $1`
+)
 
 // NewAuthService creates a new AuthService.
 func NewAuthService(pool *pgxpool.Pool) *AuthService {
@@ -54,7 +86,7 @@ func (s *AuthService) UpsertGoogleUser(ctx context.Context, googleID, email, nam
 			name = EXCLUDED.name,
 			avatar_url = EXCLUDED.avatar_url,
 			updated_at = NOW()
-		RETURNING id, email, name, avatar_url, created_at, updated_at
+		RETURNING ` + userColumns + `
 	`
 	return s.scanUser(ctx, query, email, name, avatarURL, googleID)
 }
@@ -67,7 +99,7 @@ func (s *AuthService) UpsertMockUser(ctx context.Context, email, name string) (*
 		ON CONFLICT (email) DO UPDATE SET
 			name = EXCLUDED.name,
 			updated_at = NOW()
-		RETURNING id, email, name, avatar_url, created_at, updated_at
+		RETURNING ` + userColumns + `
 	`
 	return s.scanUser(ctx, query, email, name)
 }
@@ -219,22 +251,98 @@ func (s *AuthService) UpsertEmailUser(ctx context.Context, email string, name *s
 		ON CONFLICT (email) DO UPDATE SET
 			name = COALESCE(EXCLUDED.name, users.name),
 			updated_at = NOW()
-		RETURNING id, email, name, avatar_url, created_at, updated_at
+		RETURNING ` + userColumns + `
 	`
 	return s.scanUser(ctx, query, email, name)
 }
 
+// LoginWithPassword signs in with an address and a password.
+//
+// An address that does not exist, an account with no password yet, and a wrong password are
+// all ErrBadCredentials. On an unknown address the submitted password is hashed and thrown
+// away, so the answer takes as long as a real check — otherwise response time alone would
+// tell an attacker which addresses are registered.
+func (s *AuthService) LoginWithPassword(ctx context.Context, email, password string) (*models.User, error) {
+	var hash *string
+	err := s.pool.QueryRow(ctx, `SELECT password_hash FROM users WHERE email = $1`, email).Scan(&hash)
+	switch {
+	case errors.Is(err, pgx.ErrNoRows):
+		if _, hashErr := hashPassword(password); hashErr != nil {
+			return nil, fmt.Errorf("failed to hash password: %w", hashErr)
+		}
+		return nil, ErrBadCredentials
+	case err != nil:
+		return nil, fmt.Errorf("failed to load password: %w", err)
+	case hash == nil || !verifyPassword(*hash, password):
+		return nil, ErrBadCredentials
+	}
+
+	return s.scanUser(ctx, userByEmailQuery, email)
+}
+
+// SetPassword stores a password for a signed-in account.
+//
+// The current password is required whenever there is one to check: a session can be a stolen
+// cookie, but the old password is knowledge only its owner has. Setting a *first* password
+// needs no old one — that session came from a verification code, which already proved the
+// address, and this is the one moment that proof is worth something.
+func (s *AuthService) SetPassword(ctx context.Context, userID uuid.UUID, currentPassword *string, newPassword string) error {
+	if err := validatePassword(newPassword); err != nil {
+		return err
+	}
+
+	var hash *string
+	if err := s.pool.QueryRow(ctx, `SELECT password_hash FROM users WHERE id = $1`, userID).Scan(&hash); err != nil {
+		return fmt.Errorf("failed to load password: %w", err)
+	}
+	if hash != nil && (currentPassword == nil || !verifyPassword(*hash, *currentPassword)) {
+		return ErrWrongPassword
+	}
+
+	newHash, err := hashPassword(newPassword)
+	if err != nil {
+		return fmt.Errorf("failed to hash password: %w", err)
+	}
+	if _, err := s.pool.Exec(ctx, `UPDATE users SET password_hash = $2, updated_at = NOW() WHERE id = $1`, userID, newHash); err != nil {
+		return fmt.Errorf("failed to store password: %w", err)
+	}
+	return nil
+}
+
+// validatePassword is the whole policy: a floor on characters, a ceiling on bytes.
+func validatePassword(password string) error {
+	if utf8.RuneCountInString(password) < PasswordMinLength {
+		return ErrPasswordTooShort
+	}
+	if len(password) > PasswordMaxBytes {
+		return ErrPasswordTooLong
+	}
+	return nil
+}
+
+// hashPassword and verifyPassword are the only two places bcrypt is touched.
+func hashPassword(password string) (string, error) {
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcryptCost)
+	if err != nil {
+		return "", err
+	}
+	return string(hash), nil
+}
+
+func verifyPassword(hash, password string) bool {
+	return bcrypt.CompareHashAndPassword([]byte(hash), []byte(password)) == nil
+}
+
 // GetUserByID fetches a user by ID.
 func (s *AuthService) GetUserByID(ctx context.Context, id uuid.UUID) (*models.User, error) {
-	query := `SELECT id, email, name, avatar_url, created_at, updated_at FROM users WHERE id = $1`
-	return s.scanUser(ctx, query, id)
+	return s.scanUser(ctx, userByIDQuery, id)
 }
 
 func (s *AuthService) scanUser(ctx context.Context, query string, args ...interface{}) (*models.User, error) {
 	row := s.pool.QueryRow(ctx, query, args...)
 	var user models.User
 	var avatarURL *string
-	err := row.Scan(&user.ID, &user.Email, &user.Name, &avatarURL, &user.CreatedAt, &user.UpdatedAt)
+	err := row.Scan(&user.ID, &user.Email, &user.Name, &avatarURL, &user.HasPassword, &user.CreatedAt, &user.UpdatedAt)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return nil, fmt.Errorf("user not found")

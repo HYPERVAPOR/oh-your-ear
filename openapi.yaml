@@ -67,7 +67,12 @@ paths:
   /auth/login:
     post:
       operationId: login
-      summary: Login with email verification code
+      summary: Login with a verification code or a password
+      description: >
+        Supply exactly one of `code` or `password`. A verification code signs in as before,
+        registering the account on first use; a password only works once the account has one
+        (see /me/password). Both answer identically, and neither tells the caller whether the
+        address exists.
       requestBody:
         required: true
         content:
@@ -85,6 +90,8 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
 
   /auth/me:
     get:
@@ -113,6 +120,36 @@ paths:
           description: Logged out successfully
         '401':
           $ref: '#/components/responses/Unauthorized'
+
+  /me/password:
+    put:
+      operationId: setMyPassword
+      summary: Set or replace this account's password
+      description: >
+        `currentPassword` is required once the account has one; a first password needs none,
+        because the session that sets it came from a verification code, which already proved
+        the address.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetPasswordRequest'
+      responses:
+        '204':
+          description: Password stored
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: The current password is wrong
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /me/avatar:
     get:
@@ -539,9 +576,9 @@ components:
 
     EmailAuthRequest:
       type: object
+      description: Exactly one of code or password.
       required:
         - email
-        - code
       properties:
         email:
           type: string
@@ -552,6 +589,9 @@ components:
           minLength: 6
           maxLength: 6
           example: '123456'
+        password:
+          type: string
+          example: correct horse battery staple
         name:
           type: string
           nullable: true
@@ -580,6 +620,20 @@ components:
           type: string
           format: email
           example: user@example.com
+
+    SetPasswordRequest:
+      type: object
+      required:
+        - newPassword
+      properties:
+        currentPassword:
+          type: string
+          description: Required when the account already has a password.
+          nullable: true
+        newPassword:
+          type: string
+          description: At least 8 characters, at most 72 bytes (bcrypt's limit).
+          example: correct horse battery staple
 
     ExerciseKind:
       type: string
@@ -945,6 +999,7 @@ components:
       required:
         - id
         - email
+        - hasPassword
         - createdAt
         - updatedAt
       properties:
@@ -960,6 +1015,11 @@ components:
         avatarUrl:
           type: string
           nullable: true
+        hasPassword:
+          type: boolean
+          description: >
+            Whether this account can also sign in with a password. The client uses it to
+            offer setting one, and to choose which field to show first.
         createdAt:
           type: string
           format: date-time

@@ -479,3 +479,12 @@
 - **status**: 🟡 doing
 - **description**: 登录页左上角改用**连体 nameplate**（PRD 7.1.9）—— 从 `app-header.tsx` 抽成 `components/nameplate.tsx`，`app-header` 与 `login` 共用（落地页那份在另一个 app 里、是静态渲染，不动）。**放在卡片内部的左上角，不另起页顶栏**；`inline-flex` 而不是 `flex`，否则在卡片里会撑成 382px 的空框。Google 入口文案改成 `Continue with Google`，前面加一个**单路径 `currentColor`** 的 Google 标记（四色版会是全页唯一的彩色）。验证码输入框与发送按钮焊成一件（`iconGroup` 那套：一圈外框 + `divide-x`，`items-stretch` 让两者等高，焦点态移到外框的 `focus-within`）—— 原来 `flex gap-2` 是两个独立控件，输入框 45px、按钮 40px。Google 标记改成**官方四色**（品牌标记是全站第二处非调色板颜色）。**错误信息内联**：`ui/field.tsx` 增加 `error` 通道，与 `hint` 共用一行（`error ?? hint`），**只要调用方传了字符串就渲染**（`hint !== undefined`，不做真值判断），行高固定 18px；登录页错误拆成 `emailError` / `codeError` 两份，各自落在自己的字段下，改输入即清掉自己那份。实测五种状态（初始 / 邮箱不合法 / 改回合法 / 验证码已发送 / 验证码错误）卡片高度都是 637px，不再抖动。同时把 `codeSentHint` 那句长尾（"验证码打印在服务端日志里"）删掉 —— 它属于 `docs/deploy.md`，留在界面上会换行，把"高度恒定"破掉。
 - **depends on**: 21.2
+
+## M23 登录屏
+
+### 23.2 邮箱 + 密码登录
+
+- **issue**: #125
+- **status**: 🟡 doing
+- **description**: 按 PRD §5.10 的顺序做：**验证码证明身份，密码是之后的一把快钥匙**。API 部分：`users.password_hash TEXT NULL`（NULL = 还没有密码，同时给已有库补一条幂等的 `ALTER TABLE ... ADD COLUMN IF NOT EXISTS`）；`has_password` 在 SQL 里算成布尔塞进 `models.User`，哈希本身永不离开 service 层；bcrypt cost 12（`golang.org/x/crypto` 本来就在依赖里，只是从 indirect 提成 direct）；`POST /auth/login` 的请求体接受 `code` 或 `password` 二选一，返回完全一样；`PUT /me/password` 设置/替换（已有密码必须给旧密码，没有则用当前会话 —— 那次会话来自验证码，地址已经证明过），旧密码错给 **403** 而不是 401（调用方是已认证的，只是不记得自己的密码）；`/auth/login` 密码路按邮箱限流，**只对失败计数**（`RateLimiter` 因此拆出 `Allow` / `Hit`：成功的登录不该花自己的额度，否则攻击者烧完额度就能把本人锁在门外）；地址不存在时照样算一次哈希再丢掉，让"邮箱存不存在"无法从响应时间读出来（实测 0.178s / 0.180s）。密码策略：≥8 字符（按字符不按字节，八位中文口令同等对待）、≤72 字节（bcrypt 上限，超长拒绝不截断）、不强制组合、不强制轮换。**UI 部分（登录页的"用密码/用验证码"切换、账号页改密码入口）另开一个 PR。**
+- **depends on**: 23.1, 21.1
