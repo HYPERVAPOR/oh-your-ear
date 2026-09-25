@@ -19,7 +19,7 @@ const MAX_SESSION = 20
 
 /** The account's own two pages. Not practice modes: where your answers end up. */
 const ACCOUNT_LINKS = [
-  { to: '/bookmarks', key: 'collections.title' },
+  { to: '/collections', key: 'collections.title' },
   { to: '/mistakes', key: 'mistakes.title' },
 ] as const
 

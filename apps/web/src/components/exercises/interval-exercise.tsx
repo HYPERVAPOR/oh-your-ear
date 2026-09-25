@@ -157,6 +157,7 @@ export function IntervalExercise({ onBack }: { onBack?: () => void }) {
   return (
     <ExerciseShell
       kind="interval"
+      level={level}
       onBack={onBack}
       score={{ correct: round.correct, total: round.total }}
       progress={roundSize > 0 ? { done: round.total, size: roundSize } : undefined}
