@@ -25,6 +25,7 @@
   ],
   "git": {
     "deploymentEnabled": {
+      "main": true,
       "dev": false,
       "fix/*": false,
       "feat/*": false,
