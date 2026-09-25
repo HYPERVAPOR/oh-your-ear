@@ -19,10 +19,14 @@ import { cn } from '@/lib/utils'
  *
  * A square is a unit of progress, so the same 16px square is used for today's questions, a
  * week's days and a month's days: switching between those three changes the shape of the
- * grid, never its ruler. The year is the one view at a second scale — 371 days have to fit
- * inside one card — so its column is fluid instead of fixed: 8px at the dashboard's width,
- * 10px when the card is wide, floored at 8px so a filled and an empty square stay tellable
- * apart (a phone falls back to scrolling there). Every view starts at the same x.
+ * grid, never its ruler. Today and this week both read across the whole card — the day's
+ * twenty questions and the week's seven days are spread over the same length, which is what
+ * gives the weekday names above their room — while the month stays a compact calendar page,
+ * because a month is a grid of rows and columns rather than a line. The year is the one
+ * view at a second scale — 371 days have to fit inside one card — so its column is fluid
+ * instead of fixed: 8px at the dashboard's width, 10px when the card is wide, floored at
+ * 8px so a filled and an empty square stay tellable apart (a phone falls back to scrolling
+ * there). Every view starts at the same x.
  */
 export const CELL = 'size-4 shrink-0'
 export const TIER_CLASS = ['bg-surface-strong', 'bg-success/35', 'bg-success']
@@ -52,7 +56,9 @@ export function DayView({ day }: { day: DailyBucket | undefined }) {
         </p>
         {day?.met && <p className="text-[13px] font-medium text-success-text">{t('home.met')}</p>}
       </div>
-      <div aria-hidden="true" className={cn('mt-3 flex flex-wrap', GAP)}>
+      {/* 铺满整行、格子均分，和「周」同一个长度（见文件头）。不折行：屏幕窄到放不下就横向滚动，
+          跟年档一个待遇 —— 折行会让最后一行被均分拉散，那比滚动更难看。 */}
+      <div aria-hidden="true" className="mt-3 flex w-full justify-between">
         {slots.map((slot) => (
           <span key={slot.key} className={cn(CELL, slot.filled ? TIER_CLASS[2] : TIER_CLASS[0])} />
         ))}
@@ -61,7 +67,8 @@ export function DayView({ day }: { day: DailyBucket | undefined }) {
   )
 }
 
-/** This week: seven days under their weekday names. */
+/** This week: seven days spread across the card, each under its weekday name — the names
+ *  need that room, and a week is a line rather than a calendar page. */
 export function WeekRow({
   days,
   today,
@@ -72,13 +79,13 @@ export function WeekRow({
   square: (item: Square, cell: string) => ReactNode
 }) {
   return (
-    <div className={cn('inline-grid grid-cols-[repeat(7,16px)]', GAP)}>
-      {WEEKDAYS.map((label) => (
-        <span key={label} className={AXIS}>
-          {label}
-        </span>
+    <div className="flex w-full justify-between">
+      {week(days, today).map((item, index) => (
+        <div key={item.key} className="flex flex-col items-center gap-0.5">
+          <span className={AXIS}>{WEEKDAYS[index]}</span>
+          {square(item, CELL)}
+        </div>
       ))}
-      {week(days, today).map((item) => square(item, CELL))}
     </div>
   )
 }
