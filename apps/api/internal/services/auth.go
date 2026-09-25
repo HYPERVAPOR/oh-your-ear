@@ -14,6 +14,7 @@ import (
 	"github.com/HYPERVAPOR/oh-your-ear/apps/api/internal/models"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -55,6 +56,11 @@ var (
 	ErrBadCredentials = errors.New("bad credentials")
 	// ErrWrongPassword means the account has a password and the one supplied is not it.
 	ErrWrongPassword = errors.New("wrong password")
+	// ErrUserNotFound is a lookup that matched no row.
+	ErrUserNotFound = errors.New("user not found")
+	// ErrEmailLinked means the address already belongs to an account whose Google identity
+	// is a different one.
+	ErrEmailLinked = errors.New("email already linked to another account")
 )
 
 // AuthService handles authentication-related operations.
@@ -69,6 +75,9 @@ const (
 	userColumns      = `id, email, name, avatar_url, (password_hash IS NOT NULL), created_at, updated_at`
 	userByIDQuery    = `SELECT ` + userColumns + ` FROM users WHERE id = $1`
 	userByEmailQuery = `SELECT ` + userColumns + ` FROM users WHERE email = $1`
+	userByGoogleID   = `SELECT ` + userColumns + ` FROM users WHERE google_id = $1`
+	// Only an account that has no Google identity yet can be claimed by one.
+	userByEmailUnlinked = `SELECT ` + userColumns + ` FROM users WHERE email = $1 AND google_id IS NULL`
 )
 
 // NewAuthService creates a new AuthService.
@@ -76,19 +85,93 @@ func NewAuthService(pool *pgxpool.Pool) *AuthService {
 	return &AuthService{pool: pool}
 }
 
-// UpsertGoogleUser creates or updates a user from Google profile data.
+// UpsertGoogleUser signs in a Google account.
+//
+// **An address is one identity, and a sign-in method is a key to it** (PRD 5.10), so this
+// walks three cases in order and stops at the first that has a row:
+//
+//  1. this Google account has signed in before → that account, profile refreshed;
+//  2. the address belongs to an account with no Google identity → attach this one. Google
+//     says the address is verified and the original sign-in proved the same mailbox, so it
+//     is the same person arriving through a second door;
+//  3. the address belongs to a *different* Google account → refuse. Re-linking would hand
+//     one person's progress to another login.
+//
+// Only a verified Google address reaches case 2; the caller checks that.
 func (s *AuthService) UpsertGoogleUser(ctx context.Context, googleID, email, name, avatarURL string) (*models.User, error) {
-	query := `
-		INSERT INTO users (email, name, avatar_url, google_id)
-		VALUES ($1, $2, $3, $4)
-		ON CONFLICT (google_id) DO UPDATE SET
-			email = EXCLUDED.email,
-			name = EXCLUDED.name,
-			avatar_url = EXCLUDED.avatar_url,
-			updated_at = NOW()
-		RETURNING ` + userColumns + `
-	`
-	return s.scanUser(ctx, query, email, name, avatarURL, googleID)
+	if user, found, err := s.findUser(ctx, userByGoogleID, googleID); err != nil {
+		return nil, err
+	} else if found {
+		return s.refreshProviderProfile(ctx, user.ID, email, name, avatarURL)
+	}
+
+	if user, found, err := s.findUser(ctx, userByEmailUnlinked, email); err != nil {
+		return nil, err
+	} else if found {
+		if _, err := s.pool.Exec(ctx,
+			`UPDATE users SET google_id = $2, name = COALESCE(NULLIF($3, ''), name),
+			 avatar_url = COALESCE($4, avatar_url), updated_at = NOW() WHERE id = $1`,
+			user.ID, googleID, name, nullableText(avatarURL),
+		); err != nil {
+			return nil, fmt.Errorf("failed to link google account: %w", err)
+		}
+		return s.scanUser(ctx, userByIDQuery, user.ID)
+	}
+
+	if _, found, err := s.findUser(ctx, userByEmailQuery, email); err != nil {
+		return nil, err
+	} else if found {
+		return nil, ErrEmailLinked
+	}
+
+	// Two callbacks can race for a brand new account; the loser reads the winner's row
+	// rather than failing on a unique constraint.
+	user, found, err := s.findUser(ctx,
+		`INSERT INTO users (email, name, avatar_url, google_id)
+		 VALUES ($1, $2, $3, $4)
+		 ON CONFLICT (google_id) DO NOTHING
+		 RETURNING `+userColumns,
+		email, name, nullableText(avatarURL), googleID,
+	)
+	if err != nil {
+		return nil, err
+	}
+	if found {
+		return user, nil
+	}
+	return s.scanUser(ctx, userByGoogleID, googleID)
+}
+
+// refreshProviderProfile updates the fields the sign-in provider owns, leaving everything
+// the reader owns alone: a provider returning no name is not a reason to forget one.
+func (s *AuthService) refreshProviderProfile(ctx context.Context, userID uuid.UUID, email, name, avatarURL string) (*models.User, error) {
+	if _, err := s.pool.Exec(ctx,
+		`UPDATE users SET email = $2, name = COALESCE(NULLIF($3, ''), name),
+		 avatar_url = COALESCE($4, avatar_url), updated_at = NOW() WHERE id = $1`,
+		userID, email, name, nullableText(avatarURL),
+	); err != nil {
+		// The provider's address can have moved onto another account. That is the same
+		// conflict as case 3 below, not a server fault.
+		if isUniqueViolation(err) {
+			return nil, ErrEmailLinked
+		}
+		return nil, fmt.Errorf("failed to refresh provider profile: %w", err)
+	}
+	return s.scanUser(ctx, userByIDQuery, userID)
+}
+
+// nullableText keeps an empty string out of a nullable column: the statements above use
+// COALESCE to fall back to the stored value, and ” is not "nothing".
+func nullableText(value string) *string {
+	if value == "" {
+		return nil
+	}
+	return &value
+}
+
+func isUniqueViolation(err error) bool {
+	var pgErr *pgconn.PgError
+	return errors.As(err, &pgErr) && pgErr.Code == "23505"
 }
 
 // UpsertMockUser creates or updates the development mock user by email.
@@ -339,16 +422,30 @@ func (s *AuthService) GetUserByID(ctx context.Context, id uuid.UUID) (*models.Us
 }
 
 func (s *AuthService) scanUser(ctx context.Context, query string, args ...interface{}) (*models.User, error) {
-	row := s.pool.QueryRow(ctx, query, args...)
+	user, found, err := s.findUser(ctx, query, args...)
+	if err != nil {
+		return nil, err
+	}
+	if !found {
+		return nil, ErrUserNotFound
+	}
+	return user, nil
+}
+
+// findUser is scanUser with "no row" as a value instead of an error, because deciding
+// between several cases is the whole point of the sign-in paths.
+func (s *AuthService) findUser(ctx context.Context, query string, args ...interface{}) (*models.User, bool, error) {
 	var user models.User
 	var avatarURL *string
-	err := row.Scan(&user.ID, &user.Email, &user.Name, &avatarURL, &user.HasPassword, &user.CreatedAt, &user.UpdatedAt)
+	err := s.pool.QueryRow(ctx, query, args...).Scan(
+		&user.ID, &user.Email, &user.Name, &avatarURL, &user.HasPassword, &user.CreatedAt, &user.UpdatedAt,
+	)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, false, nil
+	}
 	if err != nil {
-		if err == pgx.ErrNoRows {
-			return nil, fmt.Errorf("user not found")
-		}
-		return nil, fmt.Errorf("failed to scan user: %w", err)
+		return nil, false, fmt.Errorf("failed to scan user: %w", err)
 	}
 	user.AvatarURL = avatarURL
-	return &user, nil
+	return &user, true, nil
 }

@@ -488,3 +488,10 @@
 - **status**: 🟢 done
 - **description**: 按 PRD §5.10 的顺序做：**验证码证明身份，密码是之后的一把快钥匙**。API 部分：`users.password_hash TEXT NULL`（NULL = 还没有密码，同时给已有库补一条幂等的 `ALTER TABLE ... ADD COLUMN IF NOT EXISTS`）；`has_password` 在 SQL 里算成布尔塞进 `models.User`，哈希本身永不离开 service 层；bcrypt cost 12（`golang.org/x/crypto` 本来就在依赖里，只是从 indirect 提成 direct）；`POST /auth/login` 的请求体接受 `code` 或 `password` 二选一，返回完全一样；`PUT /me/password` 设置/替换（已有密码必须给旧密码，没有则用当前会话 —— 那次会话来自验证码，地址已经证明过），旧密码错给 **403** 而不是 401（调用方是已认证的，只是不记得自己的密码）；`/auth/login` 密码路按邮箱限流，**只对失败计数**（`RateLimiter` 因此拆出 `Allow` / `Hit`：成功的登录不该花自己的额度，否则攻击者烧完额度就能把本人锁在门外）；地址不存在时照样算一次哈希再丢掉，让"邮箱存不存在"无法从响应时间读出来（实测 0.178s / 0.180s）。密码策略：≥8 字符（按字符不按字节，八位中文口令同等对待）、≤72 字节（bcrypt 上限，超长拒绝不截断）、不强制组合、不强制轮换。**UI 部分**：登录页的「用验证码 / 用密码」是家页 Learn / Random 那套焊接组选项卡（`role="group"` + `aria-pressed`，默认验证码）；两种方式的卡片高度**靠构造相等** —— 都只有「邮箱 + 一个凭证字段 + 消息行」，密码输入框的高度正好等于焊接的验证码行（行高本来就是输入框定的），副标题也始终只有一行，实测两种方式都是 699px。`/me` 加 `PasswordForm`：没有密码时只有「新密码 + 设置密码」并带一句"设个密码，以后就不用每次都等邮件了"，设置成功后读回 `/auth/me` 翻成「当前密码 + 修改密码」。实测：密码错 → 401 落在那一行（1 行，高度不变）；用密码从登录页登录 → 落到 `/`；`/me` 从"只有新密码"翻成"当前密码 + 新密码"，提示从 hint 变成「已保存。」。
 - **depends on**: 23.1, 21.1
+
+### 23.3 Google 登录按邮箱认领，不另建账号
+
+- **issue**: #124
+- **status**: 🟡 doing
+- **description**: `UpsertGoogleUser` 原来只声明 `ON CONFLICT (google_id)`，而 `users.email` 也是 UNIQUE —— 先用验证码注册过、再用 Google 登录同一邮箱会撞 email 唯一键 → 500。改写成按顺序三段（PRD §5.10）：①按 `google_id` 命中 → 刷新建号方拥有的字段（`name` / `avatar_url` 用 `COALESCE(NULLIF(...))`，空值保留原值）；②按 `email` 命中且 `google_id IS NULL` → 挂上 google_id 认领；③邮箱已被**另一个** Google 账号占用 → `ErrEmailLinked` → 409，绝不改绑。`scanUser` 之上拆出 `findUser`（"没有这一行"是一个返回值而不是错误），唯一键冲突统一映射成 `ErrEmailLinked`。回调加 `verified_email` 检查（v2 userinfo 的字段名，discovery 文档核对过，有单测钉住拼写）。单测：解析 `verified_email`（含缺省与 false 都算未验证）、数据库支持的三段认领（`TEST_DATABASE_URL` 存在才跑，CI 无库则 skip）。
+- **depends on**: 23.2
