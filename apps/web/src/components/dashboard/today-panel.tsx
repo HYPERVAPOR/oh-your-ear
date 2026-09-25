@@ -9,16 +9,25 @@ import { Button, buttonVariants } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { MODULES, type ExerciseKind } from '@/components/ui/orb'
 import { DEFAULT_GOAL } from '@/lib/heatmap'
-import { loginHere } from '@/lib/auth'
+import { loginHere, loginPath } from '@/lib/auth'
 import { useAuthStore } from '@/stores/auth-store'
 
 /** One session is a round; the plan can ask for more, but not in a single sitting. */
 const MAX_SESSION = 20
 
+/** The account's own two pages. Not practice modes: where your answers end up. */
+const ACCOUNT_LINKS = [
+  { to: '/bookmarks', key: 'collections.title' },
+  { to: '/mistakes', key: 'mistakes.title' },
+] as const
+
 /**
  * The first band of the dashboard: who you are and what to do about today on the left,
  * how today and the year are going on the right (PRD 7.1.4). Guests get the same shape
  * with the numbers at zero, so nothing moves after signing in.
+ *
+ * The card carries a value, an action and two entries — no label over the value, no
+ * sentence under the action. The email is the account and the button says what it does.
  */
 export function TodayPanel() {
   const { t } = useTranslation('common')
@@ -63,10 +72,7 @@ export function TodayPanel() {
       <Card className="flex min-w-0 flex-col justify-between p-6 sm:p-7">
         {user ? (
           <>
-            <div>
-              <p className="badge-label text-muted">{t('home.accountLabel')}</p>
-              <p className="mt-1.5 break-all text-[15px]">{user.email}</p>
-            </div>
+            <p className="break-all text-[15px]">{user.email}</p>
             <div className="mt-8">
               <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
                 <Button size="lg" onClick={startSession}>
@@ -79,30 +85,33 @@ export function TodayPanel() {
                   {t('home.adjustPlan')}
                 </Link>
               </div>
-              <p className="mt-3 text-[14px] text-muted">
-                {met || !next
-                  ? t('home.goalMet')
-                  : t('home.startHint', {
-                      count: Math.min(remaining, MAX_SESSION),
-                      module: t(`modules.${next}`),
-                    })}
-              </p>
             </div>
           </>
         ) : (
           <>
-            <div>
-              <p className="badge-label text-muted">{t('home.accountLabel')}</p>
-              <p className="mt-1.5 text-[15px] text-body">{t('home.guestIdentity')}</p>
-            </div>
+            <p className="text-[15px] text-body">{t('home.guestIdentity')}</p>
             <div className="mt-8">
               <Link to={loginHere()} className={buttonVariants({ size: 'lg' })}>
                 {t('actions.login')}
               </Link>
-              <p className="mt-3 max-w-[42ch] text-[14px] text-muted">{t('home.loginCtaHint')}</p>
             </div>
           </>
         )}
+
+        {/* What the account keeps, with the account. These are not two more ways to
+            practise — they are where the answers you gave end up, and a guest is asked
+            to sign in for them like anywhere else. */}
+        <div className="mt-6 flex items-center gap-5 border-t border-hairline pt-4">
+          {ACCOUNT_LINKS.map(({ to, key }) => (
+            <Link
+              key={to}
+              to={user ? to : loginPath(to)}
+              className="text-[14px] text-muted underline underline-offset-4 hover:text-ink"
+            >
+              {t(key)}
+            </Link>
+          ))}
+        </div>
       </Card>
 
       {/* The heatmap owns today's count as well: the panel used to draw its own bar and

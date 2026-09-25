@@ -154,13 +154,6 @@
       "description": "Practise 7 days in a row"
     }
   },
-  "moduleHints": {
-    "singleNote": "Name the note you hear.",
-    "interval": "Name the interval.",
-    "chord": "Name the chord quality.",
-    "melody": "Pick the melody you heard.",
-    "rhythm": "Tap the rhythm back."
-  },
   "round": {
     "title": "Round complete",
     "correct": "Correct",
@@ -188,13 +181,7 @@
     "questions": "{{count}} questions",
     "best": "best {{percent}}%",
     "empty": "Nothing here yet. Start with level 1.",
-    "guestBanner": "Question-set progress lives in your account. Sign in to start from level 1.",
-    "entryHintGuest": "Work through each module by difficulty; progress is saved to your account.",
-    "modeHint": "One chain per module, easy to hard. Pass a level to open the next one; progress follows your account.",
-    "continueAt": "Continue “{{level}}” · best {{percent}}%",
-    "allPassed": "Every level in this chain is passed",
-    "viewAll": "See all levels",
-    "startAtName": "Start at “{{level}}”"
+    "guestBanner": "Question-set progress lives in your account. Sign in to start from level 1."
   },
   "collections": {
     "title": "Collections",
@@ -215,20 +202,13 @@
   "home": {
     "learnTitle": "Learn",
     "randomTitle": "Random test",
-    "passedOf": "{{passed}}/{{total}} levels",
-    "collectionsHint": "The levels you kept",
+    "passedOf": "{{passed}}/{{total}}",
     "startDaily": "Start daily practice",
     "extraRound": "One more round",
-    "startHint": "{{count}} left today, picking up {{module}}.",
-    "goalMet": "Today's goal is met — another round if you want one.",
     "adjustPlan": "Adjust the daily plan",
     "met": "Today's goal is met",
-    "accountLabel": "Account",
-    "guestIdentity": "Not signed in — results last this session only.",
-    "practiceHint": "Endless questions, no rounds and no goal; guests can practise every drill.",
-    "mistakesTile": "Mistake review",
-    "mistakesHint": "Draw from the notebook and go after the weak spots.",
-    "loginCtaHint": "The plan, accuracy trends, mistake review, streaks and badges."
+    "guestIdentity": "Not signed in",
+    "modeLabel": "Practice mode"
   },
   "heatmap": {
     "title": "Progress",

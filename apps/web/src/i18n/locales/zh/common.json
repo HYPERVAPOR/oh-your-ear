@@ -154,13 +154,6 @@
       "description": "连续 7 天练习"
     }
   },
-  "moduleHints": {
-    "singleNote": "听一个音，说出音名。",
-    "interval": "听两个音，说出音程。",
-    "chord": "听一个和弦，说出性质。",
-    "melody": "听一段旋律，选出对应的那条。",
-    "rhythm": "听一段节奏，把它敲回来。"
-  },
   "round": {
     "title": "一轮结束",
     "correct": "答对",
@@ -188,13 +181,7 @@
     "questions": "{{count}} 题",
     "best": "最好 {{percent}}%",
     "empty": "还没有记录。从第一关开始吧。",
-    "guestBanner": "题单进度保存在账号里，登录后即可从第一关开始。",
-    "entryHintGuest": "按难度闯关，进度云端保存 —— 需要登录。",
-    "modeHint": "每个模块一条链，从易到难。过一关解锁下一关，进度跟着账号走。",
-    "continueAt": "继续「{{level}}」· 最好 {{percent}}%",
-    "allPassed": "这条链已全部通关",
-    "viewAll": "查看全部关卡",
-    "startAtName": "从「{{level}}」开始"
+    "guestBanner": "题单进度保存在账号里，登录后即可从第一关开始。"
   },
   "collections": {
     "title": "收藏夹",
@@ -215,20 +202,13 @@
   "home": {
     "learnTitle": "闯关",
     "randomTitle": "随机练习",
-    "passedOf": "{{passed}}/{{total}} 关",
-    "collectionsHint": "自己收着的关卡",
+    "passedOf": "{{passed}}/{{total}}",
     "startDaily": "开始每日训练",
     "extraRound": "再来一轮",
-    "startHint": "今天还差 {{count}} 题，从「{{module}}」开始。",
-    "goalMet": "今天已经达标了，想练就再开一轮。",
     "adjustPlan": "调整每日计划",
     "met": "今日已达标",
-    "accountLabel": "账号",
-    "guestIdentity": "未登录，成绩只留在本次会话。",
-    "practiceHint": "无限出题、随机练习，没有轮次也没有目标；游客也能练全部基础题。",
-    "mistakesTile": "错题重练",
-    "mistakesHint": "从错题本抽题，专攻弱项。",
-    "loginCtaHint": "学习计划、正确率趋势、错题重练、连续打卡与徽章。"
+    "guestIdentity": "未登录",
+    "modeLabel": "练习方式"
   },
   "heatmap": {
     "title": "练习进度",
