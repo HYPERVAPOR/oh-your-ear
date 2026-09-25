@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 
 import {
   DEFAULT_GOAL,
-  goalSlots,
+  dayPercent,
   leadingBlanks,
   month,
   week,
@@ -41,12 +41,18 @@ const AXIS = 'text-[10px] leading-[10px] text-muted'
 /** English, and fixed: the axis is a scale, not a sentence. */
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
-/** Today: the count, and one square per question the goal asks for. */
+/**
+ * Today: the count, and one bar. Twenty squares said the same thing a bar says, only one
+ * question at a time — the bar is the same length as the week's row, so the two tabs read
+ * as the same line, and it reuses the progress bar the rest of the app already draws
+ * (track `surface-strong`, fill `primary`). It sits at 8px rather than the 4px of the rack
+ * rows: this one is the whole view.
+ */
 export function DayView({ day }: { day: DailyBucket | undefined }) {
   const { t } = useTranslation('common')
-  const slots = goalSlots(day, DEFAULT_GOAL)
   const solved = day?.solved ?? 0
   const goal = day && day.goal > 0 ? day.goal : DEFAULT_GOAL
+  const percent = dayPercent(day, DEFAULT_GOAL)
 
   return (
     <div className="w-full">
@@ -56,12 +62,8 @@ export function DayView({ day }: { day: DailyBucket | undefined }) {
         </p>
         {day?.met && <p className="text-[13px] font-medium text-success-text">{t('home.met')}</p>}
       </div>
-      {/* 铺满整行、格子均分，和「周」同一个长度（见文件头）。不折行：屏幕窄到放不下就横向滚动，
-          跟年档一个待遇 —— 折行会让最后一行被均分拉散，那比滚动更难看。 */}
-      <div aria-hidden="true" className="mt-3 flex w-full justify-between">
-        {slots.map((slot) => (
-          <span key={slot.key} className={cn(CELL, slot.filled ? TIER_CLASS[2] : TIER_CLASS[0])} />
-        ))}
+      <div aria-hidden="true" className="mt-4 h-2 w-full overflow-hidden bg-surface-strong">
+        <div className="h-full bg-primary" style={{ width: `${percent}%` }} />
       </div>
     </div>
   )

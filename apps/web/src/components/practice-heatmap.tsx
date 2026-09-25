@@ -12,8 +12,9 @@ const LEVELS: Level[] = ['day', 'week', 'month', 'year']
 
 const BODY = 'flex h-[118px] items-center overflow-x-auto'
 const CALENDAR_LEGEND = ['none', 'partial', 'met'] as const
-/** The day view's squares are questions, not days, so they say something else. */
+/** The day view is a bar, not squares, so its key is the bar's two halves. */
 const SLOT_LEGEND = ['todo', 'done'] as const
+const SLOT_CLASS = ['bg-surface-strong', 'bg-primary']
 
 /**
  * The practice history as one calendar at four magnifications (PRD 7.1.4): today's goal as
@@ -117,7 +118,7 @@ export function PracticeHeatmap() {
         {level === 'day'
           ? SLOT_LEGEND.map((key) => (
               <li key={key} className="flex items-center gap-1.5">
-                <span className={cn(CELL, key === 'done' ? TIER_CLASS[2] : TIER_CLASS[0])} />
+                <span className={cn('h-2 w-4 shrink-0', SLOT_CLASS[key === 'done' ? 1 : 0])} />
                 {t(`heatmap.slot.${key}`)}
               </li>
             ))
