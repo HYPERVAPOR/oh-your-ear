@@ -80,7 +80,6 @@
     "loginTitle": "登录",
     "signupTitle": "注册",
     "resetTitle": "重设密码",
-    "resetSubtitle": "验证码会发到这个邮箱，验证之后就能设置新密码。",
     "account": "我的账号",
     "email": "邮箱",
     "code": "验证码",
