@@ -16,9 +16,16 @@ CREATE TABLE IF NOT EXISTS users (
 	name TEXT,
 	avatar_url TEXT,
 	google_id TEXT UNIQUE,
+	-- NULL means this account has no password yet: it signs in with a verification code
+	-- (and with Google, if it has one). See services/auth.go, SetPassword.
+	password_hash TEXT,
 	created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 	updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- The schema is applied on every boot with CREATE TABLE IF NOT EXISTS, so a column added
+-- later needs its own idempotent statement for databases that already exist.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash TEXT;
 
 CREATE INDEX IF NOT EXISTS idx_users_google_id ON users(google_id);
 

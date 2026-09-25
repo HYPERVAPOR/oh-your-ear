@@ -24,26 +24,32 @@ import (
 const (
 	codeRequestsPerHour = 10
 	loginAttemptsPer15m = 30
+	// Password attempts are budgeted per *address* rather than per IP: five guesses at one
+	// account are five guesses whatever address they come from, and an attacker with
+	// addresses to spare would walk straight past an IP-keyed budget.
+	passwordAttemptsPer15m = 5
 )
 
 type Server struct {
-	cfg          config.Config
-	auth         *services.AuthService
-	practice     *services.PracticeService
-	mailer       services.Mailer
-	codeLimiter  *middleware.RateLimiter
-	loginLimiter *middleware.RateLimiter
+	cfg             config.Config
+	auth            *services.AuthService
+	practice        *services.PracticeService
+	mailer          services.Mailer
+	codeLimiter     *middleware.RateLimiter
+	loginLimiter    *middleware.RateLimiter
+	passwordLimiter *middleware.RateLimiter
 }
 
 // NewServer creates a new API server.
 func NewServer(cfg config.Config, authSvc *services.AuthService, practiceSvc *services.PracticeService, mailer services.Mailer) *Server {
 	return &Server{
-		cfg:          cfg,
-		auth:         authSvc,
-		practice:     practiceSvc,
-		mailer:       mailer,
-		codeLimiter:  middleware.NewRateLimiter(codeRequestsPerHour, time.Hour),
-		loginLimiter: middleware.NewRateLimiter(loginAttemptsPer15m, 15*time.Minute),
+		cfg:             cfg,
+		auth:            authSvc,
+		practice:        practiceSvc,
+		mailer:          mailer,
+		codeLimiter:     middleware.NewRateLimiter(codeRequestsPerHour, time.Hour),
+		loginLimiter:    middleware.NewRateLimiter(loginAttemptsPer15m, 15*time.Minute),
+		passwordLimiter: middleware.NewRateLimiter(passwordAttemptsPer15m, 15*time.Minute),
 	}
 }
 
@@ -99,7 +105,9 @@ func (s *Server) deliverEmailCode(c *gin.Context, email, code string) {
 	c.Status(http.StatusNoContent)
 }
 
-// loginWithEmail verifies a code and signs the user in, registering on first use.
+// loginWithEmail verifies a code and signs the user in, registering on first use. The same
+// endpoint takes a password instead, when the account has one: the two answers are identical,
+// so the client only swaps the request body.
 func (s *Server) loginWithEmail(c *gin.Context) {
 	if !s.loginLimiter.RateLimit(c) {
 		return
@@ -111,7 +119,16 @@ func (s *Server) loginWithEmail(c *gin.Context) {
 		return
 	}
 
-	err := s.auth.ConsumeEmailCode(c.Request.Context(), string(body.Email), body.Code)
+	if body.Password != nil && body.Code == nil {
+		s.loginWithPassword(c, string(body.Email), *body.Password)
+		return
+	}
+	if body.Code == nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "a code or a password is required"})
+		return
+	}
+
+	err := s.auth.ConsumeEmailCode(c.Request.Context(), string(body.Email), *body.Code)
 	switch {
 	case errors.Is(err, services.ErrTooManyAttempts):
 		c.JSON(http.StatusTooManyRequests, ErrorResponse{Error: "too many attempts"})
@@ -131,6 +148,65 @@ func (s *Server) loginWithEmail(c *gin.Context) {
 	}
 
 	s.RespondWithSession(c, user)
+}
+
+// loginWithPassword is the other half of POST /auth/login: an address and a password.
+//
+// One error answers an unknown address, an account with no password, and a wrong password —
+// the caller must not be able to tell them apart, which is also why the service spends the
+// time of a real check even when there is nothing to check.
+func (s *Server) loginWithPassword(c *gin.Context, email, password string) {
+	// Only failures spend the budget (Allow, then Hit below), the way the code path counts
+	// wrong guesses rather than logins: otherwise someone who signs in five times in a
+	// quarter of an hour is locked out of their own account, and an attacker can lock them
+	// out on purpose by burning the budget first. A verification code still works while
+	// this budget is spent, which is also how a forgotten password gets reset.
+	if !s.passwordLimiter.Allow(email) {
+		c.JSON(http.StatusTooManyRequests, ErrorResponse{Error: "too many attempts"})
+		return
+	}
+
+	user, err := s.auth.LoginWithPassword(c.Request.Context(), email, password)
+	switch {
+	case errors.Is(err, services.ErrBadCredentials):
+		s.passwordLimiter.Hit(email)
+		c.JSON(http.StatusUnauthorized, ErrorResponse{Error: "invalid email or password"})
+		return
+	case err != nil:
+		log.Printf("failed to log in with password: %v", err)
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "failed to log in"})
+		return
+	}
+
+	s.RespondWithSession(c, user)
+}
+
+// SetMyPassword handles PUT /me/password: setting a first password, or replacing one.
+func (s *Server) SetMyPassword(c *gin.Context) {
+	userID, ok := s.requireUser(c)
+	if !ok {
+		return
+	}
+
+	var body SetPasswordRequest
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "invalid request body"})
+		return
+	}
+
+	err := s.auth.SetPassword(c.Request.Context(), userID, body.CurrentPassword, body.NewPassword)
+	switch {
+	case errors.Is(err, services.ErrPasswordTooShort), errors.Is(err, services.ErrPasswordTooLong):
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+	case errors.Is(err, services.ErrWrongPassword):
+		// Not 401: the caller *is* authenticated, they just do not know their own password.
+		c.JSON(http.StatusForbidden, ErrorResponse{Error: "current password is wrong"})
+	case err != nil:
+		log.Printf("failed to set password: %v", err)
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "failed to save password"})
+	default:
+		c.Status(http.StatusNoContent)
+	}
 }
 
 // GetMe handles GET /auth/me.
@@ -161,12 +237,13 @@ func (s *Server) userResponse(c *gin.Context, user models.User) UserResponse {
 	}
 
 	return UserResponse{
-		Id:        user.ID,
-		Email:     openapi_types.Email(user.Email),
-		Name:      user.Name,
-		AvatarUrl: avatar,
-		CreatedAt: user.CreatedAt.UTC(),
-		UpdatedAt: user.UpdatedAt.UTC(),
+		Id:          user.ID,
+		Email:       openapi_types.Email(user.Email),
+		Name:        user.Name,
+		AvatarUrl:   avatar,
+		HasPassword: user.HasPassword,
+		CreatedAt:   user.CreatedAt.UTC(),
+		UpdatedAt:   user.UpdatedAt.UTC(),
 	}
 }
 

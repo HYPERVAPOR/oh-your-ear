@@ -68,7 +68,10 @@ export interface paths {
     }
     get?: never
     put?: never
-    /** Login with email verification code */
+    /**
+     * Login with a verification code or a password
+     * @description Supply exactly one of `code` or `password`. A verification code signs in as before, registering the account on first use; a password only works once the account has one (see /me/password). Both answer identically, and neither tells the caller whether the address exists.
+     */
     post: operations['login']
     delete?: never
     options?: never
@@ -104,6 +107,26 @@ export interface paths {
     put?: never
     /** Logout current user */
     post: operations['logout']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/me/password': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    /**
+     * Set or replace this account's password
+     * @description `currentPassword` is required once the account has one; a first password needs none, because the session that sets it came from a verification code, which already proved the address.
+     */
+    put: operations['setMyPassword']
+    post?: never
     delete?: never
     options?: never
     head?: never
@@ -366,6 +389,7 @@ export interface components {
       /** @example ok */
       status: string
     }
+    /** @description Exactly one of code or password. */
     EmailAuthRequest: {
       /**
        * Format: email
@@ -373,7 +397,9 @@ export interface components {
        */
       email: string
       /** @example 123456 */
-      code: string
+      code?: string
+      /** @example correct horse battery staple */
+      password?: string
       /** @example Alice */
       name?: string | null
     }
@@ -388,6 +414,15 @@ export interface components {
        * @example user@example.com
        */
       email: string
+    }
+    SetPasswordRequest: {
+      /** @description Required when the account already has a password. */
+      currentPassword?: string | null
+      /**
+       * @description At least 8 characters, at most 72 bytes (bcrypt's limit).
+       * @example correct horse battery staple
+       */
+      newPassword: string
     }
     /**
      * @description The five exercise modules. Melody and rhythm are scored as a whole.
@@ -560,6 +595,8 @@ export interface components {
       email: string
       name?: string | null
       avatarUrl?: string | null
+      /** @description Whether this account can also sign in with a password. The client uses it to offer setting one, and to choose which field to show first. */
+      hasPassword: boolean
       /** Format: date-time */
       createdAt: string
       /** Format: date-time */
@@ -702,6 +739,7 @@ export interface operations {
       }
       400: components['responses']['BadRequest']
       401: components['responses']['Unauthorized']
+      429: components['responses']['TooManyRequests']
     }
   }
   getMe: {
@@ -742,6 +780,39 @@ export interface operations {
         content?: never
       }
       401: components['responses']['Unauthorized']
+    }
+  }
+  setMyPassword: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['SetPasswordRequest']
+      }
+    }
+    responses: {
+      /** @description Password stored */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      400: components['responses']['BadRequest']
+      401: components['responses']['Unauthorized']
+      /** @description The current password is wrong */
+      403: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['ErrorResponse']
+        }
+      }
     }
   }
   getMyAvatar: {

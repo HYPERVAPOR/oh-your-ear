@@ -12,6 +12,9 @@ type User struct {
 	Email     string    `json:"email"`
 	Name      *string   `json:"name,omitempty"`
 	AvatarURL *string   `json:"avatar_url,omitempty"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
+	// HasPassword is carried as a boolean on purpose: the hash itself never leaves the
+	// service layer, so no response can leak it by accident.
+	HasPassword bool      `json:"has_password"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
 }
