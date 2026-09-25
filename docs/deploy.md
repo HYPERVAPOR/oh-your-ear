@@ -124,6 +124,21 @@ TRUSTED_PROXIES=10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
 | 587 | STARTTLS | 明文起手、`EHLO` 之后升级，最常见 |
 | 465 | 隐式 TLS | 握手即加密。国内厂商常把这个叫「SSL」，只给这一个口的情况很常见 |
 
+本仓库实际在用的中继（hypervapor.org 的 Spacemail）长这样，可以照抄：
+
+```bash
+MAIL_DRIVER=smtp
+SMTP_HOST=mail.spacemail.com
+SMTP_PORT=465
+SMTP_USERNAME=me@hypervapor.org   # Spacemail 的用户名是完整地址，不是 @ 前面那截
+SMTP_PASSWORD=...
+SMTP_FROM=me@hypervapor.org       # 裸地址，且必须是这个域允许发出的地址（SPF）
+```
+
+该域名的 SPF（`include:spf.spacemail.com`）与 DKIM（选择子 `spacemail`）由 Spacemail 建邮箱时自动配好，**DMARC 需要自己加**（`v=DMARC1; p=none; rua=mailto:me@hypervapor.org` 起步即可）。
+
+**465 是隐式 TLS，所以不要去等 STARTTLS。** 465 的连接从第一个字节就是加密的，中继不会在 `EHLO` 里再宣告一个升级 —— 第一版代码把"必须升级"的规则也套在 465 上，于是把只给 465 的中继（比如 Spacemail）判成"不提供 STARTTLS"拒掉。现在的规则是：465 直接按加密会话走；非 465 才看扩展。
+
 **公网中继必须提供 STARTTLS**，不提供就**拒绝发信**：中继不升级、我们又照发，等于让路上的中间人把验证码剥成明文。只有中继落在**私网 / loopback / link-local**（例如自建中继、或 podman 的 `host.containers.internal`，它解析成 169.254.1.2）时才允许明文 —— 那种情况下两端之间没有别的网络，没人能来剥。
 
 `SMTP_FROM` 必须是**裸地址**（`no-reply@example.com`），**不要**写 `Oh Your Ear <no-reply@example.com>`：同一个值还会被用作 SMTP 信封的发件人（`MAIL FROM`），带尖括号会让信封非法。

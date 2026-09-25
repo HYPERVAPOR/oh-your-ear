@@ -169,3 +169,8 @@ func TestMessageDropsHeaderInjection(t *testing.T) {
 		t.Error("the address was mangled rather than neutralised")
 	}
 }
+
+// Note: the implicit-TLS path (port 465) has no unit test. It keys on the port number, and
+// a test relay cannot bind 465 without root, so it is verified against the real relay this
+// app actually uses instead — which is how the first version of it was caught requiring
+// STARTTLS on a connection that was already encrypted.

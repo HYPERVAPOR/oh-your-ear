@@ -18,6 +18,10 @@ import (
 // POST /auth/code, and that endpoint has to answer.
 const smtpTimeout = 20 * time.Second
 
+// implicitTLSPort is the port whose session is encrypted from the first byte — what most
+// Chinese providers call "SSL" and offer instead of 587.
+const implicitTLSPort = "465"
+
 // Mailer delivers a message to a user.
 type Mailer interface {
 	Send(ctx context.Context, to, subject, body string) error
@@ -67,16 +71,24 @@ func (m *SMTPMailer) Send(_ context.Context, to, subject, body string) error {
 	}
 	defer client.Close()
 
-	// Upgrade, always — unless the relay is on a private network, where there is no network
-	// in between for anyone to strip the upgrade on. A public relay that does not advertise
-	// STARTTLS is either misconfigured or being downgraded in transit, and either way the
-	// verification code would travel in the clear.
-	if ok, _ := client.Extension("STARTTLS"); ok {
-		if err := client.StartTLS(&tls.Config{ServerName: m.host, MinVersion: tls.VersionTLS12}); err != nil {
-			return fmt.Errorf("failed to start tls: %w", err)
+	// An implicit-TLS session (port 465) is already encrypted, so there is nothing to
+	// upgrade and no STARTTLS extension to look for — a relay will not advertise an upgrade
+	// on a connection that is encrypted from the first byte.
+	//
+	// On a plain socket, upgrade — unless the relay is on a private network, where there is
+	// no network in between for anyone to strip the upgrade on. A public relay that does not
+	// advertise STARTTLS is either misconfigured or being downgraded in transit, and either
+	// way the verification code would travel in the clear.
+	if m.port != implicitTLSPort {
+		offers, _ := client.Extension("STARTTLS")
+		if !offers && !m.isPrivateRelay() {
+			return fmt.Errorf("smtp relay %s does not offer STARTTLS", m.host)
 		}
-	} else if !m.isPrivateRelay() {
-		return fmt.Errorf("smtp relay %s does not offer STARTTLS", m.host)
+		if offers {
+			if err := client.StartTLS(&tls.Config{ServerName: m.host, MinVersion: tls.VersionTLS12}); err != nil {
+				return fmt.Errorf("failed to start tls: %w", err)
+			}
+		}
 	}
 
 	if m.username != "" {
@@ -124,7 +136,7 @@ func (m *SMTPMailer) dial() (*smtp.Client, error) {
 		conn.Close()
 		return nil, fmt.Errorf("failed to set the smtp deadline: %w", err)
 	}
-	if m.port == "465" {
+	if m.port == implicitTLSPort {
 		conn = tls.Client(conn, &tls.Config{ServerName: m.host, MinVersion: tls.VersionTLS12})
 	}
 
