@@ -17,18 +17,15 @@ import { cn } from '@/lib/utils'
 /**
  * The drawing vocabulary — one cell, one ruler, one left edge (PRD 7.1.4).
  *
- * A square is a unit of progress, so the same 16px square is used for today's questions, a
- * week's days and a month's days: switching between those three changes the shape of the
- * grid, never its ruler. Today and this week both read across the whole card — the day's
- * twenty questions and the week's seven days are spread over the same length, which is what
- * gives the weekday names above their room — while the month stays a compact calendar page,
- * because a month is a grid of rows and columns rather than a line. The year is the one
- * view at a second scale — 371 days have to fit inside one card — so its column is fluid
- * instead of fixed: 8px at the dashboard's width, 10px when the card is wide, floored at
- * 8px so a filled and an empty square stay tellable apart (a phone falls back to scrolling
- * there). Every view starts at the same x.
+ * The week's days and the month's days are the same square at the same size — the week is
+ * simply the month with one row — and both spread their seven columns across the whole card,
+ * which is what gives the weekday names above them their room. Today reads across the card
+ * as a bar, so all three of those views end at the same x. The year is the one view at a
+ * second scale — 371 days have to fit inside one card — so its column is fluid instead of
+ * fixed: 8px at the dashboard's width, 10px when the card is wide, floored at 8px so a
+ * filled and an empty square stay tellable apart (a phone falls back to scrolling there).
  */
-export const CELL = 'size-4 shrink-0'
+export const CELL = 'size-5 shrink-0'
 export const TIER_CLASS = ['bg-surface-strong', 'bg-success/35', 'bg-success']
 /** The year's cell fills its track, so the square is as wide as whatever the card allows. */
 const YEAR_CELL = 'aspect-square w-full'
@@ -36,7 +33,10 @@ const YEAR_CELL = 'aspect-square w-full'
 const YEAR_TRACK = 'minmax(8px, 1fr)'
 const YEAR_BOX = 'w-full max-w-[646px]'
 const GAP = 'gap-0.5'
-const AXIS = 'text-[10px] leading-[10px] text-muted'
+/** The axis takes the size of the cells it labels: 12px over the week's and month's 20px
+ *  squares, 10px over the year's 8px ones. */
+const AXIS = 'text-[12px] leading-[12px] text-muted'
+const YEAR_AXIS = 'text-[10px] leading-[10px] text-muted'
 
 /** English, and fixed: the axis is a scale, not a sentence. */
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
@@ -69,8 +69,32 @@ export function DayView({ day }: { day: DailyBucket | undefined }) {
   )
 }
 
-/** This week: seven days spread across the card, each under its weekday name — the names
- *  need that room, and a week is a line rather than a calendar page. */
+/**
+ * The calendar grid, one row per week, Monday first: seven columns spread across the card
+ * with the square centred in each. The week tab is this grid with a single row, so the two
+ * tabs share a ruler and a left edge as well as a cell — the only difference between them
+ * is how much of the calendar is on screen.
+ */
+function CalendarGrid({
+  squares,
+  square,
+}: {
+  squares: Square[]
+  square: (item: Square, cell: string) => ReactNode
+}) {
+  return (
+    <div className={cn('grid w-full grid-cols-7 justify-items-center', GAP)}>
+      {WEEKDAYS.map((label) => (
+        <span key={label} className={AXIS}>
+          {label}
+        </span>
+      ))}
+      {squares.map((item) => square(item, CELL))}
+    </div>
+  )
+}
+
+/** This week: the calendar with a single row. */
 export function WeekRow({
   days,
   today,
@@ -80,19 +104,10 @@ export function WeekRow({
   today: string
   square: (item: Square, cell: string) => ReactNode
 }) {
-  return (
-    <div className="flex w-full justify-between">
-      {week(days, today).map((item, index) => (
-        <div key={item.key} className="flex flex-col items-center gap-0.5">
-          <span className={AXIS}>{WEEKDAYS[index]}</span>
-          {square(item, CELL)}
-        </div>
-      ))}
-    </div>
-  )
+  return <CalendarGrid squares={week(days, today)} square={square} />
 }
 
-/** This month, as a calendar: the weekday header, blanks, then its days. */
+/** This month: the same grid, five or six rows of it. */
 export function MonthGrid({
   days,
   today,
@@ -102,16 +117,7 @@ export function MonthGrid({
   today: string
   square: (item: Square, cell: string) => ReactNode
 }) {
-  return (
-    <div className={cn('inline-grid grid-cols-[repeat(7,16px)]', GAP)}>
-      {WEEKDAYS.map((label) => (
-        <span key={label} className={AXIS}>
-          {label}
-        </span>
-      ))}
-      {month(days, today).map((item) => square(item, CELL))}
-    </div>
-  )
+  return <CalendarGrid squares={month(days, today)} square={square} />
 }
 
 /** The year: a column per week, Monday first, with the weekday names down the side and a
@@ -151,7 +157,7 @@ export function YearGrid({
         style={{ gridTemplateColumns: `repeat(${columns}, ${YEAR_TRACK})` }}
       >
         {Array.from({ length: columns }, (_, column) => (
-          <span key={column} className={cn(AXIS, 'whitespace-nowrap')}>
+          <span key={column} className={cn(YEAR_AXIS, 'whitespace-nowrap')}>
             {ruler.get(column) ?? ''}
           </span>
         ))}

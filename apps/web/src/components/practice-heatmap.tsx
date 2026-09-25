@@ -10,7 +10,8 @@ import { cn } from '@/lib/utils'
 
 const LEVELS: Level[] = ['day', 'week', 'month', 'year']
 
-const BODY = 'flex h-[118px] items-center overflow-x-auto'
+// 月档六行是最高的一档：轴 12 + 间距 2 + 六行 20 + 五个行距 2 = 144，留 8px 余量。
+const BODY = 'flex h-[152px] items-center overflow-x-auto'
 const CALENDAR_LEGEND = ['none', 'partial', 'met'] as const
 /** The day view is a bar, not squares, so its key is the bar's two halves. */
 const SLOT_LEGEND = ['todo', 'done'] as const
