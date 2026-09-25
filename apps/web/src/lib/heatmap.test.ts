@@ -2,8 +2,8 @@ import assert from 'node:assert/strict'
 import { test } from 'node:test'
 
 import {
+  dayPercent,
   emptyRange,
-  goalSlots,
   month,
   tierOf,
   week,
@@ -74,21 +74,12 @@ test('the year view is the series itself, a square per day', () => {
   assert.equal(squares[0].date, '2025-09-16')
 })
 
-test('the day view is one square per question of today’s goal', () => {
-  const slots = goalSlots(day('2026-09-21', 3, 20), 20)
-  assert.equal(slots.length, 20)
-  assert.equal(slots.filter((slot) => slot.filled).length, 3)
-
-  // Nothing done yet: the full goal is on screen, all of it empty.
-  assert.deepEqual(
-    goalSlots(day('2026-09-21', 0, 20), 20).map((slot) => slot.filled),
-    Array(20).fill(false),
-  )
-
-  // Past the goal the strip grows rather than capping at 20/20.
-  assert.equal(goalSlots(day('2026-09-21', 23, 20), 20).length, 23)
-
-  // No plan to read (a guest): the default stands in, and there is always one square.
-  assert.equal(goalSlots(undefined, 20).length, 20)
-  assert.equal(goalSlots(day('2026-09-21', 0, 0), 20).length, 20)
+test('the day view’s bar is today’s progress, capped at full', () => {
+  assert.equal(dayPercent(day('2026-09-21', 3, 20), 20), 15)
+  // Past the goal the bar stops at full: a day is done once, not twice.
+  assert.equal(dayPercent(day('2026-09-21', 23, 20), 20), 100)
+  // Nothing done, and no plan to read (a guest): empty, not full and not NaN.
+  assert.equal(dayPercent(day('2026-09-21', 0, 20), 20), 0)
+  assert.equal(dayPercent(day('2026-09-21', 0, 0), 20), 0)
+  assert.equal(dayPercent(undefined, 20), 0)
 })

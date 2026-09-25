@@ -91,17 +91,13 @@ export function year(days: DailyBucket[]): Square[] {
 }
 
 /**
- * The day view: one square per question the goal asks for, filled as it is answered.
- * Over-achieving adds squares rather than capping — the strip shows 0/20 → 20/20 and then
- * keeps going.
+ * The day view's bar: how much of today's goal is done, capped at full — a day counts as
+ * done once, not twice.
  */
-export function goalSlots(day: DailyBucket | undefined, fallbackGoal: number): Slot[] {
+export function dayPercent(day: DailyBucket | undefined, fallbackGoal: number): number {
   const goal = day && day.goal > 0 ? day.goal : fallbackGoal
-  const answered = day?.solved ?? 0
-  return Array.from({ length: Math.max(goal, answered, 1) }, (_, key) => ({
-    key,
-    filled: key < answered,
-  }))
+  const solved = day?.solved ?? 0
+  return goal > 0 ? Math.min((solved / goal) * 100, 100) : 0
 }
 
 /**
