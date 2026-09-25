@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log"
@@ -92,17 +93,39 @@ func (s *Server) RequestEmailCode(c *gin.Context) {
 	}
 }
 
-// deliverEmailCode sends the code through the configured mailer. A delivery
-// failure still answers 204: the caller must not be able to tell whether an
-// address exists, and the code can be requested again after the cooldown.
+// deliverEmailCode hands the code to the mailer and answers 204 immediately.
+//
+// The 204 never meant "delivered": it means "this endpoint will not tell you whether that
+// address exists", which is why a failure still answers the same thing. So there is nothing
+// to gain by making the caller wait for the relay, and something to lose — the relay this
+// app uses takes about three seconds, and a relay that accepts a connection and then stops
+// talking would hold the request open until the mailer's own deadline.
+//
+// The send runs in the background. Failures go to the log, where they already went.
 func (s *Server) deliverEmailCode(c *gin.Context, email, code string) {
 	// Bilingual, because the product is: one of these two lines is always the reader's
 	// language, and guessing wrong means a code nobody can read.
 	subject, text, html := verificationEmail(code, int(services.EmailCodeTTL.Minutes()))
 
-	if err := s.mailer.Send(c.Request.Context(), email, subject, text, html); err != nil {
-		log.Printf("failed to deliver verification code to %s via %s: %v", email, s.mailer.Driver(), err)
-	}
+	// The request's context is cancelled the moment this response is written, so the
+	// background send cannot borrow it.
+	ctx := context.WithoutCancel(c.Request.Context())
+	mailer, driver := s.mailer, s.mailer.Driver()
+
+	go func() {
+		// A panic here would take the process down, which is a steep price for a mail
+		// failure.
+		defer func() {
+			if recovered := recover(); recovered != nil {
+				log.Printf("panic while delivering a verification code to %s: %v", email, recovered)
+			}
+		}()
+
+		if err := mailer.Send(ctx, email, subject, text, html); err != nil {
+			log.Printf("failed to deliver verification code to %s via %s: %v", email, driver, err)
+		}
+	}()
+
 	c.Status(http.StatusNoContent)
 }
 
