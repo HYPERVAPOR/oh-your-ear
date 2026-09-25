@@ -17,6 +17,20 @@ COMPOSE_FILE=${COMPOSE_FILE:-compose/compose.yml}
 HEALTH_URL=${HEALTH_URL:-http://127.0.0.1:8080/api/v1/health}
 HEALTH_RETRIES=${HEALTH_RETRIES:-30}
 
+# docker or podman, whichever this host has. The shared server this runs on has docker; a
+# dedicated box following docs/deploy.md 5 may have podman. Both scripts go through these
+# helpers so it does not matter which — and picking the wrong one is not a harmless mistake:
+# the other runtime has its own volumes, so it would come up with an empty database.
+if command -v docker >/dev/null 2>&1; then
+  RUNTIME=docker
+elif command -v podman >/dev/null 2>&1; then
+  RUNTIME=podman
+else
+  echo "neither docker nor podman is installed" >&2
+  exit 1
+fi
+export RUNTIME
+
 if [[ ! -f $ENV_FILE ]]; then
   echo "missing $ENV_FILE: podman compose is given it explicitly here (see docs/deploy.md 4)" >&2
   exit 1
@@ -28,7 +42,7 @@ TARGET=$(git rev-parse HEAD)
 PREVIOUS=$(git rev-parse --quiet --verify HEAD~1 || echo "$TARGET")
 
 compose() {
-  podman compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" "$@"
+  "$RUNTIME" compose --env-file "$ENV_FILE" -f "$COMPOSE_FILE" "$@"
 }
 
 health() {
@@ -48,7 +62,6 @@ bash compose/backup.sh
 
 echo "==> building and starting $(git rev-parse --short "$TARGET")"
 if compose up -d --build && health; then
-  podman image prune -f --filter "until=168h" >/dev/null 2>&1 || true
   echo "==> deployed $(git rev-parse --short "$TARGET")"
   exit 0
 fi
@@ -59,6 +72,6 @@ compose up -d --build
 if health; then
   echo "==> rolled back to $(git rev-parse --short "$PREVIOUS")" >&2
 else
-  echo "==> the rollback is unhealthy too; check 'podman logs oh-your-ear-api-1'" >&2
+  echo "==> the rollback is unhealthy too; check '$RUNTIME logs oh-your-ear-api-1'" >&2
 fi
 exit 1

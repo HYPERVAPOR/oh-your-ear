@@ -20,10 +20,18 @@ cp "$SOURCE/compose/deploy.sh" compose/deploy.sh
 printf 'echo "[backup] ran" >> "$SINK"\nexit 0\n' > compose/backup.sh
 touch "$WORK/env"
 
+# Both runtimes are offered; the script must pick docker (the order production needs) and
+# never touch the other one — the wrong runtime means a different volume means an empty
+# database.
 cat > "$WORK/bin/podman" <<'SHIM'
 #!/bin/sh
 echo "  [podman] $*" >> "$SINK"
 exit "${PODMAN_EXIT:-0}"
+SHIM
+cat > "$WORK/bin/docker" <<'SHIM'
+#!/bin/sh
+echo "  [docker] $*" >> "$SINK"
+exit "${DOCKER_EXIT:-0}"
 SHIM
 
 # Healthy from the Nth health check onwards, so a rollback can be made to succeed or fail.
@@ -40,7 +48,7 @@ echo "  [health] check $count: not ok" >> "$SINK"
 exit 1
 SHIM
 
-chmod +x "$WORK/bin/podman" "$WORK/bin/curl"
+chmod +x "$WORK/bin/podman" "$WORK/bin/docker" "$WORK/bin/curl"
 export PATH="$WORK/bin:$PATH" SINK="$WORK/sink" CALLS="$WORK/calls"
 export ENV_FILE="$WORK/env" HEALTH_RETRIES=1
 
@@ -69,6 +77,16 @@ reset() {
 }
 
 reset; HEALTHY_FROM=1 expect "a healthy deploy keeps the new commit" 0 "$TARGET"
+
+reset
+HEALTHY_FROM=1 bash compose/deploy.sh >/dev/null 2>&1 || true
+if grep -q '\[docker\]' "$SINK" && ! grep -q '\[podman\]' "$SINK"; then
+  echo "ok: the host's runtime (docker) is the one used"
+else
+  echo "FAIL: wrong runtime picked"
+  sed 's/^/    /' "$SINK"
+  fail=1
+fi
 reset; HEALTHY_FROM=2 expect "an unhealthy deploy rolls back" 1 "$(git rev-parse --short HEAD~1)"
 reset; HEALTHY_FROM=99 expect "an unhealthy rollback is reported" 1 "$(git rev-parse --short HEAD~1)"
 
