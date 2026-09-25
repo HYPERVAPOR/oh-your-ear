@@ -255,5 +255,10 @@
     },
     "cell": "{{date}}: {{solved}} of {{goal}}",
     "today": "Today"
+  },
+  "account": {
+    "addName": "Add a name",
+    "editName": "Change your name",
+    "nameFailed": "That name could not be saved. Please try again."
   }
 }

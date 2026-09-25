@@ -255,5 +255,10 @@
     },
     "cell": "{{date}}：{{solved}} / {{goal}} 题",
     "today": "今天"
+  },
+  "account": {
+    "addName": "添加用户名",
+    "editName": "改用户名",
+    "nameFailed": "没能保存用户名，请再试一次"
   }
 }

@@ -3,7 +3,7 @@ import { useTranslation, Trans } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { apiClient } from '@/api/client'
-import { Avatar } from '@/components/avatar'
+import { AccountIdentity } from '@/components/account-identity'
 import { PracticeHeatmap } from '@/components/practice-heatmap'
 import { modulePath } from '@/components/round-summary'
 import { Button, buttonVariants } from '@/components/ui/button'
@@ -98,10 +98,7 @@ export function TodayPanel() {
           <>
             <div>
               <p className="badge-label text-muted">{t('home.accountLabel')}</p>
-              <div className="mt-1.5 flex items-center gap-3">
-                <Avatar user={user} />
-                <p className="break-all text-[15px]">{user.email}</p>
-              </div>
+              <AccountIdentity className="mt-1.5" />
             </div>
             <div className="mt-8 flex flex-wrap items-center gap-2">
               <Button size="lg" onClick={startSession}>

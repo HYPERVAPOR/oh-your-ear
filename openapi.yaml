@@ -181,6 +181,35 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
+  /me/name:
+    put:
+      operationId: setMyName
+      summary: Set this account's display name
+      description: >
+        The word the account is called by. Sign-in providers supply one; an account that signed
+        up with a verification code has none until it is set here. Trimmed before it is stored,
+        and empty is refused rather than kept as a blank name — an account with no name has a
+        null one, and the client draws its own placeholder for that.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetNameRequest'
+      responses:
+        '200':
+          description: The account after the change
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
   /me/password:
     put:
       operationId: setMyPassword
@@ -688,6 +717,18 @@ components:
       properties:
         registered:
           type: boolean
+
+    SetNameRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 50
+          description: Trimmed before it is stored; the trimmed value is what gets saved.
+          example: Alex
 
     SetPasswordRequest:
       type: object

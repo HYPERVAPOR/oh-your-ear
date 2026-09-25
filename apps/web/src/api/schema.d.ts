@@ -153,6 +153,26 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/me/name': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    /**
+     * Set this account's display name
+     * @description The word the account is called by. Sign-in providers supply one; an account that signed up with a verification code has none until it is set here. Trimmed before it is stored, and empty is refused rather than kept as a blank name — an account with no name has a null one, and the client draws its own placeholder for that.
+     */
+    put: operations['setMyName']
+    post?: never
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/me/password': {
     parameters: {
       query?: never
@@ -457,6 +477,13 @@ export interface components {
     }
     EmailCheckResponse: {
       registered: boolean
+    }
+    SetNameRequest: {
+      /**
+       * @description Trimmed before it is stored; the trimmed value is what gets saved.
+       * @example Alex
+       */
+      name: string
     }
     SetPasswordRequest: {
       /** @description Required when the account already has a password. */
@@ -890,6 +917,32 @@ export interface operations {
         }
         content?: never
       }
+      401: components['responses']['Unauthorized']
+    }
+  }
+  setMyName: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['SetNameRequest']
+      }
+    }
+    responses: {
+      /** @description The account after the change */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['UserResponse']
+        }
+      }
+      400: components['responses']['BadRequest']
       401: components['responses']['Unauthorized']
     }
   }
