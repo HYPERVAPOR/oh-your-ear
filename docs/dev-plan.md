@@ -533,6 +533,13 @@
 - **description**: 2026-09-25 一天之内把 Vercel 免费额度（每天 100 次部署）烧光，两个项目都被 `Deployment rate limited` 挡住，于是再推 main 前端也不更新。①**`dev` 集成分支**：`git.deploymentEnabled: {dev: false}` **必须写在项目自己的 `vercel.json` 里**（仓库根那份不生效，这条查了很久，期间根目录一直有配置而 dev 照常部署）；而且它跟着 git 走，`#139` 之后 `dev` 被强推回更早的 main，配置就此从 dev 的历史里消失——**对集成分支做 `reset --hard main` 会丢掉这期间落在 main 上的 PR**，合并 main 回 dev 才安全。已在额度耗尽的窗口里验证：加上配置后推 dev，该提交上一条 Vercel 状态都没有（规则不生效时必然留下一条 rate-limited）。CI 的 push / pull_request 监听 `main` 与 `dev`，API 只在「CI 在 main 上通过」时部署。②**每个项目自己判断**：`ignoreCommand: git diff --quiet HEAD^ HEAD -- . ../../packages/shared`（退出码 0 = 跳过；`.` 是项目根，`../../packages/shared` 是共享包），实测只改后端/文档时两个前端都跳过、改 web 只建 web、改 shared 两个都建；它是否影响额度另开 issue 跟踪。③**零碎提交先推 dev**。
 - **depends on**: 24.1
 
+### 26.4 骨架屏只在值得等的时候出现
+
+- **issue**: #147
+- **status**: 🟡 doing
+- **description**: `#145` 的骨架屏本身没错，但实测会话恢复只用了 30ms，而 `animate-pulse` 是 2 秒一个周期——那块灰闪一下就走，看起来就是一块静止的灰斑，连动画的第一帧都走不完。改成延迟 250ms 才出现（`lib/use-delayed.ts`）：快速恢复时一次都不画，网络慢时才画，那时动画才有意义。实测快速恢复路径上一次骨架都没有出现。
+- **depends on**: 26.2
+
 ## M26 体验走查修复
 
 ### 26.1 账号页导航与顶栏一致、热力图去掉连续天数、滚动条不再挪动宽度

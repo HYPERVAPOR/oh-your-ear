@@ -4,7 +4,12 @@
   "buildCommand": "pnpm build",
   "git": {
     "deploymentEnabled": {
-      "dev": false
+      "dev": false,
+      "fix/*": false,
+      "feat/*": false,
+      "feature/*": false,
+      "docs/*": false,
+      "chore/*": false
     }
   }
 }

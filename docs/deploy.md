@@ -391,8 +391,15 @@ schema 在 API 启动时幂等地跑（`CREATE TABLE IF NOT EXISTS` + `ALTER TAB
 
 ```json
 // apps/web/vercel.json 与 apps/landing/vercel.json
-"git": { "deploymentEnabled": { "dev": false } }
+"git": {
+  "deploymentEnabled": {
+    "dev": false, "fix/*": false, "feat/*": false,
+    "feature/*": false, "docs/*": false, "chore/*": false
+  }
+}
 ```
+
+功能分支的预览也一起关了：在额度紧张时它是纯消耗，而视觉改动在本地 5173 / 5174 就能看。想恢复某个前缀的预览，把它那条删掉即可。
 
 **必须写在项目自己的 `vercel.json` 里**（即该项目 Root Directory 下那一份）。仓库根那份**不生效**——这条踩了很久：根目录的 `vercel.json` 从 13:14 起一直有这段配置，而期间每一次 dev 推送都照常部署；把同一段配置放进两个项目文件之后，dev 推送立刻不再触发部署（下面有验证）。
 

@@ -10,6 +10,7 @@ import { Button, buttonVariants } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { MODULES, type ExerciseKind } from '@/components/ui/orb'
 import { DEFAULT_GOAL } from '@/lib/heatmap'
+import { useDelayed } from '@/lib/use-delayed'
 import { loginHere, loginPath } from '@/lib/auth'
 import { useAuthStore } from '@/stores/auth-store'
 
@@ -37,6 +38,8 @@ export function TodayPanel() {
   const navigate = useNavigate()
   const user = useAuthStore((s) => s.user)
   const initialized = useAuthStore((s) => s.initialized)
+  // Only draw the skeleton if the session restore is actually taking a moment.
+  const loading = useDelayed(!initialized)
 
   const { data: plan } = useQuery({
     queryKey: ['study-plan'],
@@ -79,7 +82,7 @@ export function TodayPanel() {
             swapped for the account is a jump, and the jump is the part a reader notices.
             Every placeholder is the box of the thing it replaces — the avatar's own 40px,
             a `lg` button's 48px — so this cannot move the row it sits in. */}
-        {!initialized ? (
+        {loading ? (
           <>
             <p className="badge-label text-muted">{t('home.accountLabel')}</p>
             <div className="mt-1.5 flex items-center gap-3">
