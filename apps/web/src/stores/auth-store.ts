@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 
+import { queryClient } from '@/api/query-client'
 import type { components } from '@/api/schema'
 
 export type User = components['schemas']['UserResponse']
@@ -28,6 +29,11 @@ export const useAuthStore = create<AuthState>((set) => ({
       await fetch('/api/v1/auth/logout', { method: 'POST', credentials: 'include' })
     } finally {
       set({ accessToken: null, user: null })
+      // Everything in the cache is the account's progress, and it must not outlive the
+      // session: the dashboard reads those numbers back (they are what drew the ghost
+      // progress after signing out), and on a shared browser whoever signs in next would
+      // see the previous account's figures until their own landed.
+      queryClient.clear()
     }
   },
 }))
