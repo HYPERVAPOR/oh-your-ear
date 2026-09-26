@@ -2,8 +2,8 @@ import { useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { apiClient } from '@/api/client'
-import { Avatar } from '@/components/avatar'
-import { isUploadedAvatar, prepareAvatar, type AvatarProblem } from '@/lib/avatar'
+import { Avatar, AvatarPreview } from '@/components/avatar'
+import { prepareAvatar, type AvatarProblem } from '@/lib/avatar'
 import { useAuthStore } from '@/stores/auth-store'
 import { cn } from '@/lib/utils'
 
@@ -38,17 +38,20 @@ const SIZES = {
  * The account's own three things — picture, name, address — in one object, because the
  * dashboard's card and the account page both show them and used to spell them differently.
  *
- * The first two are editable where they are shown: clicking the picture chooses a file (there is
- * no separate upload button: the thing being replaced is the thing you click), and clicking the
- * name turns it into the field it is. An account that signed up with a code has no name at all,
- * so the third case is the invitation rather than a blank.
+ * The first two are editable where they are shown. Clicking the picture opens it at its own size
+ * — a picture is something you look at before deciding to replace it, and a click that lands in
+ * a file picker cannot be taken back. Replacing it is the button on the caption line below, which
+ * is always there, so the way to change the picture is never hidden behind the picture itself.
+ * Clicking the name turns it into the field it is. An account that signed up with a code has no
+ * name at all, so the third case is the invitation rather than a blank.
  *
  * The name is written optimistically: the field closes and the new word is on the card while the
  * request is still on its way, and the reader hears about it only if the server refuses.
  *
- * The caption line under the three is always there, empty when it has nothing to say — the space
- * a refusal needs is the space it keeps — and it is where the picture can be taken off again. It
- * sits below the row rather than inside it, so that the row's own bottom edge is the address line. */
+ * The caption line under the three is where the picture is replaced and where a refusal is said.
+ * It is always there, empty when it has nothing to say — the space a refusal needs is the space
+ * it keeps — and it sits below the row rather than inside it, so that the row's own bottom edge
+ * is the address line. */
 export function AccountIdentity({
   size = 'md',
   className,
@@ -63,6 +66,7 @@ export function AccountIdentity({
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [editing, setEditing] = useState(false)
+  const [previewing, setPreviewing] = useState(false)
   const [draft, setDraft] = useState('')
 
   if (!user) return null
@@ -99,22 +103,6 @@ export function AccountIdentity({
       setBusy(false)
       // Let the same file be chosen again after a failure.
       if (input.current) input.current.value = ''
-    }
-  }
-
-  async function removePicture() {
-    setBusy(true)
-    setMessage(null)
-    try {
-      const { error } = await apiClient.DELETE('/me/avatar')
-      if (error) throw new Error('remove refused')
-      // Read the account back: without the upload there may still be a provider picture.
-      const { data } = await apiClient.GET('/auth/me')
-      if (data) setUser(data)
-    } catch {
-      setMessage(t('auth.avatarFailed'))
-    } finally {
-      setBusy(false)
     }
   }
 
@@ -155,11 +143,10 @@ export function AccountIdentity({
         <div className="flex shrink-0 flex-col items-start gap-1.5">
           <button
             type="button"
-            className="cursor-pointer disabled:cursor-default disabled:opacity-50"
-            aria-label={t('auth.avatarUpload')}
-            title={t('auth.avatarUpload')}
-            disabled={busy}
-            onClick={() => input.current?.click()}
+            className="cursor-pointer"
+            aria-label={t('auth.avatarPreview')}
+            title={t('auth.avatarPreview')}
+            onClick={() => setPreviewing(true)}
           >
             <Avatar user={user} size={size} />
           </button>
@@ -231,18 +218,18 @@ export function AccountIdentity({
       </div>
 
       <p className="mt-1.5 min-h-[20px] text-[13px] text-muted">
-        {message ??
-          (isUploadedAvatar(user.avatarUrl) && (
-            <button
-              type="button"
-              className="cursor-pointer underline underline-offset-4 hover:text-ink disabled:cursor-default disabled:opacity-50"
-              disabled={busy}
-              onClick={() => void removePicture()}
-            >
-              {t('auth.avatarRemove')}
-            </button>
-          ))}
+        {message && <span className="mr-2">{message}</span>}
+        <button
+          type="button"
+          className="cursor-pointer underline underline-offset-4 hover:text-ink disabled:cursor-default disabled:opacity-50"
+          disabled={busy}
+          onClick={() => input.current?.click()}
+        >
+          {t('auth.avatarUpload')}
+        </button>
       </p>
+
+      <AvatarPreview open={previewing} user={user} onClose={() => setPreviewing(false)} />
     </div>
   )
 }

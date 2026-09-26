@@ -8,7 +8,6 @@ import {
   avatarFileProblem,
   avatarPattern,
   avatarShapeProblem,
-  isUploadedAvatar,
 } from './avatar.ts'
 
 test('the generated avatar is a full square of blocks', () => {
@@ -45,14 +44,6 @@ test('the colour comes from the same id, is stable, and differs between accounts
     assert.match(value, /^hsl\(\d{1,3} \d{1,2}% \d{1,2}%\)$/)
   }
   assert.notDeepEqual(one, avatarColors('f6a1c0de-0000-4000-8000-000000000006'))
-})
-
-test('only our own URL counts as an uploaded avatar', () => {
-  assert.equal(isUploadedAvatar('/api/v1/me/avatar?v=1730000000'), true)
-  assert.equal(isUploadedAvatar('https://lh3.googleusercontent.com/a/abc'), false)
-  assert.equal(isUploadedAvatar('/avatar-default.png'), false)
-  assert.equal(isUploadedAvatar(null), false)
-  assert.equal(isUploadedAvatar(undefined), false)
 })
 
 test('only the two formats the API can decode', () => {

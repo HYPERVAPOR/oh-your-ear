@@ -1,5 +1,6 @@
 /**
- * The generated avatar of an account with no picture, and the two small jobs around it.
+ * The generated avatar of an account that has no picture, and the road an upload takes before
+ * it leaves the browser.
  *
  * GitHub's recipe, near enough: the account's id is hashed once, and that hash picks both
  * the pixels and the colour. The pattern is five columns of blocks mirrored around the
@@ -10,14 +11,6 @@
 
 /** How wide the picture is, once the browser has squared and scaled an upload. */
 export const AVATAR_UPLOAD_SIZE = 256
-
-/** Where the server serves a picture a reader uploaded. Anything else is the provider's. */
-const UPLOADED_PREFIX = '/api/v1/me/avatar'
-
-/** Whether the URL in hand is one of ours (an upload) rather than the sign-in provider's. */
-export function isUploadedAvatar(url: string | null | undefined): boolean {
-  return !!url && url.startsWith(UPLOADED_PREFIX)
-}
 
 /** FNV-1a, so that neighbouring ids do not produce neighbouring avatars. */
 function hash(seed: string): number {

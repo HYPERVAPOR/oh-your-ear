@@ -687,3 +687,10 @@
 - **status**: 🟡 doing
 - **description**: ①`/levels` 补一个 32px `←` 返回键（与 `/me`、收藏夹、错题本同款，回首页）—— 这三处都有，唯独关卡目录漏了。②游客横幅里加一句「不想登录？试试随机练习。」，链接指向 `/?mode=random`：关卡链要账号，而随机练习不需要，这是游客最该听见的一条出路。为了能从别处链过去，**首页的 Learn / Random 也改成 URL 参数**（`/?mode=learn|random`，缺失或非法值退回 Learn，切换用 `replace`），与关卡页的模块选项卡同一套做法。实测：游客横幅里两个链接（登录 → `/login?next=%2Flevels`、随机练习 → `/?mode=random`）、点过去落到随机那格且该 tab 选中、`replace` 不改历史条数（3→3）、非法值退回 Learn、登录后横幅与引导一起消失而返回键仍在；`Trans` 的标签用 `randomTest`（非空元素名）没漏标签。
 - **depends on**: 7.1.5、5.10
+
+### 31.3 头像：点开是预览，更换头像有自己的按钮
+
+- **issue**: #183
+- **status**: 🟡 doing
+- **description**: `AccountIdentity`（首页卡片与 `/me` 同一个组件）里，点头像原来是直接弹文件选择器，而卡片底部那行放的是「移除」—— 不常走、不可逆，却占着唯一的键。改成：点头像**预览**（`AvatarPreview`，`<dialog>` + `showModal()`，`<Avatar>` 的 `xl` = 256px；点图片外面关掉，靠 ConfirmDialog 那套「`event.target` 是 dialog 本体」的判法，Esc 由平台自己关），底部那行改成**「更换头像」按钮**（复用现成的 `auth.avatarUpload`），文件选择器归它。顺带删掉因此没人用的 `isUploadedAvatar` / `UPLOADED_PREFIX` 与 `avatarRemove` 文案。实测（首页与 `/me` 各一遍）：底行只剩一个按钮、文案是「更换头像」、`min-h` 与行高都是 20px（占位那行没变）、头像底边与邮箱底边差 0.00px（行没被推动）；点头像后 `showModal` 被调用一次、`:modal=true`、`::backdrop` 显示为 `bg-ink/60`、焦点落在 dialog 上、图 256×256，且**没有**碰文件选择器（拦截 `input.click` 计数为 0）；点左上角（即背景层，命中元素就是 dialog 本体）关掉、Esc（`cancel`）关掉；点「更换头像」触发且只触发一次文件选择；英文一侧文案是 `Change avatar`、`aria-label` 是 `Preview picture`。
+- **depends on**: 5.0.3、7.1.4
