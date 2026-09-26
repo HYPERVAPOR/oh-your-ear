@@ -145,7 +145,8 @@
     "dayTitle": "{{date}}: {{solved}} questions",
     "byExercise": "Accuracy by module",
     "moduleDetail": "{{solved}} solved, {{percent}}%",
-    "achievements": "Achievements"
+    "achievements": "Achievements",
+    "moduleSolved": "{{count}} solved"
   },
   "mistakes": {
     "title": "Mistake notebook",

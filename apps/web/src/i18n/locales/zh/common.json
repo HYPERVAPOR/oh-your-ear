@@ -145,7 +145,8 @@
     "dayTitle": "{{date}}：{{solved}} 题",
     "byExercise": "各模块正确率",
     "moduleDetail": "{{solved}} 题，正确率 {{percent}}%",
-    "achievements": "成就"
+    "achievements": "成就",
+    "moduleSolved": "{{count}} 题"
   },
   "mistakes": {
     "title": "错题本",

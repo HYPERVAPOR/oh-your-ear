@@ -4,8 +4,8 @@ import { Check } from 'lucide-react'
 
 import { apiClient } from '@/api/client'
 import { Card } from '@/components/ui/card'
-import { ModuleSwatch } from '@/components/ui/orb'
-import type { ExerciseKind } from '@/components/ui/orb'
+import { MODULE_SWATCH, type ExerciseKind } from '@/components/ui/orb'
+import { cn } from '@/lib/utils'
 
 const MODULES: ExerciseKind[] = ['singleNote', 'interval', 'chord', 'melody', 'rhythm']
 
@@ -92,35 +92,52 @@ export function PracticeStats() {
       </div>
 
       <h3 className="badge-label mt-8 text-muted">{t('stats.byExercise')}</h3>
-      <ul className="mt-3 space-y-3">
-        {practised.map((kind) => {
-          const entry = data.byExercise[kind]
-          if (!entry) return null
-          const percent = Math.round(entry.accuracy * 100)
+      {/* Columns, not rows: the quantity the reader compares here is accuracy, and accuracy
+          runs up. Each column is a module, its height is that module's accuracy, and the track
+          it stands in is the whole 0–100% — so the bar is read against a fixed scale and its
+          own value is printed on top of it. The names are in their own row underneath: a name
+          that wraps to two lines must not shorten one bar's track and tilt the five tops. */}
+      <div className="mt-3 max-w-md">
+        <div className="flex h-32 gap-2">
+          {practised.map((kind) => {
+            const entry = data.byExercise[kind]
+            if (!entry) return null
+            const percent = Math.round(entry.accuracy * 100)
 
-          return (
-            <li key={kind} className="flex items-center gap-3 text-[15px]">
-              <ModuleSwatch kind={kind} />
-              <span className="w-20 shrink-0 whitespace-nowrap">{t(`modules.${kind}`)}</span>
-              {/* The bar is the number next to it and nothing else. It used to be this module's
-                  share of all the questions solved, so a row showed two different quantities
-                  while only one of them had a bar — the one nobody was asking about. */}
-              <span className="h-1.5 flex-1 overflow-hidden rounded-none bg-surface-strong">
-                <span
-                  className="block h-full rounded-none bg-primary"
-                  style={{ width: `${percent}%` }}
-                />
-              </span>
-              <span className="tabular shrink-0 text-[13px] text-muted">
-                {t('stats.moduleDetail', {
-                  solved: entry.solved,
-                  percent,
-                })}
-              </span>
-            </li>
-          )
-        })}
-      </ul>
+            return (
+              <div
+                key={kind}
+                className="flex flex-1 flex-col"
+                title={t('stats.moduleDetail', { solved: entry.solved, percent })}
+              >
+                <span className="tabular text-center text-[13px] text-muted">{percent}%</span>
+                <span className="relative mt-1.5 flex-1 overflow-hidden bg-surface-strong">
+                  <span
+                    className={cn('absolute inset-x-0 bottom-0', MODULE_SWATCH[kind])}
+                    style={{ height: `${percent}%` }}
+                  />
+                </span>
+              </div>
+            )
+          })}
+        </div>
+
+        <div className="mt-2 flex gap-2">
+          {practised.map((kind) => {
+            const entry = data.byExercise[kind]
+            if (!entry) return null
+
+            return (
+              <div key={kind} className="min-w-0 flex-1 text-center">
+                <div className="text-[13px] leading-tight">{t(`modules.${kind}`)}</div>
+                <div className="tabular text-[12px] text-muted">
+                  {t('stats.moduleSolved', { count: entry.solved })}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
 
       <h3 className="badge-label mt-8 text-muted">{t('stats.achievements')}</h3>
       <ul className="mt-3 flex flex-wrap gap-2">
