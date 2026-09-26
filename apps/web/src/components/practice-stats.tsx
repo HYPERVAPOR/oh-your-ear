@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Check } from 'lucide-react'
 
 import { apiClient } from '@/api/client'
 import { Card } from '@/components/ui/card'
+import { PracticeTrend } from '@/components/practice-trend'
 import { ModuleSwatch, MODULES, MODULE_SWATCH } from '@/components/ui/orb'
 import { cn } from '@/lib/utils'
 
@@ -16,7 +16,7 @@ function Stat({ label, value }: { label: string; value: string | number }) {
   )
 }
 
-/** Totals, per-module accuracy, achievements, and a daily trend. */
+/** Totals, per-module accuracy, and a daily trend. */
 export function PracticeStats() {
   const { t } = useTranslation('common')
 
@@ -43,7 +43,6 @@ export function PracticeStats() {
 
   const accuracy = Math.round(data.accuracy * 100)
   const activeDays = data.daily.filter((day) => day.solved > 0).length
-  const peak = Math.max(...data.daily.map((day) => day.solved), 1)
 
   return (
     <Card className="p-6 sm:p-7">
@@ -56,37 +55,7 @@ export function PracticeStats() {
         <Stat label={t('stats.streak')} value={data.streak} />
       </div>
 
-      <h3 className="badge-label mt-8 text-muted">
-        {t('stats.trend', { days: data.daily.length })}
-      </h3>
-      <div
-        className="mt-3 flex h-20 max-w-md items-end gap-1.5"
-        role="img"
-        aria-label={t('stats.trendLabel', {
-          from: data.daily[0]?.date ?? '',
-          to: data.daily[data.daily.length - 1]?.date ?? '',
-          solved: data.daily.reduce((sum, day) => sum + day.solved, 0),
-        })}
-      >
-        {data.daily.map((day) => (
-          <div
-            key={day.date}
-            title={t('stats.dayTitle', { date: day.date, solved: day.solved })}
-            className="flex h-full flex-1 flex-col justify-end overflow-hidden rounded-sm bg-surface-strong"
-          >
-            <div
-              className={day.solved > 0 ? 'rounded-sm bg-primary' : ''}
-              style={{
-                height: day.solved > 0 ? `${Math.max(10, (day.solved / peak) * 100)}%` : '0',
-              }}
-            />
-          </div>
-        ))}
-      </div>
-      <div className="mt-2 flex max-w-md justify-between text-[13px] text-muted">
-        <span className="tabular">{data.daily[0]?.date}</span>
-        <span className="tabular">{data.daily[data.daily.length - 1]?.date}</span>
-      </div>
+      <PracticeTrend daily={data.daily} />
 
       <h3 className="badge-label mt-8 text-muted">{t('stats.byExercise')}</h3>
       {/* All five modules, practised or not: an empty column says something too, and a chart
@@ -189,29 +158,6 @@ export function PracticeStats() {
           </div>
         </div>
       </div>
-
-      <h3 className="badge-label mt-8 text-muted">{t('stats.achievements')}</h3>
-      <ul className="mt-3 flex flex-wrap gap-2">
-        {data.achievements.map((badge) => (
-          <li
-            key={badge.id}
-            title={t(`achievements.${badge.id}.description`)}
-            className={
-              badge.achieved
-                ? 'inline-flex items-center gap-2 rounded-none bg-success/15 px-3.5 py-1.5 text-[14px] font-medium text-success-text'
-                : 'inline-flex items-center gap-2 rounded-none border border-hairline px-3.5 py-1.5 text-[14px] text-muted'
-            }
-          >
-            {badge.achieved && <Check className="h-3.5 w-3.5" />}
-            {t(`achievements.${badge.id}.title`)}
-            {!badge.achieved && (
-              <span className="tabular text-[13px]">
-                {badge.progress}/{badge.target}
-              </span>
-            )}
-          </li>
-        ))}
-      </ul>
     </Card>
   )
 }

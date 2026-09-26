@@ -39,6 +39,18 @@ podman restart oh-your-ear-web-1    # 上面不够时，重启 dev server
 - 这个项目的前端跑在容器里（`compose/compose.dev.yml`），宿主改文件 → 容器内 watcher 的时序又多一层。
 - 教训：**凡是改 CSS/样式后用户说"没生效"，先做 `?direct` 对比**，别急着改代码。同类坑之前也踩过（prettier 重排导致补丁静默失效）。
 
+## 追加（2026-09-26）：验证 Tailwind 生成的类时也会中招
+
+用 `curl -s http://localhost:5173/src/index.css | grep group-hover` 查新加的 `group-hover:opacity-100` 有没有生成 —— 返回 0 次，看起来像类名没被扫到。**换成读浏览器自己的样式表**（`document.styleSheets` 里逐条 `cssText` 匹配转义后的类名 `group-hover\\:opacity-100`）立刻就有了。
+
+同一条 URL 也有 `?direct`：
+
+```bash
+curl -s "http://localhost:5173/src/index.css?direct" | grep -c 'group-hover'   # 现场编译
+```
+
+结论没变，但适用范围扩大：**不只字体/主题色，验证"某个类到底生成没有"也一样会被旧模块骗**。
+
 ## 参考
 
 - `apps/web/src/index.css`
