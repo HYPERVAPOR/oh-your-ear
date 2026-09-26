@@ -43,7 +43,12 @@ export function DangerZone() {
   }
 
   return (
-    <section className="rounded-xl border border-hairline bg-surface px-6 py-5">
+    // Not the hairline card the blocks above it use: the border takes the error hue and the
+    // surface takes a 5% wash of it, so the block reads as an area marked off from the rest
+    // of the page instead of one more settings card. That plus the heading and the outlined
+    // red button are the whole of the danger vocabulary — ink stays the only filled action
+    // colour (DESIGN.md).
+    <section className="rounded-xl border border-error/40 bg-error/5 px-6 py-5">
       <h2 className="text-[20px] leading-tight font-medium text-error-text">
         {t('account.dangerTitle')}
       </h2>
@@ -69,6 +74,7 @@ export function DangerZone() {
         title={t('account.dangerConfirmTitle')}
         description={t('account.dangerConfirmBody')}
         confirmLabel={t('account.dangerConfirmLabel')}
+        destructive
         onConfirm={deleteAccount}
         onDismiss={() => setAsking(false)}
       />

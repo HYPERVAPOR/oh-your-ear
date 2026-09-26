@@ -51,6 +51,27 @@ curl -s "http://localhost:5173/src/index.css?direct" | grep -c 'group-hover'   #
 
 结论没变，但适用范围扩大：**不只字体/主题色，验证"某个类到底生成没有"也一样会被旧模块骗**。
 
+## 追加（2026-09-26）：旧模块严重到可以让整页白屏
+
+改完 `packages/shared/src/button-variants.ts`（只加了一句注释、改了一个变体字符串）后，`http://localhost:5173/` **一片空白**。服务端一切正常（`/` 返回 200、各个模块 curl 都是 200、源文件里导出也在），但浏览器控制台是：
+
+```
+Uncaught SyntaxError: The requested module '/@fs/workspace/packages/shared/src/button-variants.ts?t=…'
+does not provide an export named 'buttonVariants'
+```
+
+也就是说 dev server 把这个**模块本体返回成空的**（只剩一行 sourcemap 注释），依赖它的 `button.tsx` 整个炸掉，`#root` 里什么都没有 —— 看起来像「代码写坏了」或者「接口挂了」，其实都不是。判断只用一条命令：
+
+```bash
+curl -s "http://localhost:5173/@fs/workspace/packages/shared/src/button-variants.ts" | head -3
+# 空 / 只有 sourcemap 注释  → 旧模块；重启就好
+podman restart oh-your-ear-web-1
+```
+
+重启后同一个 URL 立刻返回带 `export const buttonVariants` 的真实内容，`/` 渲染出 58968 字节、控制台 0 错误。**注意容器里仓库挂在 `/workspace`**，所以浏览器报的 `/@fs/workspace/...` 就是这个文件（工作机上是 `/home/hv/projs/oh-your-ear`）。
+
+以后碰到「dev 里白屏 / 某个共享模块的导入突然报错」，先重启 web 容器再读代码 —— 而且别忘了让浏览器硬刷一下。
+
 ## 参考
 
 - `apps/web/src/index.css`
