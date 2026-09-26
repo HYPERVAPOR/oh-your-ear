@@ -26,7 +26,7 @@ const SIZES = {
     tag: 'p',
   },
   lg: {
-    row: 'gap-4 items-center',
+    row: 'gap-4',
     name: 'font-display text-[28px] font-medium leading-tight sm:text-[32px]',
     email: 'mt-1.5 text-[15px]',
     /** On the account page the name is what the page is about, so it is the heading. */
@@ -41,15 +41,14 @@ const SIZES = {
  * The first two are editable where they are shown: clicking the picture chooses a file (there is
  * no separate upload button: the thing being replaced is the thing you click), and clicking the
  * name turns it into the field it is. An account that signed up with a code has no name at all,
- * and shows the words that invite one, so the third case is not a blank.
+ * so the third case is the invitation rather than a blank.
  *
  * The name is written optimistically: the field closes and the new word is on the card while the
- * request is still on its way, and the reader hears about it only if the server refuses. A field
- * that stays open until the server answers shows the reader nothing but their own typing.
+ * request is still on its way, and the reader hears about it only if the server refuses.
  *
  * The caption line under the three is always there, empty when it has nothing to say — the space
- * a refusal needs is the space it keeps — and it is where the picture can be taken off again.
- */
+ * a refusal needs is the space it keeps — and it is where the picture can be taken off again. It
+ * sits below the row rather than inside it, so that the row's own bottom edge is the address line. */
 export function AccountIdentity({
   size = 'md',
   className,
@@ -150,96 +149,100 @@ export function AccountIdentity({
   }
 
   return (
-    <div className={cn('flex items-start', layout.row, className)}>
-      <div className="flex shrink-0 flex-col items-start gap-1.5">
-        <button
-          type="button"
-          className="cursor-pointer disabled:cursor-default disabled:opacity-50"
-          aria-label={t('auth.avatarUpload')}
-          title={t('auth.avatarUpload')}
-          disabled={busy}
-          onClick={() => input.current?.click()}
-        >
-          <Avatar user={user} size={size} />
-        </button>
+    <div className={className}>
+      {/* Bottom-aligned: the picture's edge sits on the address line's, in both sizes and places. */}
+      <div className={cn('flex items-end', layout.row)}>
+        <div className="flex shrink-0 flex-col items-start gap-1.5">
+          <button
+            type="button"
+            className="cursor-pointer disabled:cursor-default disabled:opacity-50"
+            aria-label={t('auth.avatarUpload')}
+            title={t('auth.avatarUpload')}
+            disabled={busy}
+            onClick={() => input.current?.click()}
+          >
+            <Avatar user={user} size={size} />
+          </button>
 
-        <input
-          ref={input}
-          type="file"
-          accept="image/png,image/jpeg"
-          className="sr-only"
-          disabled={busy}
-          onChange={(event) => {
-            const file = event.target.files?.[0]
-            if (file) void upload(file)
-          }}
-        />
-      </div>
+          <input
+            ref={input}
+            type="file"
+            accept="image/png,image/jpeg"
+            className="sr-only"
+            disabled={busy}
+            onChange={(event) => {
+              const file = event.target.files?.[0]
+              if (file) void upload(file)
+            }}
+          />
+        </div>
 
-      <div className="min-w-0">
-        <Name className={cn('break-all', layout.name)}>
-          {editing ? (
-            <input
-              autoFocus
-              // The ceiling the API enforces, said once here so the round trip that would
-              // refuse it never has to happen.
-              maxLength={50}
-              value={draft}
-              className={cn(
-                'w-full max-w-[24ch] border border-hairline-strong bg-canvas px-1 text-ink outline-none focus:border-ink',
-                layout.name,
-              )}
-              aria-label={t('account.editName')}
-              onFocus={(event) => event.currentTarget.select()}
-              onChange={(event) => setDraft(event.target.value)}
-              onBlur={() => void saveName()}
-              onKeyDown={(event) => {
-                if (event.key === 'Enter') {
-                  event.preventDefault()
-                  void saveName()
-                }
-                if (event.key === 'Escape') {
-                  event.preventDefault()
-                  setEditing(false)
-                }
-              }}
-            />
-          ) : (
-            <button
-              type="button"
-              className={cn(
-                'cursor-pointer text-left',
-                user.name
-                  ? 'underline-offset-4 hover:underline'
-                  : 'text-muted underline decoration-dotted underline-offset-4',
-              )}
-              title={t('account.editName')}
-              onClick={() => {
-                setDraft(user.name ?? '')
-                setEditing(true)
-              }}
-            >
-              {user.name ?? t('account.addName')}
-            </button>
-          )}
-        </Name>
-
-        <p className={cn('break-all text-muted', layout.email)}>{user.email}</p>
-
-        <p className="mt-1.5 min-h-[20px] text-[13px] text-muted">
-          {message ??
-            (isUploadedAvatar(user.avatarUrl) && (
+        <div className="min-w-0">
+          <Name className={cn('break-all', layout.name)}>
+            {editing ? (
+              <input
+                autoFocus
+                // The ceiling the API enforces, so the round trip that would refuse it never happens.
+                maxLength={50}
+                value={draft}
+                // An outline, not a border, and no padding: neither takes up space, so the field
+                // is exactly the size of the name it replaced — no pixel of the row moves.
+                className={cn(
+                  'w-full max-w-[24ch] bg-transparent text-ink outline outline-1 -outline-offset-1 outline-hairline-strong focus:outline-ink',
+                  layout.name,
+                )}
+                aria-label={t('account.editName')}
+                onFocus={(event) => event.currentTarget.select()}
+                onChange={(event) => setDraft(event.target.value)}
+                onBlur={() => void saveName()}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    event.preventDefault()
+                    void saveName()
+                  }
+                  if (event.key === 'Escape') {
+                    event.preventDefault()
+                    setEditing(false)
+                  }
+                }}
+              />
+            ) : (
               <button
                 type="button"
-                className="cursor-pointer underline underline-offset-4 hover:text-ink disabled:cursor-default disabled:opacity-50"
-                disabled={busy}
-                onClick={() => void removePicture()}
+                className={cn(
+                  'cursor-pointer text-left',
+                  user.name
+                    ? 'underline-offset-4 hover:underline'
+                    : 'text-muted underline decoration-dotted underline-offset-4',
+                )}
+                title={t('account.editName')}
+                onClick={() => {
+                  setDraft(user.name ?? '')
+                  setEditing(true)
+                }}
               >
-                {t('auth.avatarRemove')}
+                {user.name ?? t('account.addName')}
               </button>
-            ))}
-        </p>
+            )}
+          </Name>
+
+          <p className={cn('break-all text-muted', layout.email)}>{user.email}</p>
+        </div>
       </div>
+
+      <p className="mt-1.5 min-h-[20px] text-[13px] text-muted">
+        {message ??
+          (isUploadedAvatar(user.avatarUrl) && (
+            <button
+              type="button"
+              className="cursor-pointer underline underline-offset-4 hover:text-ink disabled:cursor-default disabled:opacity-50"
+              disabled={busy}
+              onClick={() => void removePicture()}
+            >
+              {t('auth.avatarRemove')}
+            </button>
+          ))}
+      </p>
     </div>
   )
 }
