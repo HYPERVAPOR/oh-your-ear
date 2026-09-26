@@ -1,13 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Check } from 'lucide-react'
 
 import { apiClient } from '@/api/client'
 import { Card } from '@/components/ui/card'
-import { ModuleSwatch } from '@/components/ui/orb'
-import type { ExerciseKind } from '@/components/ui/orb'
-
-const MODULES: ExerciseKind[] = ['singleNote', 'interval', 'chord', 'melody', 'rhythm']
+import { PracticeTrend } from '@/components/practice-trend'
+import { ModuleSwatch, MODULES, MODULE_SWATCH } from '@/components/ui/orb'
+import { cn } from '@/lib/utils'
 
 function Stat({ label, value }: { label: string; value: string | number }) {
   return (
@@ -18,7 +16,7 @@ function Stat({ label, value }: { label: string; value: string | number }) {
   )
 }
 
-/** Totals, per-module accuracy, achievements, and a daily trend. */
+/** Totals, per-module accuracy, and a daily trend. */
 export function PracticeStats() {
   const { t } = useTranslation('common')
 
@@ -45,8 +43,6 @@ export function PracticeStats() {
 
   const accuracy = Math.round(data.accuracy * 100)
   const activeDays = data.daily.filter((day) => day.solved > 0).length
-  const peak = Math.max(...data.daily.map((day) => day.solved), 1)
-  const practised = MODULES.filter((kind) => data.byExercise[kind])
 
   return (
     <Card className="p-6 sm:p-7">
@@ -59,86 +55,109 @@ export function PracticeStats() {
         <Stat label={t('stats.streak')} value={data.streak} />
       </div>
 
-      <h3 className="badge-label mt-8 text-muted">{t('stats.trend')}</h3>
-      <div
-        className="mt-3 flex h-20 max-w-md items-end gap-1.5"
-        role="img"
-        aria-label={t('stats.trendLabel', {
-          from: data.daily[0]?.date ?? '',
-          to: data.daily[data.daily.length - 1]?.date ?? '',
-          solved: data.daily.reduce((sum, day) => sum + day.solved, 0),
-        })}
-      >
-        {data.daily.map((day) => (
-          <div
-            key={day.date}
-            title={t('stats.dayTitle', { date: day.date, solved: day.solved })}
-            className="flex h-full flex-1 flex-col justify-end overflow-hidden rounded-sm bg-surface-strong"
-          >
-            <div
-              className={day.solved > 0 ? 'rounded-sm bg-primary' : ''}
-              style={{
-                height: day.solved > 0 ? `${Math.max(10, (day.solved / peak) * 100)}%` : '0',
-              }}
-            />
-          </div>
-        ))}
-      </div>
-      <div className="mt-2 flex max-w-md justify-between text-[13px] text-muted">
-        <span className="tabular">{data.daily[0]?.date}</span>
-        <span className="tabular">{data.daily[data.daily.length - 1]?.date}</span>
-      </div>
+      <PracticeTrend daily={data.daily} />
 
       <h3 className="badge-label mt-8 text-muted">{t('stats.byExercise')}</h3>
-      <ul className="mt-3 space-y-3">
-        {practised.map((kind) => {
-          const entry = data.byExercise[kind]
-          if (!entry) return null
-          const share = Math.round((entry.solved / data.solved) * 100)
+      {/* All five modules, practised or not: an empty column says something too, and a chart
+          whose bars appear as you use a module is one you cannot compare month to month.
 
-          return (
-            <li key={kind} className="flex items-center gap-3 text-[15px]">
-              <ModuleSwatch kind={kind} />
-              <span className="w-20 shrink-0 whitespace-nowrap">{t(`modules.${kind}`)}</span>
-              <span className="h-1.5 flex-1 overflow-hidden rounded-none bg-surface-strong">
-                <span
-                  className="block h-full rounded-none bg-primary"
-                  style={{ width: `${share}%` }}
-                />
-              </span>
-              <span className="tabular shrink-0 text-[13px] text-muted">
-                {t('stats.moduleDetail', {
-                  solved: entry.solved,
-                  percent: Math.round(entry.accuracy * 100),
+          Fixed-width columns with the figure taking the width of the card's column, so five of
+          them read as a chart instead of as a layout: the bars keep their width and the space
+          between them is what grows. The gridlines carry the scale — 0, half, all of it — and
+          the bars are read against them; the bars themselves are ink, black on paper and white
+          on night, the same as every other mark in this card. The top band is where a column's
+          own value goes when the column is at 100%, so nothing is ever written outside the plot.
+
+          The axis is a row of underlines, one per module in that module's own colour — the same
+          mark the level tabs use — instead of five names: at this size the names were the widest
+          thing in the figure (English ones wrap). What the underline cannot say, the card that
+          floats over a column on hover does — name, colour, accuracy, tried, right. It stays in
+          the document with `opacity-0` rather than being hidden, so a screen reader reads all
+          five while nobody is hovering, and the value printed on the column steps aside for it. */}
+      <div className="mt-4 flex max-w-md text-[12px]">
+        <div className="flex h-56 w-8 shrink-0 flex-col text-right text-muted tabular">
+          <span aria-hidden="true" className="h-6" />
+          <div className="relative flex-1">
+            <span className="absolute top-0 right-0 -translate-y-1/2">100%</span>
+            <span className="absolute top-1/2 right-0 -translate-y-1/2">50%</span>
+            <span className="absolute top-full right-0 -translate-y-1/2">0%</span>
+          </div>
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <div className="flex h-56 flex-col">
+            <span aria-hidden="true" className="h-6" />
+            <div className="relative flex-1 border-l border-hairline-strong">
+              <span className="absolute inset-x-0 top-0 border-t border-hairline" />
+              <span className="absolute inset-x-0 top-1/2 border-t border-hairline" />
+              <span className="absolute inset-x-0 bottom-0 border-t border-hairline-strong" />
+
+              <div className="flex h-full justify-between px-2">
+                {MODULES.map((kind, index) => {
+                  const entry = data.byExercise[kind]
+                  const solved = entry?.solved ?? 0
+                  const correct = entry?.correct ?? 0
+                  const percent = entry ? Math.round(entry.accuracy * 100) : 0
+                  // The two end cards hug the plot's edge instead of centring on their column:
+                  // a 160px card centred on the outermost bar hangs off the card on a phone.
+                  const anchor =
+                    index === 0
+                      ? 'left-0'
+                      : index === MODULES.length - 1
+                        ? 'right-0'
+                        : 'left-1/2 -translate-x-1/2'
+
+                  return (
+                    <div key={kind} className="group relative w-4">
+                      {solved > 0 && (
+                        <span
+                          className="absolute inset-x-0 bottom-0 bg-primary"
+                          style={{ height: `${percent}%` }}
+                        />
+                      )}
+                      <span
+                        className="absolute inset-x-0 mb-1 text-center tabular text-muted transition-opacity group-hover:opacity-0"
+                        style={{ bottom: `${percent}%` }}
+                      >
+                        {solved > 0 ? `${percent}%` : '—'}
+                      </span>
+
+                      {/* Floats over the column's own top, and holds still: it is a readout, not
+                          a thing to click, so it must never take the pointer away from the bar
+                          underneath it. */}
+                      <div
+                        className={`pointer-events-none absolute z-10 mb-2 w-40 rounded-xl border border-hairline-strong bg-surface px-3 py-2 text-left opacity-0 transition-opacity group-hover:opacity-100 ${anchor}`}
+                        style={{ bottom: `${percent}%` }}
+                      >
+                        <div className="flex items-center gap-2 text-[13px]">
+                          <ModuleSwatch kind={kind} />
+                          {t(`modules.${kind}`)}
+                        </div>
+                        <div className="tabular mt-1.5 text-[13px]">
+                          {t('stats.accuracy')} {solved > 0 ? `${percent}%` : '—'}
+                        </div>
+                        <div className="tabular mt-0.5 text-muted">
+                          {t('stats.cardTally', { solved, correct })}
+                        </div>
+                      </div>
+                    </div>
+                  )
                 })}
-              </span>
-            </li>
-          )
-        })}
-      </ul>
+              </div>
+            </div>
+          </div>
 
-      <h3 className="badge-label mt-8 text-muted">{t('stats.achievements')}</h3>
-      <ul className="mt-3 flex flex-wrap gap-2">
-        {data.achievements.map((badge) => (
-          <li
-            key={badge.id}
-            title={t(`achievements.${badge.id}.description`)}
-            className={
-              badge.achieved
-                ? 'inline-flex items-center gap-2 rounded-none bg-success/15 px-3.5 py-1.5 text-[14px] font-medium text-success-text'
-                : 'inline-flex items-center gap-2 rounded-none border border-hairline px-3.5 py-1.5 text-[14px] text-muted'
-            }
-          >
-            {badge.achieved && <Check className="h-3.5 w-3.5" />}
-            {t(`achievements.${badge.id}.title`)}
-            {!badge.achieved && (
-              <span className="tabular text-[13px]">
-                {badge.progress}/{badge.target}
+          {/* The axis: one underline per module, in that module's own colour and as wide as its
+              column, so the mark sits exactly under the bar it names. */}
+          <div className="mt-1.5 flex justify-between px-2">
+            {MODULES.map((kind) => (
+              <span key={kind} className="w-4">
+                <span className={cn('block h-0.5', MODULE_SWATCH[kind])} />
               </span>
-            )}
-          </li>
-        ))}
-      </ul>
+            ))}
+          </div>
+        </div>
+      </div>
     </Card>
   )
 }

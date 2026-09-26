@@ -31,6 +31,8 @@ function Figure({ label, value }: { label: string; value: string | number }) {
 export function RoundSummary({
   kind,
   level,
+  title,
+  label,
   entries,
   durationMs,
   onRestart,
@@ -39,6 +41,10 @@ export function RoundSummary({
   kind: ExerciseKind
   /** Set when this round was a question-set level; the summary then judges it. */
   level?: Level
+  /** Heading, when the round was not one module: the daily session names itself. */
+  title?: string
+  /** The word beside the heading, when the round was not one module. */
+  label?: string
   entries: RoundEntry[]
   durationMs: number
   onRestart: () => void
@@ -49,7 +55,7 @@ export function RoundSummary({
   const [saved, setSaved] = useState<{ passed: boolean; bestAccuracy: number } | null>(null)
 
   // How today stands against the daily goal, so a round says where it left you.
-  const { data: plan } = useQuery({
+  const { data: plan, refetch: refetchPlan } = useQuery({
     queryKey: ['study-plan'],
     enabled: !!user,
     staleTime: 0,
@@ -60,6 +66,14 @@ export function RoundSummary({
     },
   })
   const reported = useRef(false)
+
+  // The last answer's report is still in flight when a round ends, so the day's count read
+  // here can be one short — the one case where the reader is looking straight at it. Read
+  // again once it has had a moment to land.
+  useEffect(() => {
+    const timer = setTimeout(() => void refetchPlan(), 1200)
+    return () => clearTimeout(timer)
+  }, [refetchPlan])
 
   const correct = entries.filter((entry) => entry.correct).length
   const accuracy = entries.length > 0 ? Math.round((correct / entries.length) * 100) : 0
@@ -96,12 +110,19 @@ export function RoundSummary({
   }, [level, kind, user, entries.length, correct])
 
   return (
-    <ExerciseShell kind={kind} onBack={onBack} score={{ correct, total: entries.length }}>
+    <ExerciseShell
+      kind={kind}
+      title={title}
+      label={label}
+      onBack={onBack}
+      score={{ correct, total: entries.length }}
+    >
       <Card className="w-full p-6 sm:p-7">
         <h2 className="text-[22px] font-medium leading-tight">
-          {level
-            ? t('round.levelTitle', { level: pickText(level.title, i18n.language) })
-            : t('round.title')}
+          {title ??
+            (level
+              ? t('round.levelTitle', { level: pickText(level.title, i18n.language) })
+              : t('round.title'))}
         </h2>
 
         {level && (
@@ -122,11 +143,13 @@ export function RoundSummary({
 
         {plan && (
           <p className="mt-3 text-[15px] text-body">
-            {t('daily.afterRound', {
-              solved: plan.today.solved,
-              goal: plan.dailyGoal,
-              remaining: Math.max(plan.dailyGoal - plan.today.solved, 0),
-            })}
+            {plan.today.solved >= plan.dailyGoal
+              ? t('home.met')
+              : t('daily.afterRound', {
+                  solved: plan.today.solved,
+                  goal: plan.dailyGoal,
+                  remaining: Math.max(plan.dailyGoal - plan.today.solved, 0),
+                })}
           </p>
         )}
 

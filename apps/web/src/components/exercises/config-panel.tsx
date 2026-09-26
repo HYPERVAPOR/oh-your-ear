@@ -4,6 +4,7 @@ import { ChevronDown, RotateCcw, Settings } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Select } from '@/components/ui/field'
+import { useLevelRequested } from '@/lib/levels'
 import { cn } from '@/lib/utils'
 
 /** Collapsed settings: a quiet control that opens into hairline-separated rows. */
@@ -18,6 +19,13 @@ export function ConfigPanel({
 }) {
   const { t } = useTranslation('common')
   const [open, setOpen] = useState(false)
+  const levelRequested = useLevelRequested()
+
+  // A question set fixes the configuration: its screen shows what the level asks and
+  // nothing to change. Hidden here rather than in each exercise, because every exercise
+  // screen draws its settings through this component — the same `if` in five files is
+  // five chances to forget it, and one of them will be forgotten.
+  if (levelRequested) return null
 
   return (
     <div className="w-full rounded-xl border border-hairline bg-surface">

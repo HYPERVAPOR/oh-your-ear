@@ -34,7 +34,7 @@ The landing page has a piano roll you can edit and hear: drag the blocks, double
 ### Practise first, sign in later
 
 **As a guest**, every drill is open and scores last for the session.
-**With an account**, you get study plans, progress statistics, a notebook of the ones you keep getting wrong, streaks and achievements.
+**With an account**, you get study plans, progress statistics, a notebook of the ones you keep getting wrong, and a streak of days.
 
 ### Anywhere, in your language
 

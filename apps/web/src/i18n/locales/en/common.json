@@ -11,12 +11,10 @@
     "play": "Play",
     "playNote": "Play {{note}}",
     "playing": "Playing...",
-    "replay": "Replay",
     "next": "Next",
     "back": "Back",
     "tap": "Tap",
     "finish": "Finish",
-    "newRhythm": "New rhythm",
     "login": "Log in",
     "logout": "Log out",
     "cancel": "Cancel",
@@ -77,38 +75,47 @@
     "7": "Dominant 7th"
   },
   "auth": {
-    "title": "Log in / Sign up",
-    "subtitle": "Your account is created on first login.",
+    "loginTitle": "Log in",
+    "signupTitle": "Create an account",
+    "resetTitle": "Reset your password",
     "account": "My account",
-    "backHome": "Back home",
     "email": "Email",
     "code": "Code",
     "sendCode": "Send code",
     "resendIn": "Resend in {{seconds}}s",
-    "codeSentHint": "Code sent.",
+    "codeSentTo": "We sent a code to {{email}}.",
+    "changeEmail": "Use a different address",
     "submit": "Log in",
+    "continue": "Continue",
+    "createAccount": "Create account",
+    "resetSubmit": "Set a new password",
     "invalidEmail": "That email address is not valid.",
     "invalidCode": "Wrong or expired code.",
-    "loginWithCode": "Use a code",
-    "loginWithPassword": "Use a password",
-    "loginMode": "Sign-in method",
-    "passwordSubtitle": "Forgot it? Sign in with a code.",
     "password": "Password",
-    "passwordHint": "Set a password and stop waiting for email.",
-    "currentPassword": "Current password",
     "newPassword": "New password",
     "setPassword": "Set password",
-    "changePassword": "Change password",
-    "passwordSaved": "Saved.",
-    "wrongPassword": "That is not the current password.",
     "passwordTooShort": "A password needs at least 8 characters.",
+    "passwordMismatch": "The two passwords do not match.",
+    "confirmPassword": "Repeat the password",
+    "setPasswordStep": "Choose a password — you will sign in with it from now on.",
+    "emailTaken": "That address already has an account.",
     "invalidCredentials": "Wrong email or password.",
     "tooManyRequests": "Too many requests, try again later.",
+    "forgotPassword": "Forgot your password?",
+    "noAccount": "No account yet?",
+    "goSignup": "Create one",
+    "haveAccount": "Already have an account?",
+    "goLogin": "Log in",
     "loginWithGoogle": "Continue with Google",
     "loginMock": "Mock login (dev only)",
-    "avatarUpload": "Upload",
-    "avatarRemove": "Remove",
-    "avatarFailed": "That picture did not go through: PNG or JPEG, at least 16×16."
+    "avatarUpload": "Change avatar",
+    "avatarPreview": "Preview picture",
+    "avatarFailed": "That picture did not go through. Try again.",
+    "avatarWrongType": "PNG or JPEG, please.",
+    "avatarTooBig": "That file is over 512KB.",
+    "avatarTooSmall": "That picture is smaller than 16×16.",
+    "avatarTooLopsided": "That picture is too long and thin to square up.",
+    "avatarUnreadable": "That file could not be read as a picture."
   },
   "feedback": {
     "correct": "Correct.",
@@ -118,12 +125,13 @@
   "plan": {
     "solvedOfGoal": "{{solved}} / {{goal}} questions",
     "title": "Daily practice settings",
-    "description": "Set the daily question goal and focus modules; daily practice builds the day’s session from them.",
     "dailyGoal": "Daily question goal",
     "focus": "Focus modules",
     "save": "Save plan",
     "saved": "Saved",
-    "goToday": "Practise today’s session"
+    "goToday": "Practise today’s session",
+    "goalRange": "The daily goal has to be between 1 and 500",
+    "pickOne": "Pick at least one focus module"
   },
   "stats": {
     "title": "Practice stats",
@@ -132,12 +140,11 @@
     "accuracy": "Accuracy",
     "activeDays": "Active (14d)",
     "streak": "Day streak",
-    "trend": "Questions per day",
+    "trend": "Questions per day (last {{days}} days)",
     "trendLabel": "Questions per day: {{from}} to {{to}}, {{solved}} in total",
-    "dayTitle": "{{date}}: {{solved}} questions",
-    "byExercise": "By module",
-    "moduleDetail": "{{solved}} solved, {{percent}}%",
-    "achievements": "Achievements"
+    "byExercise": "Accuracy by module",
+    "cardTally": "{{solved}} tried, {{correct}} right",
+    "daySolved": "{{count}} questions"
   },
   "mistakes": {
     "title": "Mistake notebook",
@@ -150,28 +157,6 @@
     "open": "Open the notebook",
     "rhythmPattern": "{{count}} taps · {{bpm}} BPM",
     "openHint": "Wrong answers collect here and leave once you get them right."
-  },
-  "achievements": {
-    "firstSteps": {
-      "title": "First steps",
-      "description": "Answer your first question"
-    },
-    "warmUp": {
-      "title": "Warmed up",
-      "description": "Answer 20 questions in total"
-    },
-    "century": {
-      "title": "Century",
-      "description": "Answer 100 questions in total"
-    },
-    "marathon": {
-      "title": "Five hundred",
-      "description": "Answer 500 questions in total"
-    },
-    "streakWeek": {
-      "title": "Week streak",
-      "description": "Practise 7 days in a row"
-    }
   },
   "round": {
     "title": "Round complete",
@@ -192,15 +177,16 @@
     "levelFailed": "Not passed: {{mark}}% accuracy is needed.",
     "levelBest": "Best so far {{percent}}%.",
     "nextLevel": "Next level",
-    "allLevels": "Question sets"
+    "allLevels": "All levels"
   },
   "levels": {
-    "title": "Question sets",
+    "title": "All levels",
     "intro": "One chain per module, easy to hard. Pass a level to open the next one (80% accuracy).",
     "questions": "{{count}} questions",
     "best": "best {{percent}}%",
     "empty": "Nothing here yet. Start with level 1.",
-    "guestBanner": "Question-set progress lives in your account. Sign in to start from level 1."
+    "guestBanner": "Question-set progress lives in your account. Sign in to start from level 1.",
+    "guestTryRandom": "Not signing in? Try a <randomTest>random test</randomTest>."
   },
   "collections": {
     "title": "Collections",
@@ -208,7 +194,7 @@
     "defaultName": "Saved",
     "collect": "Collect",
     "newFolder": "New folder",
-    "folderEmpty": "This folder is empty. Use the bookmark icon next to a level.",
+    "folderEmpty": "This folder is empty. Use the collect icon next to a level.",
     "remove": "Remove",
     "practise": "Practise",
     "rename": "Folder name",
@@ -223,6 +209,7 @@
     "randomTitle": "Random test",
     "passedOf": "{{passed}}/{{total}}",
     "accountLabel": "Account",
+    "guestLine": "Hmm, we don't know you yet — please <signIn>log in</signIn>.",
     "startDaily": "Start daily practice",
     "extraRound": "One more round",
     "met": "Today's goal is met",
@@ -230,7 +217,6 @@
   },
   "heatmap": {
     "title": "Progress",
-    "streaks": "{{current}}-day streak · longest {{longest}}",
     "slot": {
       "todo": "Not yet",
       "done": "Answered"
@@ -244,6 +230,16 @@
       "partial": "Partly done",
       "none": "Nothing"
     },
-    "cell": "{{date}}: {{solved}} of {{goal}}"
+    "cell": "{{date}}: {{solved}} of {{goal}}",
+    "future": "Future"
+  },
+  "account": {
+    "addName": "Add a name",
+    "editName": "Change your name",
+    "nameFailed": "That name could not be saved. Please try again."
+  },
+  "daily": {
+    "title": "Daily practice",
+    "afterRound": "{{solved}} of {{goal}} today — {{remaining}} to go."
   }
 }

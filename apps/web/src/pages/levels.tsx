@@ -1,21 +1,24 @@
 import { useQuery } from '@tanstack/react-query'
-import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
-import { Check, Lock } from 'lucide-react'
+import { useTranslation, Trans } from 'react-i18next'
+import { Link, useSearchParams } from 'react-router-dom'
+import { ArrowLeft, Check, Lock } from 'lucide-react'
 
 import { apiClient } from '@/api/client'
 import { loginHere, loginPath } from '@/lib/auth'
 import { AppHeader } from '@/components/app-header'
 import { EmptyState } from '@/components/ui/card'
 import { CollectMenu } from '@/components/collect-menu'
-import { ModuleSwatch } from '@/components/ui/orb'
+import { ModuleSwatch, MODULE_SWATCH, type ExerciseKind } from '@/components/ui/orb'
 import { useAuthStore } from '@/stores/auth-store'
 import { pickText, useLevelCatalog, type Level } from '@/lib/levels'
 import { modulePath } from '@/components/round-summary'
+import { cn } from '@/lib/utils'
+import { iconKey } from '@oh-your-ear/shared/pref-controls'
 
 /**
- * Question sets: five chains, easy to hard, for signed-in users. A level is locked
- * until the one before it is passed, so the page is really a picture of progress.
+ * All levels: one chain per module, easy to hard, for signed-in users. A level is locked
+ * until the one before it is passed, so the page is really a picture of progress — one
+ * picture at a time, chosen by a tab.
  */
 export function Levels() {
   const { t, i18n } = useTranslation('common')
@@ -36,6 +39,26 @@ export function Levels() {
 
   const progressById = new Map((data ?? []).map((entry) => [entry.levelId, entry]))
 
+  // One chain at a time: five chains stacked vertically meant scrolling past four of them
+  // to reach the fifth. The tabs, their order and their names all come from the catalogue;
+  // nothing here knows the five modules by name.
+  //
+  // Which tab you are on is in the URL, so the dashboard can link to one (PRD 7.1.4) and a
+  // tab is shareable. An unknown or absent value falls back to the first one rather than
+  // rendering nothing.
+  const [params, setParams] = useSearchParams()
+  const sets = catalog ?? []
+  const modules = [...new Set(sets.map((set) => set.module))]
+  const asked = params.get('module')
+  const activeKind = modules.find((module) => module === asked) ?? modules[0]
+  const shown = sets.filter((set) => set.module === activeKind)
+
+  // replace: a tab is not a place you navigated to, so the back button keeps meaning
+  // "leave this page" instead of walking back through the tabs you tried.
+  function pick(module: ExerciseKind) {
+    setParams({ module }, { replace: true })
+  }
+
   return (
     <div className="flex min-h-screen flex-col">
       <AppHeader />
@@ -44,13 +67,25 @@ export function Levels() {
         {/* Gutter outside the 1200px box and the same width as the header: with the
             padding inside, this column sat 300px inboard of the bar above it. */}
         <div className="mx-auto w-full max-w-[1200px]">
+          {/* Where you came from, at the top left of the content and not in the bar: the bar is
+              identical on every page and stays that way. The same 32px square the account page
+              and its two subpages carry. */}
+          <Link
+            to="/"
+            className={`${iconKey} mb-5 no-underline`}
+            aria-label={t('actions.back')}
+            title={t('actions.back')}
+          >
+            <ArrowLeft aria-hidden="true" className="h-4 w-4" strokeWidth={1.75} />
+          </Link>
+
           <h1 className="text-[30px] font-medium leading-tight sm:text-[36px]">
             {t('levels.title')}
           </h1>
           <p className="mt-3 max-w-[52ch] text-[15px] text-body">{t('levels.intro')}</p>
 
           {!user && (
-            <div className="mt-6 flex flex-wrap items-center gap-4 rounded-xl border border-hairline bg-surface px-5 py-4">
+            <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-hairline bg-surface px-5 py-4">
               <p className="text-[15px] text-body">{t('levels.guestBanner')}</p>
               <Link
                 to={loginHere()}
@@ -58,11 +93,66 @@ export function Levels() {
               >
                 {t('actions.login')}
               </Link>
+              {/* The other answer, in the same place: the random tab needs no account at all,
+                  which is the thing a guest looking at a locked chain most needs to hear. The
+                  words around the link stay in the translation, so neither language has to be
+                  assembled out of halves. */}
+              <p className="text-[15px] text-body">
+                <Trans
+                  i18nKey="levels.guestTryRandom"
+                  components={{
+                    randomTest: (
+                      <Link
+                        to="/?mode=random"
+                        className="font-medium text-ink underline underline-offset-4"
+                      />
+                    ),
+                  }}
+                />
+              </p>
             </div>
           )}
 
-          <div className="mt-10 space-y-10">
-            {(catalog ?? []).map((set) => {
+          {/* Five siblings, not a switch. The welded group belongs to the dashboard's Learn /
+              Random pair and the calendar's four magnifications — two or four answers to one
+              question, cut out of a single plate. These are five modules, and each one already
+              has a colour on the dashboard, so the tab carries that colour and the one you are
+              on is underlined with it.
+
+              Equal shares, because the English names are nothing like each other in length and
+              a row that resizes as you click is a row that jumps. A floor under each one, so
+              they stay wide enough to hit on a phone, where the row scrolls rather than wraps. */}
+          <nav aria-label={t('levels.title')} className="mt-8 flex max-w-full overflow-x-auto">
+            {modules.map((value) => {
+              const active = activeKind === value
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => pick(value)}
+                  className={cn(
+                    'relative flex min-w-28 flex-1 items-center justify-center gap-2 whitespace-nowrap px-3 py-2.5 text-[15px] transition-colors',
+                    active ? 'text-ink' : 'text-muted hover:text-ink',
+                  )}
+                >
+                  <ModuleSwatch kind={value} />
+                  {t(`modules.${value}`)}
+                  {/* Only the one you are on, and absolutely placed so that having it or not
+                      having it cannot change the height of the row. */}
+                  {active && (
+                    <span
+                      aria-hidden="true"
+                      className={cn('absolute inset-x-0 bottom-0 h-0.5', MODULE_SWATCH[value])}
+                    />
+                  )}
+                </button>
+              )
+            })}
+          </nav>
+
+          <div className="mt-8 space-y-10">
+            {shown.map((set) => {
               const kind = set.module
               const chain: Level[] = set.levels
               // A level is open when it is the first, or the one before it is passed.
@@ -70,13 +160,16 @@ export function Levels() {
 
               return (
                 <section key={set.slug}>
-                  <div className="flex items-center gap-3">
-                    <ModuleSwatch kind={kind} />
-                    <h2 className="text-[20px] font-medium">
-                      {pickText(set.title, i18n.language)}
-                    </h2>
-                    <span className="text-[14px] text-muted">{t(`modules.${kind}`)}</span>
-                  </div>
+                  {/* The tab already names the module, so a heading only earns its line when
+                      this module has more than one set to tell apart. */}
+                  {shown.length > 1 && (
+                    <div className="flex items-center gap-3">
+                      <ModuleSwatch kind={kind} />
+                      <h2 className="text-[20px] font-medium">
+                        {pickText(set.title, i18n.language)}
+                      </h2>
+                    </div>
+                  )}
 
                   <ol className="mt-4 grid gap-2.5 sm:grid-cols-2">
                     {chain.map((level, index) => {

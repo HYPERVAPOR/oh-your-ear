@@ -10,9 +10,21 @@ export function safeNext(raw: string | null | undefined): string {
   return raw
 }
 
-/** The login URL that remembers where the reader was headed. */
-export function loginPath(next: string): string {
-  return `/login?next=${encodeURIComponent(next)}`
+/** The login URL that remembers where the reader was headed, and optionally the address they
+ *  already typed somewhere else — a sign-up screen sending them here knows it. */
+export function loginPath(next: string, email?: string): string {
+  const query = `next=${encodeURIComponent(next)}`
+  return `/login?${email ? `${query}&email=${encodeURIComponent(email)}` : query}`
+}
+
+/** The sign-up URL that remembers where the reader was headed. */
+export function signupPath(next: string): string {
+  return `/signup?next=${encodeURIComponent(next)}`
+}
+
+/** The password-reset URL that remembers where the reader was headed. */
+export function resetPath(next: string): string {
+  return `/reset?next=${encodeURIComponent(next)}`
 }
 
 /** The login URL that comes back to where the reader is now, parameters included. */

@@ -11,12 +11,10 @@
     "play": "播放",
     "playNote": "播放 {{note}}",
     "playing": "播放中...",
-    "replay": "重放",
     "next": "下一题",
     "back": "返回",
     "tap": "敲击",
     "finish": "完成",
-    "newRhythm": "新节奏",
     "login": "登录",
     "logout": "退出",
     "cancel": "取消",
@@ -77,38 +75,47 @@
     "7": "属七和弦"
   },
   "auth": {
-    "title": "登录 / 注册",
-    "subtitle": "首次登录即自动创建账号。",
+    "loginTitle": "登录",
+    "signupTitle": "注册",
+    "resetTitle": "重设密码",
     "account": "我的账号",
-    "backHome": "返回首页",
     "email": "邮箱",
     "code": "验证码",
     "sendCode": "发送验证码",
     "resendIn": "{{seconds}} 秒后重发",
-    "codeSentHint": "验证码已发送。",
+    "codeSentTo": "验证码已发送到 {{email}}。",
+    "changeEmail": "换个邮箱",
     "submit": "登录",
+    "continue": "继续",
+    "createAccount": "创建账号",
+    "resetSubmit": "重设密码",
     "invalidEmail": "邮箱格式不正确。",
     "invalidCode": "验证码错误或已过期。",
-    "loginWithCode": "用验证码",
-    "loginWithPassword": "用密码",
-    "loginMode": "登录方式",
-    "passwordSubtitle": "忘记密码就用验证码登录。",
     "password": "密码",
-    "passwordHint": "设个密码，以后就不用每次都等邮件了。",
-    "currentPassword": "当前密码",
     "newPassword": "新密码",
     "setPassword": "设置密码",
-    "changePassword": "修改密码",
-    "passwordSaved": "已保存。",
-    "wrongPassword": "当前密码不正确。",
     "passwordTooShort": "密码至少 8 位。",
+    "passwordMismatch": "两次输入不一致。",
+    "confirmPassword": "再输入一次",
+    "setPasswordStep": "设一个密码，以后用它登录。",
+    "emailTaken": "这个邮箱已经注册过了。",
     "invalidCredentials": "邮箱或密码不正确。",
     "tooManyRequests": "操作过于频繁，请稍后再试。",
+    "forgotPassword": "忘记密码？",
+    "noAccount": "没有账户？",
+    "goSignup": "去注册",
+    "haveAccount": "已有账户？",
+    "goLogin": "去登录",
     "loginWithGoogle": "使用 Google 继续",
     "loginMock": "模拟登录（仅开发环境）",
-    "avatarUpload": "上传头像",
-    "avatarRemove": "移除",
-    "avatarFailed": "这张图没通过：请用 PNG 或 JPEG，不小于 16×16。"
+    "avatarUpload": "更换头像",
+    "avatarPreview": "预览头像",
+    "avatarFailed": "这张图没传上去，稍后再试一次。",
+    "avatarWrongType": "请用 PNG 或 JPEG。",
+    "avatarTooBig": "这张图超过 512KB 了。",
+    "avatarTooSmall": "这张图比 16×16 还小。",
+    "avatarTooLopsided": "这张图太长太扁，裁成方形就剩一条了。",
+    "avatarUnreadable": "这个文件读不出图片。"
   },
   "feedback": {
     "correct": "答对了。",
@@ -118,12 +125,13 @@
   "plan": {
     "solvedOfGoal": "{{solved}} / {{goal}} 题",
     "title": "每日练习设置",
-    "description": "设定每日题数与重点模块；每日练习按它生成当天要练的题。",
     "dailyGoal": "每日目标题数",
     "focus": "重点模块",
     "save": "保存计划",
     "saved": "已保存",
-    "goToday": "去练今天的一组"
+    "goToday": "去练今天的一组",
+    "goalRange": "每日题数要在 1–500 之间",
+    "pickOne": "至少选一个重点模块"
   },
   "stats": {
     "title": "练习统计",
@@ -132,12 +140,11 @@
     "accuracy": "正确率",
     "activeDays": "近 14 天练习",
     "streak": "连续打卡",
-    "trend": "每日题数",
+    "trend": "每日题数（近 {{days}} 天）",
     "trendLabel": "每日题数：{{from}} 至 {{to}}，共 {{solved}} 题",
-    "dayTitle": "{{date}}：{{solved}} 题",
-    "byExercise": "模块分布",
-    "moduleDetail": "{{solved}} 题，正确率 {{percent}}%",
-    "achievements": "成就"
+    "byExercise": "各模块正确率",
+    "cardTally": "练了 {{solved}} 题，对了 {{correct}} 题",
+    "daySolved": "{{count}} 题"
   },
   "mistakes": {
     "title": "错题本",
@@ -150,28 +157,6 @@
     "open": "查看错题本",
     "rhythmPattern": "{{count}} 个音 · {{bpm}} BPM",
     "openHint": "答错的题会自动收进这里，答对同题后自动移除。"
-  },
-  "achievements": {
-    "firstSteps": {
-      "title": "起步",
-      "description": "完成第 1 道题"
-    },
-    "warmUp": {
-      "title": "热身完毕",
-      "description": "累计完成 20 道题"
-    },
-    "century": {
-      "title": "百题",
-      "description": "累计完成 100 道题"
-    },
-    "marathon": {
-      "title": "五百题",
-      "description": "累计完成 500 道题"
-    },
-    "streakWeek": {
-      "title": "坚持一周",
-      "description": "连续 7 天练习"
-    }
   },
   "round": {
     "title": "一轮结束",
@@ -192,15 +177,16 @@
     "levelFailed": "未通过，需要正确率 ≥{{mark}}%。",
     "levelBest": "最好成绩 {{percent}}%。",
     "nextLevel": "下一关",
-    "allLevels": "题单"
+    "allLevels": "所有关卡"
   },
   "levels": {
-    "title": "题单",
+    "title": "所有关卡",
     "intro": "每个模块一条链，从易到难。过一关解锁下一关（正确率 ≥80%），进度跟着账号走。",
     "questions": "{{count}} 题",
     "best": "最好 {{percent}}%",
     "empty": "还没有记录。从第一关开始吧。",
-    "guestBanner": "题单进度保存在账号里，登录后即可从第一关开始。"
+    "guestBanner": "题单进度保存在账号里，登录后即可从第一关开始。",
+    "guestTryRandom": "不想登录？试试<randomTest>随机练习</randomTest>。"
   },
   "collections": {
     "title": "收藏夹",
@@ -208,7 +194,7 @@
     "defaultName": "收藏",
     "collect": "收藏",
     "newFolder": "新建收藏夹",
-    "folderEmpty": "这个收藏夹还是空的。在题单页点关卡右侧的书签图标即可收藏。",
+    "folderEmpty": "这个收藏夹还是空的。在关卡列表点关卡右侧的收藏图标即可收藏。",
     "remove": "移出",
     "practise": "开练",
     "rename": "收藏夹名称",
@@ -223,6 +209,7 @@
     "randomTitle": "随机练习",
     "passedOf": "{{passed}}/{{total}}",
     "accountLabel": "账号",
+    "guestLine": "嗯……我们还不认识你，请<signIn>登录</signIn>。",
     "startDaily": "开始每日训练",
     "extraRound": "再来一轮",
     "met": "今日已达标",
@@ -230,7 +217,6 @@
   },
   "heatmap": {
     "title": "练习进度",
-    "streaks": "连续练习 {{current}} 天 · 最长 {{longest}} 天",
     "slot": {
       "todo": "未答",
       "done": "已答"
@@ -244,6 +230,16 @@
       "partial": "练了一部分",
       "none": "没练"
     },
-    "cell": "{{date}}：{{solved}} / {{goal}} 题"
+    "cell": "{{date}}：{{solved}} / {{goal}} 题",
+    "future": "未来"
+  },
+  "account": {
+    "addName": "添加用户名",
+    "editName": "改用户名",
+    "nameFailed": "没能保存用户名，请再试一次"
+  },
+  "daily": {
+    "title": "每日练习",
+    "afterRound": "今天 {{solved}} / {{goal}} 题，还差 {{remaining}} 题。"
   }
 }

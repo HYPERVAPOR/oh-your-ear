@@ -42,6 +42,26 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/auth/email/check': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /**
+     * Whether an address already has an account
+     * @description A deliberate exception to the rest of this surface. Signing in never says whether an address is registered — /auth/code answers 204 for any address, /auth/login answers the same way for an unknown address and a wrong password — but the sign-up screen asks the question out loud, so that someone who already has an account is sent to the sign-in screen instead of through a code they do not need. The answer is an oracle for "who has an account here", which is why it shares the code endpoint's throttle.
+     */
+    post: operations['checkEmail']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/auth/register': {
     parameters: {
       query?: never
@@ -79,6 +99,26 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/auth/password/reset': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    /**
+     * Set a new password using an email verification code
+     * @description For the reader who cannot sign in because the password is gone: the code stands in for the current password, which is exactly what a forgotten one is not. Everything else about a password is unchanged — the same length floor, one success per code, the same throttle. Signing in is part of the answer, since the code already proved the address. An address with no account gets one, the way a first code login does, so this cannot be used to ask whether an address is registered.
+     */
+    post: operations['resetPassword']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/auth/me': {
     parameters: {
       query?: never
@@ -107,6 +147,26 @@ export interface paths {
     put?: never
     /** Logout current user */
     post: operations['logout']
+    delete?: never
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
+  '/me/name': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    /**
+     * Set this account's display name
+     * @description The word the account is called by. Sign-in providers supply one; an account that signed up with a verification code has none until it is set here. Trimmed before it is stored, and empty is refused rather than kept as a blank name — an account with no name has a null one, and the client draws its own placeholder for that.
+     */
+    put: operations['setMyName']
+    post?: never
     delete?: never
     options?: never
     head?: never
@@ -415,9 +475,34 @@ export interface components {
        */
       email: string
     }
+    EmailCheckResponse: {
+      registered: boolean
+    }
+    SetNameRequest: {
+      /**
+       * @description Trimmed before it is stored; the trimmed value is what gets saved.
+       * @example Alex
+       */
+      name: string
+    }
     SetPasswordRequest: {
       /** @description Required when the account already has a password. */
       currentPassword?: string | null
+      /**
+       * @description At least 8 characters, at most 72 bytes (bcrypt's limit).
+       * @example correct horse battery staple
+       */
+      newPassword: string
+    }
+    /** @description A new password for an address proven by a code, for someone who is not signed in. */
+    ResetPasswordRequest: {
+      /**
+       * Format: email
+       * @example user@example.com
+       */
+      email: string
+      /** @example 123456 */
+      code: string
       /**
        * @description At least 8 characters, at most 72 bytes (bcrypt's limit).
        * @example correct horse battery staple
@@ -444,6 +529,10 @@ export interface components {
     }
     StudyPlan: {
       dailyGoal: number
+      /**
+       * @description The modules the daily session draws from. Empty means no narrowing down, so every
+       *     module counts. A plan that was never saved answers with the defaults.
+       */
       focusExercises: components['schemas']['ExerciseKind'][]
       today: components['schemas']['DailyProgress']
     }
@@ -550,16 +639,6 @@ export interface components {
       /** Format: date-time */
       lastWrongAt: string
     }
-    Achievement: {
-      /**
-       * @description Stable id; the client maps it to a title and description.
-       * @example century
-       */
-      id: string
-      progress: number
-      target: number
-      achieved: boolean
-    }
     ExerciseStats: {
       solved: number
       correct: number
@@ -579,8 +658,6 @@ export interface components {
        *     practice yet) with at least one answered question.
        */
       streak: number
-      /** @description Evaluated on read; the client owns the wording. */
-      achievements: components['schemas']['Achievement'][]
       /** @description Keyed by exercise kind; kinds never practised are absent. */
       byExercise: {
         [key: string]: components['schemas']['ExerciseStats']
@@ -689,6 +766,32 @@ export interface operations {
       429: components['responses']['TooManyRequests']
     }
   }
+  checkEmail: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['EmailCodeRequest']
+      }
+    }
+    responses: {
+      /** @description Whether the address has an account */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['EmailCheckResponse']
+        }
+      }
+      400: components['responses']['BadRequest']
+      429: components['responses']['TooManyRequests']
+    }
+  }
   register: {
     parameters: {
       query?: never
@@ -725,6 +828,33 @@ export interface operations {
     requestBody: {
       content: {
         'application/json': components['schemas']['EmailAuthRequest']
+      }
+    }
+    responses: {
+      /** @description Authenticated user with tokens */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['AuthResponse']
+        }
+      }
+      400: components['responses']['BadRequest']
+      401: components['responses']['Unauthorized']
+      429: components['responses']['TooManyRequests']
+    }
+  }
+  resetPassword: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['ResetPasswordRequest']
       }
     }
     responses: {
@@ -779,6 +909,32 @@ export interface operations {
         }
         content?: never
       }
+      401: components['responses']['Unauthorized']
+    }
+  }
+  setMyName: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['SetNameRequest']
+      }
+    }
+    responses: {
+      /** @description The account after the change */
+      200: {
+        headers: {
+          [name: string]: unknown
+        }
+        content: {
+          'application/json': components['schemas']['UserResponse']
+        }
+      }
+      400: components['responses']['BadRequest']
       401: components['responses']['Unauthorized']
     }
   }

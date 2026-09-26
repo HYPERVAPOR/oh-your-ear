@@ -110,7 +110,14 @@ function storageKey(type: ExerciseType) {
   return `oye:config:${type}`
 }
 
-function readConfig<T extends ExerciseType>(type: T): ExerciseConfigMap[T] {
+/**
+ * What the reader has set for one module, read from storage.
+ *
+ * A screen that draws questions reads this instead of holding the config in state: the
+ * settings panel writes to storage, so the next question picks up an edit either way, and
+ * a screen that mixes modules has no single config to hold.
+ */
+export function readExerciseConfig<T extends ExerciseType>(type: T): ExerciseConfigMap[T] {
   try {
     const raw = localStorage.getItem(storageKey(type))
     if (raw) {
@@ -132,7 +139,7 @@ function writeConfig<T extends ExerciseType>(type: T, config: ExerciseConfigMap[
 }
 
 export function useExerciseConfig<T extends ExerciseType>(type: T) {
-  const [config, setConfig] = useState<ExerciseConfigMap[T]>(() => readConfig(type))
+  const [config, setConfig] = useState<ExerciseConfigMap[T]>(() => readExerciseConfig(type))
 
   const updateConfig = useCallback(
     (patch: Partial<ExerciseConfigMap[T]>) => {

@@ -4,7 +4,16 @@ import { useTranslation } from 'react-i18next'
 
 import { apiClient } from '@/api/client'
 import { emptyRange, type DailyBucket, type Level, type Square } from '@/lib/heatmap'
-import { CELL, DayView, MonthGrid, TIER_CLASS, WeekRow, YearGrid } from '@/components/heatmap-views'
+import {
+  CELL,
+  DayView,
+  FUTURE_CLASS,
+  MonthGrid,
+  TIER_CLASS,
+  WeekRow,
+  YearGrid,
+} from '@/components/heatmap-views'
+import { useDelayedLoading } from '@/lib/use-delayed'
 import { useAuthStore } from '@/stores/auth-store'
 import { cn } from '@/lib/utils'
 
@@ -27,6 +36,8 @@ const SLOT_CLASS = ['bg-surface-strong', 'bg-success']
 export function PracticeHeatmap() {
   const { t, i18n } = useTranslation('common')
   const user = useAuthStore((s) => s.user)
+  const initialized = useAuthStore((s) => s.initialized)
+  const loading = useDelayedLoading(!initialized)
   const [level, setLevel] = useState<Level>('day')
 
   const { data } = useQuery({
@@ -63,10 +74,11 @@ export function PracticeHeatmap() {
         data-tier={item.tier}
         className={cn(
           cell,
-          TIER_CLASS[item.tier === 3 ? 2 : item.tier],
-          // Today is marked, not shouted at: a muted 1px ring instead of one in ink,
-          // which in the dark theme was a white outline and in the light theme black.
-          item.date === today && 'ring-1 ring-muted',
+          // The calendar keeps drawing the whole week or month, so the days ahead are there
+          // — in half the empty day's colour, which says "not yet" instead of "missed".
+          // Today itself is an ordinary square: it is simply where the pale ones start, and
+          // a rotated square on a grid of straight ones was the loudest mark on the card.
+          item.date > today ? FUTURE_CLASS : TIER_CLASS[item.tier === 3 ? 2 : item.tier],
         )}
       />
     )
@@ -74,17 +86,9 @@ export function PracticeHeatmap() {
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3">
-        <div>
-          <p className="badge-label text-muted">{t('heatmap.title')}</p>
-          {user && data && (
-            <p className="tabular mt-1.5 text-[15px]">
-              {t('heatmap.streaks', {
-                current: data.currentStreak,
-                longest: data.longestStreak,
-              })}
-            </p>
-          )}
-        </div>
+        {/* No streak line: the calendar is the history, and a sentence restating it is the
+            same fact twice. The count lives on the account page, where the numbers are. */}
+        <p className="badge-label text-muted">{t('heatmap.title')}</p>
 
         {/* One welded piece, like every other group of switches: one outline, a rule
             between neighbours. */}
@@ -110,22 +114,32 @@ export function PracticeHeatmap() {
         </div>
       </div>
 
+      {/* Same box, same 152px: until the session is known the calendar would first draw a
+          year of empty days and then fill in. */}
       <div className={cn('mt-4', BODY)}>
-        {level === 'day' && <DayView day={todayBucket} />}
-        {level === 'week' && <WeekRow days={days} today={today} square={square} />}
-        {level === 'month' && <MonthGrid days={days} today={today} square={square} />}
-        {level === 'year' && <YearGrid days={days} square={square} language={i18n.language} />}
+        {loading ? (
+          <span className="h-full w-full animate-pulse bg-surface-strong" />
+        ) : (
+          <>
+            {level === 'day' && <DayView day={todayBucket} />}
+            {level === 'week' && <WeekRow days={days} today={today} square={square} />}
+            {level === 'month' && <MonthGrid days={days} today={today} square={square} />}
+            {level === 'year' && <YearGrid days={days} square={square} language={i18n.language} />}
+          </>
+        )}
       </div>
 
       <ul className="mt-4 flex items-center gap-4 text-[13px] text-muted">
-        {level === 'day'
-          ? SLOT_LEGEND.map((key) => (
-              <li key={key} className="flex items-center gap-1.5">
-                <span className={cn('h-2 w-4 shrink-0', SLOT_CLASS[key === 'done' ? 1 : 0])} />
-                {t(`heatmap.slot.${key}`)}
-              </li>
-            ))
-          : CALENDAR_LEGEND.map((key) => (
+        {level === 'day' ? (
+          SLOT_LEGEND.map((key) => (
+            <li key={key} className="flex items-center gap-1.5">
+              <span className={cn('h-2 w-4 shrink-0', SLOT_CLASS[key === 'done' ? 1 : 0])} />
+              {t(`heatmap.slot.${key}`)}
+            </li>
+          ))
+        ) : (
+          <>
+            {CALENDAR_LEGEND.map((key) => (
               <li key={key} className="flex items-center gap-1.5">
                 <span
                   className={cn(
@@ -140,6 +154,14 @@ export function PracticeHeatmap() {
                 {t(`heatmap.tier.${key}`)}
               </li>
             ))}
+            {/* The pale squares are the only thing on this calendar that is not a tier, so
+                they get a key of their own: a day that has not arrived yet. */}
+            <li className="flex items-center gap-1.5">
+              <span className={cn(CELL, FUTURE_CLASS)} />
+              {t('heatmap.future')}
+            </li>
+          </>
+        )}
       </ul>
     </div>
   )

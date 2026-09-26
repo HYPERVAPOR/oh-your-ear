@@ -25,7 +25,13 @@
   ],
   "git": {
     "deploymentEnabled": {
-      "dev": false
+      "main": true,
+      "dev": false,
+      "fix/*": false,
+      "feat/*": false,
+      "feature/*": false,
+      "docs/*": false,
+      "chore/*": false
     }
   }
 }

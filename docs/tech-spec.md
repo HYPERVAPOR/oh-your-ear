@@ -45,7 +45,7 @@
   - JWT Access Token + Refresh Token（Refresh Token 存 httpOnly Cookie）
   - Google OAuth
   - 邮箱验证码（SMTP / Resend）
-- **主要能力**：用户认证、练习记录、错题本、学习计划、统计报表、成就/打卡、设置同步
+- **主要能力**：用户认证、练习记录、错题本、学习计划、统计报表、打卡、设置同步
 
 ## 离线 / PWA
 

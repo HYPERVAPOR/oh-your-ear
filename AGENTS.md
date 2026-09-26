@@ -17,9 +17,13 @@
 ## 开发流程
 
 1. 需求/bug 先建 GitHub Issue，GitHub Project 看板管理。
-2. **从 `dev` 切分支开发，CI 通过后提 PR 合进 `dev`**；`dev` 攒够了再提一个 PR 合进 `main`。命名遵循常规：`feature/12-tonejs-playback`、`feat: ...`、`Closes #12`。
-3. **推 `dev` 不部署任何东西**：Vercel 被显式忽略（`git.deploymentEnabled`），API 只在「CI 在 main 上通过」时才部署。合进 `main` 才是上线。这条是为了省 Vercel 每天 100 次部署的额度——详见 `docs/deploy.md` §7。
-4. 小改动（错别字、文档微调）直接 push `dev`，无需分支和 PR。
+2. **所有分支都从 `dev` 切，所有 PR 都提向 `dev`**（在 GitHub 建分支时确认 base 是 `dev`，不是 `main`）。命名遵循常规：`feature/12-tonejs-playback`、`feat: ...`、`Closes #12`。
+3. **不要自行把 `dev` 合进 `main`**：只有在**明确要求**时才从 `dev` 提一个 PR 到 `main`，合进 `main` 才算上线（Vercel 部署 + API CD）。
+4. **推 `dev` 不部署任何东西**：Vercel 被显式忽略（`git.deploymentEnabled`），API 只在「CI 在 main 上通过」时才部署。合进 `main` 才是上线。这条是为了省 Vercel 每天 100 次部署的额度——详见 `docs/deploy.md` §7。
+5. 小改动（错别字、文档微调）直接 push `dev`，无需分支和 PR。
+6. **PR 里的 `Closes #N` 只在验收条件全部满足时才写**；没满足就写 `Refs #N`，让 issue 开着。踩过：一个核心验收还没通过的 issue 被 `Closes` 关掉，还得手工 reopen —— 而那个 issue 开着正是为了记住"这件事还没验"（#136）。
+7. **合进 `dev` 的 PR 不会自动关闭 issue**：GitHub 只在合进**默认分支**（`main`）时才处理 `Closes`。所以合完 `dev` 的 PR 要**手动关**（或留到提升到 main 时一起关）。踩过：四个 PR 都写了 `Closes #N`，八个 issue 一条都没关，而且是几天后翻列表才发现的。
+8. **删文案只删被点名的那几样**，不要顺手把旁边「看起来也是同类噪音」的也删掉。一句简短的修改要求如果和已写下的判断冲突（PRD/DESIGN/注释），**往"删得更少"的方向理解，或先问一句**，不要顺手改文档把那条判断抹平。踩过两次：热力图文案、账号卡标题（用户说「只有这一句话」，我连标题一起删了）。
 
 ## 长期记忆系统
 
@@ -30,3 +34,4 @@
 不记：简单语法错误、官方文档已有、一次性失误、易搜索的常见报错、已 rollback 的临时方案、纯个人喜好。
 
 Compact 或开新对话前，回顾本轮是否有值得沉淀的内容并写入 `memory/`。
+7. **`main` 有分支保护**（ruleset「main: PR only」）：禁止直接推送、禁止强推、禁止删除，必须走 PR 且 CI 全绿，**没有 bypass，管理员也不例外**。原因不是洁癖：`compose/deploy.sh` 在仓库里，而它会在生产机上以 root 执行 —— 谁能推 `main`，谁就能在那台机器上跑代码。`dev` 不设保护。

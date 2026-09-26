@@ -42,6 +42,35 @@ paths:
         '429':
           $ref: '#/components/responses/TooManyRequests'
 
+  /auth/email/check:
+    post:
+      operationId: checkEmail
+      summary: Whether an address already has an account
+      description: >
+        A deliberate exception to the rest of this surface. Signing in never says whether an
+        address is registered — /auth/code answers 204 for any address, /auth/login answers the
+        same way for an unknown address and a wrong password — but the sign-up screen asks the
+        question out loud, so that someone who already has an account is sent to the sign-in
+        screen instead of through a code they do not need. The answer is an oracle for "who has
+        an account here", which is why it shares the code endpoint's throttle.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EmailCodeRequest'
+      responses:
+        '200':
+          description: Whether the address has an account
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmailCheckResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
   /auth/register:
     post:
       operationId: register
@@ -93,6 +122,37 @@ paths:
         '429':
           $ref: '#/components/responses/TooManyRequests'
 
+  /auth/password/reset:
+    post:
+      operationId: resetPassword
+      summary: Set a new password using an email verification code
+      description: >
+        For the reader who cannot sign in because the password is gone: the code stands in
+        for the current password, which is exactly what a forgotten one is not. Everything
+        else about a password is unchanged — the same length floor, one success per code,
+        the same throttle. Signing in is part of the answer, since the code already proved
+        the address. An address with no account gets one, the way a first code login does,
+        so this cannot be used to ask whether an address is registered.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordRequest'
+      responses:
+        '200':
+          description: Authenticated user with tokens
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/TooManyRequests'
+
   /auth/me:
     get:
       operationId: getMe
@@ -118,6 +178,35 @@ paths:
       responses:
         '204':
           description: Logged out successfully
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /me/name:
+    put:
+      operationId: setMyName
+      summary: Set this account's display name
+      description: >
+        The word the account is called by. Sign-in providers supply one; an account that signed
+        up with a verification code has none until it is set here. Trimmed before it is stored,
+        and empty is refused rather than kept as a blank name — an account with no name has a
+        null one, and the client draws its own placeholder for that.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetNameRequest'
+      responses:
+        '200':
+          description: The account after the change
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
 
@@ -621,6 +710,26 @@ components:
           format: email
           example: user@example.com
 
+    EmailCheckResponse:
+      type: object
+      required:
+        - registered
+      properties:
+        registered:
+          type: boolean
+
+    SetNameRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 50
+          description: Trimmed before it is stored; the trimmed value is what gets saved.
+          example: Alex
+
     SetPasswordRequest:
       type: object
       required:
@@ -630,6 +739,29 @@ components:
           type: string
           description: Required when the account already has a password.
           nullable: true
+        newPassword:
+          type: string
+          description: At least 8 characters, at most 72 bytes (bcrypt's limit).
+          example: correct horse battery staple
+
+    ResetPasswordRequest:
+      type: object
+      description: >
+        A new password for an address proven by a code, for someone who is not signed in.
+      required:
+        - email
+        - code
+        - newPassword
+      properties:
+        email:
+          type: string
+          format: email
+          example: user@example.com
+        code:
+          type: string
+          minLength: 6
+          maxLength: 6
+          example: '123456'
         newPassword:
           type: string
           description: At least 8 characters, at most 72 bytes (bcrypt's limit).
@@ -679,6 +811,9 @@ components:
           maximum: 500
         focusExercises:
           type: array
+          description: |
+            The modules the daily session draws from. Empty means no narrowing down, so every
+            module counts. A plan that was never saved answers with the defaults.
           items:
             $ref: '#/components/schemas/ExerciseKind'
         today:
@@ -920,25 +1055,6 @@ components:
           type: string
           format: date-time
 
-    Achievement:
-      type: object
-      required:
-        - id
-        - progress
-        - target
-        - achieved
-      properties:
-        id:
-          type: string
-          description: Stable id; the client maps it to a title and description.
-          example: century
-        progress:
-          type: integer
-        target:
-          type: integer
-        achieved:
-          type: boolean
-
     ExerciseStats:
       type: object
       required:
@@ -964,7 +1080,6 @@ components:
         - byExercise
         - daily
         - streak
-        - achievements
       properties:
         solved:
           type: integer
@@ -978,11 +1093,6 @@ components:
           description: |
             Consecutive days ending today (or yesterday, when today has no
             practice yet) with at least one answered question.
-        achievements:
-          type: array
-          description: Evaluated on read; the client owns the wording.
-          items:
-            $ref: '#/components/schemas/Achievement'
         byExercise:
           type: object
           description: Keyed by exercise kind; kinds never practised are absent.

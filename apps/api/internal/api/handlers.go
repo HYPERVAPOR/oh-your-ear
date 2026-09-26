@@ -93,6 +93,31 @@ func (s *Server) RequestEmailCode(c *gin.Context) {
 	}
 }
 
+// CheckEmail handles POST /auth/email/check: whether an address already has an account. It is
+// the one endpoint on this surface allowed to answer that; the OpenAPI description says why.
+func (s *Server) CheckEmail(c *gin.Context) {
+	// The same budget as sending a code, because the answer is the same kind of thing: a way
+	// to learn who has an account here.
+	if !s.codeLimiter.RateLimit(c) {
+		return
+	}
+
+	var body EmailCodeRequest
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "invalid request body"})
+		return
+	}
+
+	registered, err := s.auth.EmailRegistered(c.Request.Context(), string(body.Email))
+	if err != nil {
+		log.Printf("failed to check email: %v", err)
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "failed to check email"})
+		return
+	}
+
+	c.JSON(http.StatusOK, EmailCheckResponse{Registered: registered})
+}
+
 // deliverEmailCode hands the code to the mailer and answers 204 immediately.
 //
 // The 204 never meant "delivered": it means "this endpoint will not tell you whether that
@@ -205,6 +230,34 @@ func (s *Server) loginWithPassword(c *gin.Context, email, password string) {
 	s.RespondWithSession(c, user)
 }
 
+// SetMyName handles PUT /me/name: the word the account is called by, which sign-in providers
+// supply and which an account that signed up with a code does not have yet.
+func (s *Server) SetMyName(c *gin.Context) {
+	userID, ok := s.requireUser(c)
+	if !ok {
+		return
+	}
+
+	var body SetNameRequest
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "invalid request body"})
+		return
+	}
+
+	user, err := s.auth.SetName(c.Request.Context(), userID, body.Name)
+	switch {
+	case errors.Is(err, services.ErrNameEmpty), errors.Is(err, services.ErrNameTooLong):
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+	case err != nil:
+		log.Printf("failed to set name: %v", err)
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "failed to save name"})
+	default:
+		// The account back, not 204: the client shows it straight away and this is how it
+		// learns the trimmed version it actually stored.
+		c.JSON(http.StatusOK, s.userResponse(c, *user))
+	}
+}
+
 // SetMyPassword handles PUT /me/password: setting a first password, or replacing one.
 func (s *Server) SetMyPassword(c *gin.Context) {
 	userID, ok := s.requireUser(c)
@@ -230,6 +283,38 @@ func (s *Server) SetMyPassword(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "failed to save password"})
 	default:
 		c.Status(http.StatusNoContent)
+	}
+}
+
+// ResetPassword handles POST /auth/password/reset: a new password for an address proven by
+// a code. It is not under /me on purpose — the caller is exactly the reader who has no
+// session and no current password to offer.
+func (s *Server) ResetPassword(c *gin.Context) {
+	if !s.loginLimiter.RateLimit(c) {
+		return
+	}
+
+	var body ResetPasswordRequest
+	if err := c.ShouldBindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: "invalid request body"})
+		return
+	}
+
+	user, err := s.auth.ResetPassword(c.Request.Context(), string(body.Email), body.Code, body.NewPassword)
+	switch {
+	case errors.Is(err, services.ErrTooManyAttempts):
+		c.JSON(http.StatusTooManyRequests, ErrorResponse{Error: "too many attempts"})
+	case errors.Is(err, services.ErrInvalidCode):
+		c.JSON(http.StatusUnauthorized, ErrorResponse{Error: "invalid or expired code"})
+	case errors.Is(err, services.ErrPasswordTooShort), errors.Is(err, services.ErrPasswordTooLong):
+		c.JSON(http.StatusBadRequest, ErrorResponse{Error: err.Error()})
+	case err != nil:
+		log.Printf("failed to reset password: %v", err)
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "failed to reset password"})
+	default:
+		// The code already proved the address, so signing in is part of the answer rather
+		// than a second request with a password the reader just typed.
+		s.RespondWithSession(c, user)
 	}
 }
 

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
+import { ArrowLeft } from 'lucide-react'
 
 import { apiClient } from '@/api/client'
 import { AppHeader } from '@/components/app-header'
@@ -10,6 +11,7 @@ import { Card, EmptyState } from '@/components/ui/card'
 import { ModuleSwatch } from '@/components/ui/orb'
 import type { ExerciseKind } from '@/components/ui/orb'
 import { cn } from '@/lib/utils'
+import { iconKey } from '@oh-your-ear/shared/pref-controls'
 import type { components } from '@/api/schema'
 
 type Mistake = components['schemas']['Mistake']
@@ -103,6 +105,17 @@ export function Mistakes() {
         {/* Gutter outside the 1200px box and the same width as the header: with the
             padding inside, this column sat 300px inboard of the bar above it. */}
         <div className="mx-auto w-full max-w-[1200px]">
+          {/* Up to the account screen, not home: the notebook is one of its sub-pages.
+              Same 32px key as the account page, in the content column, not in the bar. */}
+          <Link
+            to="/me"
+            className={`${iconKey} mb-5 no-underline`}
+            aria-label={t('actions.back')}
+            title={t('actions.back')}
+          >
+            <ArrowLeft aria-hidden="true" className="h-4 w-4" strokeWidth={1.75} />
+          </Link>
+
           <h1 className="font-display text-[30px] font-medium leading-tight sm:text-[36px]">
             {t('mistakes.title')}
           </h1>

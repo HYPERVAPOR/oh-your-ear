@@ -4,6 +4,7 @@ import { ArrowLeft, Check, X } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import type { ExerciseKind } from '@/components/ui/orb'
+import { pickText, useLevelRequested, type Level } from '@/lib/levels'
 
 /**
  * Shared frame for every exercise screen: 64px header, the module's orb blooming
@@ -13,18 +14,30 @@ import type { ExerciseKind } from '@/components/ui/orb'
 export function ExerciseShell({
   kind,
   onBack,
+  level,
+  title,
+  label,
   score,
   progress,
   children,
 }: {
   kind: ExerciseKind
   onBack?: () => void
+  /** The question set this round is running, when it came from one. */
+  level?: Level
+  /** Header heading, when the screen is not one module: the daily session names itself. */
+  title?: string
+  /** The word beside the heading. Defaults to the level's name, or to "Random Test". */
+  label?: string
   score: { correct: number; total: number }
   /** Questions done out of the round's size, when a round is running. */
   progress?: { done: number; size: number }
   children: ReactNode
 }) {
-  const { t } = useTranslation('common')
+  const { t, i18n } = useTranslation('common')
+  // A level's name arrives with the catalogue. Until it does, say nothing rather than
+  // "Random Test" on a level: the wrong word is worse than a wait.
+  const askedForALevel = useLevelRequested()
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -35,10 +48,17 @@ export function ExerciseShell({
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <h1 className="font-display text-[21px] font-medium leading-none">
-              {t(`modules.${kind}`)}
+              {title ?? t(`modules.${kind}`)}
             </h1>
+            {/* A level names itself here. This used to say "Random Test" on every screen,
+                which on a question set was simply the wrong thing to say. */}
             <span className="badge-label hidden pt-1 text-muted sm:inline">
-              {t('exercises.randomTest')}
+              {label ??
+                (level
+                  ? pickText(level.title, i18n.language)
+                  : askedForALevel
+                    ? ''
+                    : t('exercises.randomTest'))}
             </span>
           </div>
 
@@ -85,6 +105,27 @@ export function FeedbackNote({
     >
       {children}
     </p>
+  )
+}
+
+/**
+ * The line under a question's options. Held open at one line's height before it says
+ * anything, because answering must not move the tiles under the pointer.
+ */
+export function FeedbackSlot({
+  correct,
+  children,
+}: {
+  /** Null while the question is unanswered. */
+  correct: boolean | null
+  children: ReactNode
+}) {
+  return (
+    <div className="mt-6 flex min-h-[44px] items-center justify-center">
+      {correct !== null && (
+        <FeedbackNote tone={correct ? 'success' : 'error'}>{children}</FeedbackNote>
+      )}
+    </div>
   )
 }
 

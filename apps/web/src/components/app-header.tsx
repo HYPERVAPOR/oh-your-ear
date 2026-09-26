@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { LogOut, SquareUser } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
+import { LogOut } from 'lucide-react'
 
 import { Nameplate } from '@/components/nameplate'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
@@ -18,7 +18,6 @@ const icon = 'h-4 w-4'
 export function AppHeader() {
   const { t } = useTranslation('common')
   const navigate = useNavigate()
-  const location = useLocation()
   const user = useAuthStore((s) => s.user)
   const logout = useAuthStore((s) => s.logout)
   // Signing out is one click away in a header full of one-click controls, and the click
@@ -43,31 +42,22 @@ export function AppHeader() {
             <LanguageKey />
             <ThemeKey />
 
-            {user
-              ? /* The account page shows its own header actions: repeating them here is
-               noise, and they are what pushes the nav onto a second row at 390px. */
-                location.pathname !== '/me' && (
-                  <>
-                    <Link
-                      to="/me"
-                      className={`${iconKey} no-underline`}
-                      aria-label={t('auth.account')}
-                      title={t('auth.account')}
-                    >
-                      <SquareUser aria-hidden="true" className={icon} strokeWidth={1.75} />
-                    </Link>
-                    <button
-                      type="button"
-                      className={iconKey}
-                      aria-label={t('actions.logout')}
-                      title={t('actions.logout')}
-                      onClick={() => setConfirmingLogout(true)}
-                    >
-                      <LogOut aria-hidden="true" className={icon} strokeWidth={1.75} />
-                    </button>
-                  </>
-                )
-              : null}
+            {/* One key, because there is one thing left to do with an account from here. The
+                way into the account is the button on the dashboard's card, where the account's
+                own page is one of the two things that card is for; a key up here in the same
+                square as the logout key made signing out look like the second of two equal
+                choices. The bar is still the same bar on every page. */}
+            {user && (
+              <button
+                type="button"
+                className={iconKey}
+                aria-label={t('actions.logout')}
+                title={t('actions.logout')}
+                onClick={() => setConfirmingLogout(true)}
+              >
+                <LogOut aria-hidden="true" className={icon} strokeWidth={1.75} />
+              </button>
+            )}
           </nav>
 
           {/* A word, not a glyph: an icon in a header full of icons does not read as the

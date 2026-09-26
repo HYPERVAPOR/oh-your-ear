@@ -7,13 +7,15 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 
+	"github.com/HYPERVAPOR/oh-your-ear/apps/api/internal/auth"
 	"github.com/HYPERVAPOR/oh-your-ear/apps/api/internal/services"
 )
 
 // GetMyAvatar handles GET /me/avatar: the picture this user uploaded.
 func (s *Server) GetMyAvatar(c *gin.Context) {
-	userID, ok := s.requireUser(c)
+	userID, ok := s.avatarViewer(c)
 	if !ok {
 		return
 	}
@@ -29,6 +31,24 @@ func (s *Server) GetMyAvatar(c *gin.Context) {
 	c.Header("Cache-Control", "private, max-age=31536000, immutable")
 	c.Header("ETag", fmt.Sprintf(`"%d"`, updatedAt.Unix()))
 	c.Data(http.StatusOK, mime, image)
+}
+
+// avatarViewer is requireUser plus the session cookie. The picture is fetched by an <img>
+// tag, which cannot send an Authorization header, so this one route also accepts the cookie
+// the browser sends on its own — and only this one does. The cookie passes the same checks
+// the refresh endpoint makes, revocation list included, so signing out stops the picture
+// from loading as well.
+func (s *Server) avatarViewer(c *gin.Context) (uuid.UUID, bool) {
+	if raw, err := c.Cookie(auth.RefreshTokenCookieName); err == nil && raw != "" {
+		if claims, err := auth.ParseToken(raw, s.cfg.JWTSecret); err == nil && claims.Type == "refresh" {
+			if revoked, err := s.auth.IsTokenRevoked(c.Request.Context(), claims.ID); err == nil && !revoked {
+				if userID, err := uuid.Parse(claims.UserID); err == nil {
+					return userID, true
+				}
+			}
+		}
+	}
+	return s.requireUser(c)
 }
 
 // PutMyAvatar handles POST /me/avatar: store the picture the reader chose, replacing any

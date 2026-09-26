@@ -1,6 +1,5 @@
-import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 
 import { AppHeader } from '@/components/app-header'
 import { LevelRack } from '@/components/dashboard/level-rack'
@@ -9,6 +8,7 @@ import { TodayPanel } from '@/components/dashboard/today-panel'
 import { cn } from '@/lib/utils'
 
 const MODES = ['learn', 'random'] as const
+type Mode = (typeof MODES)[number]
 
 /**
  * The hub, laid out as a dashboard: today first, then the five modules (PRD 7.1.4). The
@@ -17,7 +17,18 @@ const MODES = ['learn', 'random'] as const
  */
 export function Home() {
   const { t } = useTranslation('common')
-  const [mode, setMode] = useState<(typeof MODES)[number]>('learn')
+  // Which tab you are on is in the URL, like the module tabs on the levels page: a tab is
+  // shareable, and the levels page sends a guest who does not want an account to the random
+  // one. An unknown or absent value is Learn, which is what arriving here gives you.
+  const [params, setParams] = useSearchParams()
+  const asked = params.get('mode')
+  const mode: Mode = MODES.find((value) => value === asked) ?? 'learn'
+
+  // replace: a tab is not a place you navigated to, so the back button keeps meaning "leave
+  // this page" instead of walking back through the tabs you tried.
+  function pick(value: Mode) {
+    setParams({ mode: value }, { replace: true })
+  }
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -47,7 +58,7 @@ export function Home() {
                     key={value}
                     type="button"
                     aria-pressed={mode === value}
-                    onClick={() => setMode(value)}
+                    onClick={() => pick(value)}
                     className={cn(
                       'h-10 px-4 text-[15px] transition-colors',
                       mode === value ? 'bg-surface-strong text-ink' : 'text-muted hover:text-ink',

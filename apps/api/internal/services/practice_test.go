@@ -38,25 +38,3 @@ func TestStreakFrom(t *testing.T) {
 		})
 	}
 }
-
-func TestAchievements(t *testing.T) {
-	solved := map[int]int{0: 0, 5: 5, 100: 100, 900: 900}
-	for count, want := range map[int]int{0: 0, 5: 1, 100: 3, 900: 4} {
-		list := achievements(count, 0)
-		reached := 0
-		for _, entry := range list {
-			if entry.Achieved() {
-				reached++
-			}
-		}
-		if reached != want {
-			t.Fatalf("solved=%d reached %d milestones, want %d (%v)", count, reached, want, solved)
-		}
-	}
-
-	streak := achievements(0, 7)
-	last := streak[len(streak)-1]
-	if last.ID != "streakWeek" || !last.Achieved() {
-		t.Fatalf("streak milestone not reached: %+v", last)
-	}
-}

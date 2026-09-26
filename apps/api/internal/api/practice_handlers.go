@@ -516,24 +516,13 @@ func (s *Server) GetPracticeStats(c *gin.Context) {
 		})
 	}
 
-	achievements := make([]Achievement, 0, len(stats.Achievements))
-	for _, entry := range stats.Achievements {
-		achievements = append(achievements, Achievement{
-			Id:       entry.ID,
-			Progress: entry.Progress,
-			Target:   entry.Target,
-			Achieved: entry.Achieved(),
-		})
-	}
-
 	c.JSON(http.StatusOK, PracticeStats{
-		Solved:       stats.Solved,
-		Correct:      stats.Correct,
-		Accuracy:     accuracy(stats.Solved, stats.Correct),
-		Streak:       stats.Streak,
-		Achievements: achievements,
-		ByExercise:   byExercise,
-		Daily:        daily,
+		Solved:     stats.Solved,
+		Correct:    stats.Correct,
+		Accuracy:   accuracy(stats.Solved, stats.Correct),
+		Streak:     stats.Streak,
+		ByExercise: byExercise,
+		Daily:      daily,
 	})
 }
 

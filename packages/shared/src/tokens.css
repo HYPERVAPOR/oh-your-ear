@@ -100,6 +100,10 @@
 }
 
 @theme inline {
+  /* Quicker than Tailwind's 2s default: the loading pulse is rarely on screen for a whole
+     cycle, and a two-second fade never reads as movement. Colourless and small on purpose —
+     it says "working", it does not perform. */
+  --animate-pulse: skeleton-pulse 1s ease-in-out infinite;
   /* Vocabulary of DESIGN.md. New code uses these names and nothing else. */
   --color-canvas: var(--canvas);
   --color-canvas-soft: var(--canvas-soft);
@@ -243,6 +247,12 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    /* The landing always scrolls and the app's dashboard is exactly one screen, so with a
+       scrollbar on one side and not the other the centred 1200px box sat half a scrollbar
+       off in the other site. Reserving the gutter makes the content width independent of
+       the page's height. Measured at a 1440px viewport: both headers are x=120 w=1200, but
+       one document is 900 tall and the other 3526. */
+    scrollbar-gutter: stable;
   }
 
   body {
@@ -299,3 +309,11 @@
 
 /* There is deliberately no gradient or glow utility here: light comes from the
    surfaces and hairlines, not from blurred colour. See PRD 7.1.1. */
+
+/* The loading pulse. Depth 0.4 rather than Tailwind's 0.5: still restrained, but unmistakably
+   a change rather than a slightly different shade of grey. */
+@keyframes skeleton-pulse {
+  50% {
+    opacity: 0.4;
+  }
+}

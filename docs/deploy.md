@@ -60,8 +60,6 @@ Vercel 确实支持容器，但那条路是给 **Functions** 用的：项目根�
 
 **落地页的 `VITE_APP_URL` 必须配**：它决定「开始练习」跳到哪个 app 域名；不配会退回 `http://localhost:5173`。
 
-**app 的 `VITE_LANDING_URL` 不用配**：它决定顶栏铭牌跳到哪个落地页，默认就是真实域名，比落地页那边安全。只在想把 app 指向别的落地页（本地联调、预发）时才设，开发环境由 `compose.dev.yml` 设成 `http://localhost:5174`。
-
 **app 项目要改 `apps/web/vercel.json` 里的 API 地址**（仓库里的值只是占位）：
 
 ```bash
@@ -102,7 +100,10 @@ GOOGLE_REDIRECT_URL=https://app.<domain>/api/v1/auth/google/callback
 DOMAIN=api.<domain>
 ACME_EMAIL=you@example.com
 
-# 邮件验证码投递：MAIL_DRIVER=log 只在开发用，验证码会打在容器日志里
+# 邮件验证码投递：MAIL_DRIVER=log 只在开发用（默认值也是它），
+# 验证码不会进任何收件箱，而是打在 API 容器的日志里：
+#   podman logs oh-your-ear-api-1 | grep "mail:log" | tail -3
+# 本地"收不到验证码"是设定，不是 bug。要真的收信再配下面的 SMTP。
 MAIL_DRIVER=smtp
 SMTP_HOST=smtp.example.com
 SMTP_PORT=587
@@ -387,18 +388,30 @@ schema 在 API 启动时幂等地跑（`CREATE TABLE IF NOT EXISTS` + `ALTER TAB
 
 ### 1. 分支策略：`dev` 优先（最可靠）
 
-`dev` 是集成分支：从它切功能分支，PR 合进 `dev`，`dev` 攒够了再一个 PR 合进 `main`。目标是**推 `dev` 不创建任何部署**，靠官方字段：
+`dev` 是集成分支：从它切功能分支，PR 合进 `dev`，`dev` 攒够了再一个 PR 合进 `main`。目标是**推 `dev` 不创建任何部署**：
 
 ```json
-{ "git": { "deploymentEnabled": { "dev": false } } }
+// apps/web/vercel.json 与 apps/landing/vercel.json
+"git": {
+  "deploymentEnabled": {
+    "main": true,
+    "dev": false, "fix/*": false, "feat/*": false,
+    "feature/*": false, "docs/*": false, "chore/*": false
+  }
+}
 ```
 
-**这个字段现在写在三个地方**：仓库根的 `vercel.json`，以及 `apps/web/vercel.json` 和 `apps/landing/vercel.json`。三处同值，不会冲突。为什么都写：Git 集成到底读哪一份，在**额度耗尽的窗口内无法验证**——那个窗口里它给每个提交都挂一条 `Deployment rate limited`，分不清是"配置生效所以没创建"还是"创建了但被额度挡下"。（我先只写在子项目里、观察到一个提交没有状态，就下了"必须放根目录"的结论并写进文档；等再验一次，同一个实验给出了相反的现象，所以那个结论收回了。）
+**`"main": true` 是故意的、也是必需的**：官方语义是「多条规则命中时，只要有一条是 `true` 就部署」，所以这条能挡住将来有人加 `*` 或 `**` 通配时把生产一起关掉。没有它，一次手滑就是静默不部署。
 
-**怎么最终确认**（等额度恢复之后）：
+功能分支的预览也一起关了：在额度紧张时它是纯消耗，而视觉改动在本地 5173 / 5174 就能看。想恢复某个前缀的预览，把它那条删掉即可。
 
-- 往 `dev` 推一个提交，然后在 Vercel 面板看这个项目的部署列表：**里面没有对应条目**才是真的没创建部署；如果出现一条 `Canceled` 或 `rate limited` 的记录，说明部署还是被创建了。
-- 顺带能看清第二个问题：**被 `ignoreCommand` 跳过的构建是否仍计入每天 100 次**。社区在问，Vercel 没明确答复，而面板上的计数是准的。
+**必须写在项目自己的 `vercel.json` 里**（即该项目 Root Directory 下那一份）。仓库根那份**不生效**——这条踩了很久：根目录的 `vercel.json` 从 13:14 起一直有这段配置，而期间每一次 dev 推送都照常部署；把同一段配置放进两个项目文件之后，dev 推送立刻不再触发部署（下面有验证）。
+
+字段本身按官方文档写就对（`git.deploymentEnabled`，值可以按分支给布尔，键支持 minimatch，多条命中只要有一条是 `true` 就部署）。**别用 `*` 或 `**` 当通配**：`main` 也是不含斜杠的分支名，通配一旦把它也关掉，生产就静默不部署了——宁可少关几个分支，也不能有这种配置。
+
+**这个设置跟着 git 走，所以它必须出现在被推送的那个提交里。** 这正是它一开始失效的原因：`#139` 把配置加进了 `main` 的文件，但随后 `dev` 被强推回一个更早的 `main` 提交，于是 `dev` 的历史里永远没有那一次变更，从 `dev` 切出来的分支也就都没有它。**给集成分支做 `reset --hard main` 会悄悄丢掉这期间落在 main 上的 PR** —— 合并 main 回 dev 才是安全的补救方式。
+
+**怎么验证**（不需要等额度恢复）：在额度耗尽的窗口里，判据是干净的——规则不生效时 Vercel 一定会尝试一次，从而留下一条 `Deployment rate limited` 状态；规则生效时该提交上**一条 Vercel 状态都没有**。这样试过一次：加上配置后推一个 dev 提交，`gh api repos/…/commits/<sha>/status` 返回空，同时 Vercel 的部署列表里没有新条目。
 
 ### 2. 每个项目各自判断该不该构建
 
