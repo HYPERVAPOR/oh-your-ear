@@ -701,6 +701,22 @@
 - **description**: `/me` 统计卡最底部的成就徽章（起步 / 热身完毕 / 百题 / 五百题 / 坚持一周）读者判断「没啥用」，整块下线 —— **连 API 一起**：`/me/stats` 不再返回 `achievements`，`services/practice.go` 里的 `achievementSpecs` / `StreakAchievementTarget` / `achievements()`、`models.Achievement`（含 `Achieved()`）、handler 里的映射、`openapi.yaml` 的 schema 与 `required` 项、`TestAchievements` 全部删掉，两份生成物（`schema.d.ts` / `generated.go`）重新生成。前端同时删掉那一块 UI、`stats.achievements` 与 `achievements.*`（5 个徽章 × 两种语言）文案键。数据库不受影响（成就按累计数实时算，没有表）。实测：接口顶层字段只剩 `solved / correct / accuracy / streak / byExercise / daily`；页面 `h3` 只剩「每日题数（近 14 天）」与「各模块正确率」；文案键 212 → 201。
 - **depends on**: 5.10、7.1.2
 
+## M34 每日练习：一个会话把今天练完（`/daily`）
+
+### 34.1 一个会话 N 题、模块混排
+
+- **issue**: #193
+- **status**: 🟡 doing
+- **description**: PRD §5.0.1 写的是「在重点模块之间轮转」，实现是「一次一个模块 + 手动回首页再点」。现在把「一题」从五个练习屏里拆出来：每个模块一个文件（出题工厂 + 这一题的身体 + 这一题的设置面板），一个 `<QuestionBody>` 按 `question.kind` 分发，五个练习屏变成「外壳 + 身体 + 设置 + 下一题 + 小结」（都变短了：屏本身 90 行上下，最长的一题是节奏的身体 223 行），`/daily` 因此完全不需要知道模块细节。会话：进入时算「今天还差几题」（`sessionSize`，单次上限 20，已达标 = `min(目标, 20)`），`dailyPlan(focus, count)` **分层平均**分配（20 题 3 模块 = 7/7/6）后打散顺序；页头 `h1` = 每日练习、徽标 = 当前模块名、进度 = **当天**的 `N / 目标`；设置按当前模块显示（`ModuleSettings` 按 kind 加 key 重挂，因为 hook 不能接一个会变的模块）；答完照旧 `POST /me/practice-records`，服务端不加接口，退出再进从当天记录重算。分配是纯函数，带单元测试（`lib/daily.test.ts`，只跑在 node 下所以 `daily.ts` 内部用相对导入）。顺带：`round-summary` 里那个中英文都不存在的 `daily.afterRound` 补上了（原来登录用户做完一轮，页面上显示的是字面量），达标时改说「今日已达标」；节奏屏原先自己那颗「新节奏」按钮撤掉，改走统一的「下一题」（`actions.newRhythm` 键删除）。
+- **depends on**: 5.0.1、5.1、5.7、7.1.4
+
+### 34.2 计划表单：「一个都不选」不再是个歧义
+
+- **issue**: #193
+- **status**: 🟡 doing
+- **description**: `focus_exercises = []` 的语义是「不缩小范围」，但表单把空列表画成**五个都没亮**，而保存只校验题数 —— 用户能存下「一个都不选」，界面显示全灭、实际行为是五个都用。现在：语义不动（`[]` = 全部，API 与已有数据都不动），**表单进来就五个全亮**，全灭时禁用保存并说明理由（`plan.pickOne` / `plan.goalRange`）。`/me` 上「去练今天的一组」改指 `/daily`。
+- **depends on**: 5.0.1、5.11
+
 ## M33 热力图：今天的形状还给日历
 
 ### 33.1 今天不再是菱形，还没到的日期用更浅的颜色

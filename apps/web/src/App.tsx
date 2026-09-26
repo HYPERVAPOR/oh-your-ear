@@ -19,6 +19,7 @@ import { Login } from '@/pages/login'
 import { Reset } from '@/pages/reset'
 import { Signup } from '@/pages/signup'
 import { Collections } from '@/pages/collections'
+import { Daily } from '@/pages/daily'
 import { Me } from '@/pages/me'
 import { Mistakes } from '@/pages/mistakes'
 
@@ -56,6 +57,16 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={<Home />} />
+      {/* The day's practice is a screen of its own rather than the homepage plus one
+          module: it runs the day's questions in a single sitting (PRD 5.0.1). */}
+      <Route
+        path="/daily"
+        element={
+          <RequireAuth>
+            <Daily />
+          </RequireAuth>
+        }
+      />
       <Route path="/login" element={<Login />} />
       {/* Signing in and registering are the same mechanism on the server (a code logs in and
           creates the account), but they are two questions, so two pages (PRD 7.1.9). */}

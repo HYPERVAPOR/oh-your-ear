@@ -15,7 +15,6 @@
     "back": "Back",
     "tap": "Tap",
     "finish": "Finish",
-    "newRhythm": "New rhythm",
     "login": "Log in",
     "logout": "Log out",
     "cancel": "Cancel",
@@ -130,7 +129,9 @@
     "focus": "Focus modules",
     "save": "Save plan",
     "saved": "Saved",
-    "goToday": "Practise today’s session"
+    "goToday": "Practise today’s session",
+    "goalRange": "The daily goal has to be between 1 and 500",
+    "pickOne": "Pick at least one focus module"
   },
   "stats": {
     "title": "Practice stats",
@@ -236,5 +237,9 @@
     "addName": "Add a name",
     "editName": "Change your name",
     "nameFailed": "That name could not be saved. Please try again."
+  },
+  "daily": {
+    "title": "Daily practice",
+    "afterRound": "{{solved}} of {{goal}} today — {{remaining}} to go."
   }
 }

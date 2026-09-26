@@ -37,7 +37,10 @@ export function StudyPlanForm() {
 
   // The stored plan is the source of truth until the user edits the form.
   const dailyGoal = draft?.dailyGoal ?? data?.dailyGoal ?? 20
-  const focus = draft?.focus ?? data?.focusExercises ?? []
+  const storedFocus = (data?.focusExercises ?? []) as ExerciseKind[]
+  // An empty list is stored as "no narrowing down", which the app reads as every module.
+  // The form has to show that meaning, or it says the opposite of what the plan does.
+  const focus = draft?.focus ?? (storedFocus.length > 0 ? storedFocus : EXERCISES)
 
   function toggle(kind: ExerciseKind) {
     setSaved(false)
@@ -57,7 +60,14 @@ export function StudyPlanForm() {
     }
   }
 
-  const valid = dailyGoal >= 1 && dailyGoal <= 500
+  const valid = dailyGoal >= 1 && dailyGoal <= 500 && focus.length > 0
+  // A disabled button has to say why it is disabled.
+  const refused =
+    dailyGoal < 1 || dailyGoal > 500
+      ? t('plan.goalRange')
+      : focus.length === 0
+        ? t('plan.pickOne')
+        : null
 
   return (
     <Card className="p-6 sm:p-7">
@@ -101,7 +111,11 @@ export function StudyPlanForm() {
           {t('plan.save')}
         </Button>
         {saved && <span className="text-[14px] text-success-text">{t('plan.saved')}</span>}
-        <Link to="/" className="text-[14px] text-muted underline underline-offset-4 hover:text-ink">
+        {refused && <span className="text-[14px] text-muted">{refused}</span>}
+        <Link
+          to="/daily"
+          className="text-[14px] text-muted underline underline-offset-4 hover:text-ink"
+        >
           {t('plan.goToday')}
         </Link>
       </div>

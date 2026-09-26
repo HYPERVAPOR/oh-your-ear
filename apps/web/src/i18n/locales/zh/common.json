@@ -15,7 +15,6 @@
     "back": "返回",
     "tap": "敲击",
     "finish": "完成",
-    "newRhythm": "新节奏",
     "login": "登录",
     "logout": "退出",
     "cancel": "取消",
@@ -130,7 +129,9 @@
     "focus": "重点模块",
     "save": "保存计划",
     "saved": "已保存",
-    "goToday": "去练今天的一组"
+    "goToday": "去练今天的一组",
+    "goalRange": "每日题数要在 1–500 之间",
+    "pickOne": "至少选一个重点模块"
   },
   "stats": {
     "title": "练习统计",
@@ -236,5 +237,9 @@
     "addName": "添加用户名",
     "editName": "改用户名",
     "nameFailed": "没能保存用户名，请再试一次"
+  },
+  "daily": {
+    "title": "每日练习",
+    "afterRound": "今天 {{solved}} / {{goal}} 题，还差 {{remaining}} 题。"
   }
 }

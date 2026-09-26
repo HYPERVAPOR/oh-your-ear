@@ -1,0 +1,223 @@
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { Music } from 'lucide-react'
+import * as Tone from 'tone'
+
+import { FeedbackSlot } from '@/components/exercise-shell'
+import { ConfigPanel, NumberField, ToggleGroup } from '@/components/exercises/config-panel'
+import { Button } from '@/components/ui/button'
+import type { BodyProps } from '@/components/question'
+import { useExerciseConfig, type RhythmConfig } from '@/lib/exercise-config'
+import { recordAnswer } from '@/lib/practice'
+import {
+  BPM,
+  TAP_TOLERANCE,
+  countMatches,
+  generatePattern,
+  getExpectedTimes,
+  toTransportTime,
+} from '@/lib/rhythm'
+
+export interface RhythmQuestion {
+  kind: 'rhythm'
+  pattern: number[]
+  /** Beats in the pattern: the body's own playback length. */
+  length: number
+}
+
+export function makeRhythmQuestion(config: RhythmConfig): RhythmQuestion {
+  return {
+    kind: 'rhythm',
+    pattern: generatePattern(config.patternLength, config.durations),
+    length: config.patternLength,
+  }
+}
+
+export function RhythmBody({ question, onAnswer }: BodyProps<RhythmQuestion>) {
+  const { t } = useTranslation('common')
+  const beatDuration = 60 / BPM
+  const [phase, setPhase] = useState<'idle' | 'playing' | 'tapping' | 'result'>('idle')
+  const [matched, setMatched] = useState(0)
+
+  const clickSynthRef = useRef<Tone.MembraneSynth | null>(null)
+  const tapSynthRef = useRef<Tone.MembraneSynth | null>(null)
+  const startTimeRef = useRef(0)
+  const tapsRef = useRef<number[]>([])
+  const patternEndRef = useRef<number | null>(null)
+
+  const expected = getExpectedTimes(question.pattern, beatDuration)
+
+  const handlePlay = useCallback(async () => {
+    await Tone.start()
+
+    if (!clickSynthRef.current) {
+      clickSynthRef.current = new Tone.MembraneSynth({
+        pitchDecay: 0.01,
+        octaves: 2,
+        oscillator: { type: 'sine' },
+        envelope: { attack: 0.001, decay: 0.1, sustain: 0, release: 0.1 },
+      }).toDestination()
+    }
+    if (!tapSynthRef.current) {
+      tapSynthRef.current = new Tone.MembraneSynth({
+        pitchDecay: 0.01,
+        octaves: 3,
+        oscillator: { type: 'triangle' },
+        envelope: { attack: 0.001, decay: 0.08, sustain: 0, release: 0.08 },
+      }).toDestination()
+    }
+
+    Tone.Transport.cancel()
+    Tone.Transport.stop()
+    Tone.Transport.position = 0
+    Tone.Transport.bpm.value = BPM
+
+    for (const time of expected) {
+      Tone.Transport.scheduleOnce(
+        (when) => {
+          clickSynthRef.current?.triggerAttackRelease('C2', '32n', when)
+        },
+        toTransportTime(time / beatDuration),
+      )
+    }
+
+    Tone.Transport.scheduleOnce(() => {
+      Tone.Transport.stop()
+      setPhase('tapping')
+    }, toTransportTime(question.length))
+
+    tapsRef.current = []
+    setPhase('playing')
+    startTimeRef.current = performance.now() / 1000
+    Tone.Transport.start()
+
+    patternEndRef.current = window.setTimeout(
+      () => {
+        setPhase((current) => (current === 'playing' ? 'tapping' : current))
+      },
+      question.length * beatDuration * 1000 + 500,
+    )
+  }, [expected, beatDuration, question.length])
+
+  const recordTap = useCallback(() => {
+    if (phase !== 'tapping' && phase !== 'playing') return
+    const now = performance.now() / 1000
+    const relative = now - startTimeRef.current
+    tapSynthRef.current?.triggerAttackRelease('G3', '32n')
+    tapsRef.current = [...tapsRef.current, relative]
+  }, [phase])
+
+  const handleFinish = useCallback(() => {
+    if (patternEndRef.current) {
+      clearTimeout(patternEndRef.current)
+      patternEndRef.current = null
+    }
+    const hits = countMatches(expected, tapsRef.current, TAP_TOLERANCE)
+    setMatched(hits)
+    setPhase('result')
+    // Rhythm is judged per pattern, not per tap: it only counts when every beat was hit.
+    const correct = hits === expected.length
+    recordAnswer({
+      exercise: 'rhythm',
+      correct,
+      chosen: `${hits}/${expected.length}`,
+      prompt: { pattern: question.pattern, bpm: BPM },
+    })
+    onAnswer({
+      correct,
+      question: t('round.rhythmQuestion', { count: expected.length, bpm: BPM }),
+      chosen: `${hits}/${expected.length}`,
+      expected: `${expected.length}/${expected.length}`,
+    })
+  }, [expected, question.pattern, onAnswer, t])
+
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.code === 'Space' && phase === 'tapping') {
+        event.preventDefault()
+        recordTap()
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [phase, recordTap])
+
+  return (
+    <>
+      <Button size="hero" className="mb-10" onClick={handlePlay} disabled={phase === 'playing'}>
+        {phase === 'playing' ? t('actions.playing') : t('actions.play')}
+      </Button>
+
+      {/* The pad is always present so the interaction teaches itself and the page
+          does not jump between phases; it only accepts taps while tapping. */}
+      <div className="flex min-h-[232px] flex-col items-center justify-start gap-5">
+        {phase !== 'result' && (
+          <>
+            <p className="text-[15px] text-body">
+              {phase === 'tapping'
+                ? t('exercises.tapHint')
+                : phase === 'playing'
+                  ? t('actions.playing')
+                  : t('exercises.rhythmIdle')}
+            </p>
+            <button
+              type="button"
+              disabled={phase !== 'tapping'}
+              onMouseDown={recordTap}
+              aria-label={t('actions.tap')}
+              className="flex h-36 w-36 items-center justify-center rounded-none bg-primary text-on-primary transition-all active:scale-95 disabled:bg-surface-strong disabled:text-muted-soft"
+            >
+              <Music className="h-12 w-12" />
+            </button>
+            {phase === 'playing' && (
+              <p className="text-[13px] text-muted">{t('exercises.tapArmed')}</p>
+            )}
+            {phase === 'tapping' && (
+              <Button variant="outline" onClick={handleFinish}>
+                {t('actions.finish')}
+              </Button>
+            )}
+          </>
+        )}
+
+        {phase === 'result' && (
+          <FeedbackSlot correct={matched === expected.length}>
+            {t('score', { correct: matched, total: expected.length })}
+          </FeedbackSlot>
+        )}
+      </div>
+    </>
+  )
+}
+
+export function RhythmSettings() {
+  const { t } = useTranslation('common')
+  const { config, updateConfig, resetConfig } = useExerciseConfig('rhythm')
+
+  const durationOptions = [
+    { value: '1', label: t('exerciseConfig.quarterNote') },
+    { value: '0.5', label: t('exerciseConfig.eighthNote') },
+  ]
+
+  return (
+    <div className="w-full">
+      <ConfigPanel title={t('exerciseConfig.title')} onReset={resetConfig}>
+        <NumberField
+          label={t('exerciseConfig.patternLength')}
+          value={config.patternLength}
+          min={2}
+          max={8}
+          onChange={(patternLength) => updateConfig({ patternLength })}
+        />
+        <ToggleGroup
+          label={t('exerciseConfig.durations')}
+          options={durationOptions}
+          selected={config.durations.map(String)}
+          onChange={(selected) =>
+            updateConfig({ durations: selected.map(Number).sort((a, b) => b - a) })
+          }
+        />
+      </ConfigPanel>
+    </div>
+  )
+}
