@@ -66,13 +66,13 @@
     "8P": "Octave"
   },
   "chords": {
+    "7": "Dominant 7th",
     "major": "Major",
     "minor": "Minor",
     "diminished": "Diminished",
     "augmented": "Augmented",
     "maj7": "Major 7th",
-    "min7": "Minor 7th",
-    "7": "Dominant 7th"
+    "min7": "Minor 7th"
   },
   "auth": {
     "loginTitle": "Log in",
@@ -236,7 +236,14 @@
   "account": {
     "addName": "Add a name",
     "editName": "Change your name",
-    "nameFailed": "That name could not be saved. Please try again."
+    "nameFailed": "That name could not be saved. Please try again.",
+    "dangerTitle": "Danger zone",
+    "dangerBody": "Deleting your account takes your practice records, study plan, mistake notebook and collections with it.",
+    "dangerDelete": "Delete account",
+    "dangerFailed": "That account could not be deleted. Please try again.",
+    "dangerConfirmTitle": "Delete your account?",
+    "dangerConfirmBody": "They go with the account, and this cannot be undone.",
+    "dangerConfirmLabel": "Delete"
   },
   "daily": {
     "title": "Daily practice",

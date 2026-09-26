@@ -426,3 +426,24 @@ func (s *Server) Logout(c *gin.Context) {
 	c.SetCookie(auth.RefreshTokenCookieName, "", -1, "/", "", strings.HasPrefix(s.cfg.FrontendURL, "https://"), true)
 	c.Status(http.StatusNoContent)
 }
+
+// DeleteMyAccount handles DELETE /me: the account and everything hanging off it.
+//
+// The surface is dev-only for now (the account page draws the button only in dev builds);
+// production is meant to put the email-code step in front of it first.
+func (s *Server) DeleteMyAccount(c *gin.Context) {
+	userID, ok := s.requireUser(c)
+	if !ok {
+		return
+	}
+
+	if err := s.auth.DeleteUser(c.Request.Context(), userID); err != nil {
+		log.Printf("failed to delete account: %v", err)
+		c.JSON(http.StatusInternalServerError, ErrorResponse{Error: "failed to delete account"})
+		return
+	}
+
+	// The refresh cookie names a row that no longer exists: drop it the way Logout does.
+	c.SetCookie(auth.RefreshTokenCookieName, "", -1, "/", "", strings.HasPrefix(s.cfg.FrontendURL, "https://"), true)
+	c.Status(http.StatusNoContent)
+}

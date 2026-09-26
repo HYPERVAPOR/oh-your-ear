@@ -701,6 +701,16 @@
 - **description**: `/me` 统计卡最底部的成就徽章（起步 / 热身完毕 / 百题 / 五百题 / 坚持一周）读者判断「没啥用」，整块下线 —— **连 API 一起**：`/me/stats` 不再返回 `achievements`，`services/practice.go` 里的 `achievementSpecs` / `StreakAchievementTarget` / `achievements()`、`models.Achievement`（含 `Achieved()`）、handler 里的映射、`openapi.yaml` 的 schema 与 `required` 项、`TestAchievements` 全部删掉，两份生成物（`schema.d.ts` / `generated.go`）重新生成。前端同时删掉那一块 UI、`stats.achievements` 与 `achievements.*`（5 个徽章 × 两种语言）文案键。数据库不受影响（成就按累计数实时算，没有表）。实测：接口顶层字段只剩 `solved / correct / accuracy / streak / byExercise / daily`；页面 `h3` 只剩「每日题数（近 14 天）」与「各模块正确率」；文案键 212 → 201。
 - **depends on**: 5.10、7.1.2
 
+## M38 删账号：`/me` 底部的危险区（暂 dev only）
+
+### 38.1 `DELETE /me` 与那一块危险区
+
+- **issue**: #201
+- **status**: 🟡 doing
+- **description**: 开发时要能删掉测试账号，所以 `/me` 内容区最下面加一块**危险区**：标题用 `error-text`、一句说清楚代价（练习记录 / 学习计划 / 错题本 / 收藏 / 头像一起没）、一颗 `variant="destructive"` 的「删除账号」（不是新变体，本来就有），点开用现成的 `ConfirmDialog` —— 顺手给它加了一个可选的 `description`：按钮已经把问题问完了，而「不可恢复」这种代价得有一行自己的地方说，挤进标题里会变成一个又长又大的句子。失败的话在按钮下面说一句，那一行**恒定占位**（照 `Field` 的做法），免得消息一出现就把刚点的按钮挪走。界面**只在开发构建里有**：`pages/me.tsx` 里 `{import.meta.env.DEV && <DangerZone />}`，组件本身是完整的表面，上生产时把验证码那一步加进去就直接能用（见下）。服务端只加一条 `DELETE /me`（`openapi.yaml` + 重新生成两份产物），handler 就是 `requireUser` → `auth.DeleteUser` → 清 refresh cookie → 204。删除本身是**一条语句**：`WITH gone AS (DELETE FROM users WHERE id = $1 RETURNING email) DELETE FROM email_codes WHERE email IN (SELECT email FROM gone)` —— 其余七张表全部 `ON DELETE CASCADE`，不写“该删哪些表”的清单；`email_codes` 按地址而不是按账号，所以顺手一起删（它本来就是发给这个地址的）。为什么只删一行是安全的，由一条 DB 测试守着：`services/delete_account_test.go` 在每张挂在账号下的表里各插一行，删完逐张数剩余行数，全为 0 —— 将来加表忘了级联，它会失败。客户端删成功后走 store 新的 `clearSession()`（与登出同一条路：清令牌 + 清 query 缓存）再回首页（`useAuthStore` 因此从 `(set)` 变成 `(set, get)`，`logout` 复用它）。**顺手补的一个洞**：`/auth/refresh` 原先不查账号还在不在（refresh token 是无状态 JWT，黑名单只装登出交上去的），所以已删账号的 token 还能继续换新的 access token —— 现在多一次 `GetUserByID`，不存在就 401。
+- **note**: 上生产前要加**邮箱验证码核实**（读者要求的方向）：`DELETE /me` 现在只认会话，这在开发环境够用，线上要让用户先过一道寄到邮箱的验证码；代码里以 `ponytail:` 注在 `DeleteUser` 上，PRD 也写了这一条。
+- **depends on**: 7.1.4、M28
+
 ## M37 登出：账号数据不活过会话
 
 ### 37.1 登出清 query 缓存（不是整页刷新）
