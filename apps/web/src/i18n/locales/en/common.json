@@ -127,7 +127,6 @@
   "plan": {
     "solvedOfGoal": "{{solved}} / {{goal}} questions",
     "title": "Daily practice settings",
-    "description": "Set the daily question goal and focus modules; daily practice builds the day’s session from them.",
     "dailyGoal": "Daily question goal",
     "focus": "Focus modules",
     "save": "Save plan",
@@ -141,12 +140,12 @@
     "accuracy": "Accuracy",
     "activeDays": "Active (14d)",
     "streak": "Day streak",
-    "trend": "Questions per day",
+    "trend": "Questions per day (last {{days}} days)",
     "trendLabel": "Questions per day: {{from}} to {{to}}, {{solved}} in total",
     "dayTitle": "{{date}}: {{solved}} questions",
-    "byExercise": "By module",
-    "moduleDetail": "{{solved}} solved, {{percent}}%",
-    "achievements": "Achievements"
+    "byExercise": "Accuracy by module",
+    "achievements": "Achievements",
+    "cardTally": "{{solved}} tried, {{correct}} right"
   },
   "mistakes": {
     "title": "Mistake notebook",

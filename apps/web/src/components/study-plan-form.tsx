@@ -62,7 +62,6 @@ export function StudyPlanForm() {
   return (
     <Card className="p-6 sm:p-7">
       <h2 className="font-display text-[22px] font-medium leading-tight">{t('plan.title')}</h2>
-      <p className="mt-2 text-[15px] text-body">{t('plan.description')}</p>
 
       <div className="mt-6 space-y-5">
         <ConfigRow label={t('plan.dailyGoal')}>
