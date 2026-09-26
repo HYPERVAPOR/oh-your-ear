@@ -69,3 +69,18 @@ oye-landing 54 条记录：main 15、feat/118-avatar 7、feat/107-home-dashboard
 仍然解释不了的一点：`fix/159-login-password-only` 在 15:54 两个项目各留下一条记录（`CANCELED`，`target=None`）。那是额度窗口刚恢复的时刻，可能与该窗口的边界或重试有关 —— 我没有复现它，也没有结论。**能复现的是「被跳过」，不能复现的是那一条。**
 
 方法论上的教训（第三次在这件事上翻结论了）：判断规则是否生效，唯一干净的做法是**额度可用时**推一个分支、然后去 Vercel API 数记录；而当日那 111 条记录里绝大多数**早于配置落地**（配置 13:20 才进 main），用它们推断规则行为是错的 —— 我犯过这个错。
+
+## 再再更正（09-26）：两个项目表现**不一样**，别再当成一件事
+
+同一份 `deploymentEnabled`（两份 `vercel.json` 逐字相同：`main: true` + `dev/fix*/feat*/feature*/docs*/chore*: false`），同一个 `fix/*` 分支，两个项目的表现不同：
+
+| 提交 | oye-app（Root Directory `apps/web`） | oye-landing（Root Directory `apps/landing`） |
+| --- | --- | --- |
+| `fix/180` | **一条状态都没有** → 没创建部署 | 有状态：`Vercel – oye-landing → success (Skipped - Not affected)` → **创建了**，被 `ignoreCommand` 判为没影响后取消 |
+| `fix/173` | 无 | 无 |
+
+也就是说：**app 这一侧的分支规则是生效的**（`fix/*: false` 让它连记录都不建）；**landing 那一侧没生效** —— 它照样建，只是 `ignoreCommand` 把构建跳过了（「Not affected」，因为那次提交没碰 `apps/landing`）。`Skipped - Not affected` 这种状态**不能**当作「被分支规则拦住」的证据，我当时就是这么误读的。
+
+可疑点（还没证实）：landing 那个项目的 **Root Directory / Ignore Build Step 很可能是在 Vercel 面板里设的**，既然如此，面板设置会盖过（或替代）文件里那份配置 —— 于是文件里的 `git` 段根本没被读，而 `ignoreCommand` 的「跳过」来自面板。**下一步要看的是 Vercel 面板里两个项目的 Root Directory 与 Ignored Build Step**，不是在仓库里改 JSON。（我这边 Vercel API token 现在 403 了，查不了设置。）
+
+额度上的结论不变：跳过的部署不计数，所以就算 landing 每次都建一条被跳过的记录，也不花额度。
