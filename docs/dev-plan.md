@@ -684,7 +684,7 @@
 
 - **issue**: #187
 - **status**: 🟡 doing
-- **description**: 这张 14 根柱子的图本身没错（每根一天、柱高 = 当天答了多少题），但**图上什么都没写**：没有纵轴刻度、没有单位，题数只在悬停的原生 `title` 里，而 14 天里通常只有两三天有柱子 —— 用户第三次问「这是啥」。改成与下面那张模块图同一套词汇：左侧纵轴标 `0 / 一半 / 峰值`（峰值取最忙的一天）、0 与 50% 两条发丝网格线 + 左竖下横两条轴、**每天有题数就把数字印在自己柱顶**（保留 10% 下限）、悬停 `title` 保留。顺带把这张图拆成 `practice-trend.tsx`（`practice-stats.tsx` 上一轮已到 258 行，超了 250 的门槛，拆完 187 行）。实测：刻度 `9@833 / 5@861 / 0@889` 与网格线 `833/860/889` 全部对齐（≤1px）；柱顶数字与 `title` 里的一致（`1→1`、`9→9`）、0 题的天不印数字、数字紧贴柱顶；柱上数字合计 10 与图的无障碍标签「共 10 题」一致；14/14 根有 `title`；390px 下 12px 列宽、数字互相不压、不横向溢出；柱色浅色 `rgb(12,10,9)` / 深色 `rgb(250,250,249)`。
+- **description**: 这张 14 根柱子的图本身没错（每根一天、柱高 = 当天答了多少题），但**图上什么都没写**：没有纵轴刻度、没有单位，题数只在悬停的原生 `title` 里，而 14 天里通常只有两三天有柱子 —— 用户第三次问「这是啥」。改成与下面那张模块图同一套词汇：左侧纵轴标 `0 / 一半 / 峰值`（峰值取最忙的一天）、0 与 50% 两条发丝网格线 + 左竖下横两条轴、**每天有题数就把数字印在自己柱顶**（保留 10% 下限）、悬停同样换成**自己写的读数卡片**（日期 + 当天题数，与模块图那张同一套：`pointer-events: none`、默认 `opacity-0`、最外两根贴绘图区边缘，原生浏览器提示一个都不留）。顺带把这张图拆成 `practice-trend.tsx`（`practice-stats.tsx` 上一轮已到 258 行，超了 250 的门槛，拆完 187 行）。实测：刻度 `9@833 / 5@861 / 0@889` 与网格线 `833/860/889` 全部对齐（≤1px）；柱顶数字与 `title` 里的一致（`1→1`、`9→9`）、0 题的天不印数字、数字紧贴柱顶；柱上数字合计 10 与图的无障碍标签「共 10 题」一致；14/14 根有 `title`；390px 下 12px 列宽、数字互相不压、不横向溢出；柱色浅色 `rgb(12,10,9)` / 深色 `rgb(250,250,249)`。
 - **depends on**: 7.1.2、5.2
 
 ### 30.4 头像：点开是预览，更换头像有自己的按钮
@@ -693,6 +693,13 @@
 - **status**: 🟡 doing
 - **description**: `AccountIdentity`（首页卡片与 `/me` 同一个组件）里，点头像原来是直接弹文件选择器，而卡片底部那行放的是「移除」—— 不常走、不可逆，却占着唯一的键。改成：点头像**预览**（`AvatarPreview`，`<dialog>` + `showModal()`，`<Avatar>` 的 `xl` = 256px；点图片外面关掉，靠 ConfirmDialog 那套「`event.target` 是 dialog 本体」的判法，Esc 由平台自己关），底部那行改成**「更换头像」按钮**（复用现成的 `auth.avatarUpload`），文件选择器归它。顺带删掉因此没人用的 `isUploadedAvatar` / `UPLOADED_PREFIX` 与 `avatarRemove` 文案。实测（首页与 `/me` 各一遍）：底行只剩一个按钮、文案是「更换头像」、`min-h` 与行高都是 20px（占位那行没变）、头像底边与邮箱底边差 0.00px（行没被推动）；点头像后 `showModal` 被调用一次、`:modal=true`、`::backdrop` 显示为 `bg-ink/60`、焦点落在 dialog 上、图 256×256，且**没有**碰文件选择器（拦截 `input.click` 计数为 0）；点左上角（即背景层，命中元素就是 dialog 本体）关掉、Esc（`cancel`）关掉；点「更换头像」触发且只触发一次文件选择；英文一侧文案是 `Change avatar`、`aria-label` 是 `Preview picture`。
 - **depends on**: 5.0.3、7.1.4
+
+### 30.5 把 achievements（成就徽章）整块删掉
+
+- **issue**: #188
+- **status**: 🟡 doing
+- **description**: `/me` 统计卡最底部的成就徽章（起步 / 热身完毕 / 百题 / 五百题 / 坚持一周）读者判断「没啥用」，整块下线 —— **连 API 一起**：`/me/stats` 不再返回 `achievements`，`services/practice.go` 里的 `achievementSpecs` / `StreakAchievementTarget` / `achievements()`、`models.Achievement`（含 `Achieved()`）、handler 里的映射、`openapi.yaml` 的 schema 与 `required` 项、`TestAchievements` 全部删掉，两份生成物（`schema.d.ts` / `generated.go`）重新生成。前端同时删掉那一块 UI、`stats.achievements` 与 `achievements.*`（5 个徽章 × 两种语言）文案键。数据库不受影响（成就按累计数实时算，没有表）。实测：接口顶层字段只剩 `solved / correct / accuracy / streak / byExercise / daily`；页面 `h3` 只剩「每日题数（近 14 天）」与「各模块正确率」；文案键 212 → 201。
+- **depends on**: 5.10、7.1.2
 
 ## M31 关卡页的模块选项卡
 

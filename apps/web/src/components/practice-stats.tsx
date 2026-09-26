@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
-import { Check } from 'lucide-react'
 
 import { apiClient } from '@/api/client'
 import { Card } from '@/components/ui/card'
@@ -17,7 +16,7 @@ function Stat({ label, value }: { label: string; value: string | number }) {
   )
 }
 
-/** Totals, per-module accuracy, achievements, and a daily trend. */
+/** Totals, per-module accuracy, and a daily trend. */
 export function PracticeStats() {
   const { t } = useTranslation('common')
 
@@ -159,29 +158,6 @@ export function PracticeStats() {
           </div>
         </div>
       </div>
-
-      <h3 className="badge-label mt-8 text-muted">{t('stats.achievements')}</h3>
-      <ul className="mt-3 flex flex-wrap gap-2">
-        {data.achievements.map((badge) => (
-          <li
-            key={badge.id}
-            title={t(`achievements.${badge.id}.description`)}
-            className={
-              badge.achieved
-                ? 'inline-flex items-center gap-2 rounded-none bg-success/15 px-3.5 py-1.5 text-[14px] font-medium text-success-text'
-                : 'inline-flex items-center gap-2 rounded-none border border-hairline px-3.5 py-1.5 text-[14px] text-muted'
-            }
-          >
-            {badge.achieved && <Check className="h-3.5 w-3.5" />}
-            {t(`achievements.${badge.id}.title`)}
-            {!badge.achieved && (
-              <span className="tabular text-[13px]">
-                {badge.progress}/{badge.target}
-              </span>
-            )}
-          </li>
-        ))}
-      </ul>
     </Card>
   )
 }

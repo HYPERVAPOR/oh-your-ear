@@ -51,17 +51,25 @@ export function PracticeTrend({ daily }: { daily: Daily[] }) {
               <span className="absolute inset-x-0 top-0 border-t border-hairline" />
               <span className="absolute inset-x-0 top-1/2 border-t border-hairline" />
 
-              {daily.map((day) => {
+              {/* The same card the module chart floats over its columns, instead of the
+                  browser's own tooltip: `title` waits a second, cannot be styled, and says
+                  nothing next to the rest of this card. It holds still and stays in the
+                  document with `opacity-0` rather than being hidden, so what is written on the
+                  bars is not the only copy of it. The first and last ride the plot's edge —
+                  fourteen narrow columns leave no room to centre a card on the ends. */}
+              {daily.map((day, index) => {
                 // A floor of 10%, so a day with a single answer is a mark rather than a hairline.
                 const height =
                   day.solved > 0 ? Math.max(10, Math.round((day.solved / peak) * 100)) : 0
+                const anchor =
+                  index === 0
+                    ? 'left-0'
+                    : index === daily.length - 1
+                      ? 'right-0'
+                      : 'left-1/2 -translate-x-1/2'
 
                 return (
-                  <div
-                    key={day.date}
-                    title={t('stats.dayTitle', { date: day.date, solved: day.solved })}
-                    className="relative h-full flex-1"
-                  >
+                  <div key={day.date} className="group relative h-full flex-1">
                     {height > 0 && (
                       <>
                         <span
@@ -69,13 +77,23 @@ export function PracticeTrend({ daily }: { daily: Daily[] }) {
                           style={{ height: `${height}%` }}
                         />
                         <span
-                          className="absolute inset-x-0 mb-0.5 text-center tabular text-muted"
+                          className="absolute inset-x-0 mb-0.5 text-center tabular text-muted transition-opacity group-hover:opacity-0"
                           style={{ bottom: `${height}%` }}
                         >
                           {day.solved}
                         </span>
                       </>
                     )}
+
+                    <div
+                      className={`pointer-events-none absolute z-10 mb-1.5 w-36 rounded-xl border border-hairline-strong bg-surface px-3 py-2 text-left opacity-0 transition-opacity group-hover:opacity-100 ${anchor}`}
+                      style={{ bottom: `${height}%` }}
+                    >
+                      <div className="tabular text-[13px]">{day.date}</div>
+                      <div className="tabular mt-0.5 text-muted">
+                        {t('stats.daySolved', { count: day.solved })}
+                      </div>
+                    </div>
                   </div>
                 )
               })}

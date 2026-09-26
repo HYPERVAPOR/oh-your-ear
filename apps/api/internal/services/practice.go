@@ -468,12 +468,11 @@ const TrendDays = 14
 
 // Stats aggregates the numbers behind the progress dashboard.
 type Stats struct {
-	Solved       int
-	Correct      int
-	Streak       int
-	Achievements []models.Achievement
-	ByExercise   map[string]models.ExerciseStats
-	Daily        []models.DailyProgress
+	Solved     int
+	Correct    int
+	Streak     int
+	ByExercise map[string]models.ExerciseStats
+	Daily      []models.DailyProgress
 }
 
 // StatsForUser aggregates totals, a per-exercise breakdown, and a daily trend
@@ -543,7 +542,6 @@ func (s *PracticeService) StatsForUser(ctx context.Context, userID uuid.UUID) (*
 		return nil, err
 	}
 	stats.Streak = streak
-	stats.Achievements = achievements(stats.Solved, streak)
 
 	return stats, nil
 }
@@ -606,36 +604,6 @@ func streakFrom(days []time.Time, now time.Time) int {
 	}
 
 	return streak
-}
-
-// achievementSpecs are the milestones, in display order. Each one is a single
-// cumulative counter, so the list can be evaluated without storing unlock state.
-var achievementSpecs = []struct {
-	id     string
-	target int
-}{
-	{id: "firstSteps", target: 1},
-	{id: "warmUp", target: 20},
-	{id: "century", target: 100},
-	{id: "marathon", target: 500},
-}
-
-// StreakAchievementTarget is the streak milestone, kept apart because its
-// counter comes from the practice calendar rather than from the answer totals.
-const StreakAchievementTarget = 7
-
-// achievements evaluates the milestone list from the cumulative counters.
-func achievements(solved, streak int) []models.Achievement {
-	list := make([]models.Achievement, 0, len(achievementSpecs)+1)
-	for _, spec := range achievementSpecs {
-		list = append(list, models.Achievement{ID: spec.id, Progress: solved, Target: spec.target})
-	}
-
-	return append(list, models.Achievement{
-		ID:       "streakWeek",
-		Progress: streak,
-		Target:   StreakAchievementTarget,
-	})
 }
 
 // fillTrend returns one entry per day for the last days days, oldest first.
