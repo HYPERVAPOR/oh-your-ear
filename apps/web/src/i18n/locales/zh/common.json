@@ -11,7 +11,6 @@
     "play": "播放",
     "playNote": "播放 {{note}}",
     "playing": "播放中...",
-    "replay": "重放",
     "next": "下一题",
     "back": "返回",
     "tap": "敲击",
@@ -231,7 +230,7 @@
       "none": "没练"
     },
     "cell": "{{date}}：{{solved}} / {{goal}} 题",
-    "today": "今天"
+    "future": "未来"
   },
   "account": {
     "addName": "添加用户名",

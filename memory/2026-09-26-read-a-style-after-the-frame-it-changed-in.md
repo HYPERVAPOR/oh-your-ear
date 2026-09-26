@@ -2,7 +2,7 @@
 date: "2026-09-26"
 category: "lesson"
 tags: ["dom", "probe", "verification", "css", "dialog", "transition", "getComputedStyle"]
-summary: "改动样式的同一个 tick 里读回来的是旧值：刚 showModal() 的 dialog 读 :modal 会是 false，刚设 opacity:1 的元素 getComputedStyle 还是 0（过渡的动画值）。探针里一连误报两次，都不是代码问题。"
+summary: "改动样式的同一个 tick 里读回来的是旧值：刚 showModal() 的 dialog 读 :modal 会是 false，刚设 opacity:1 的元素 getComputedStyle 还是 0（过渡的动画值）。探针里一连误报三次，都不是代码问题；其中一次是无头 Chrome 的虚拟时钟根本不推进过渡，sleep 也救不了。"
 ---
 
 # 刚改完样式就读，读到的是旧值
@@ -30,6 +30,28 @@ await new Promise((r) => requestAnimationFrame(r))
 
 - 有过渡的元素：要么先 `el.style.transition = 'none'`，要么隔一帧（探针里 `await sleep(300)` 也够）。
 - 断言"用户能看见什么"时，**先等，再读**；读到的可疑值不要直接下结论，先做个最小对照实验（同一个动作，单独一个页面/元素）再判断。
+
+## 追加（同日）：无头 Chrome 里 `sleep` 也救不了过渡
+
+同一个坑换了个面孔又咬了一次。练习页的"听过一遍之前选项锁着"改成 `opacity-50` 后，探针里**播放前**读 `0.5`、播放后仍然读 `0.5`，我据此去查是不是有别的 CSS 规则在设 `opacity` —— 白查一场：
+
+- 元素的 `className` 里已经没有 `opacity-50` 了，`document.styleSheets` 里没有任何匹配该元素且设 `opacity` 的规则，inline style 也是空的；
+- 手动 `classList.remove('opacity-50')` 之后立刻读，还是 `0.5`。
+
+原因是探针用 `--headless=new --dump-dom --virtual-time-budget=N`：**虚拟时钟下 CSS 过渡不推进**，`await sleep(2500)`（虚拟时间）也不行，`getComputedStyle` 永远停在过渡的起始值。`transition: 0.15s` 就是那个"永远"的长度。
+
+所以在这套探针里验证状态切换，**别读被过渡驱动的属性**：
+
+```js
+// 1) 读类名（React 已经把它摘掉了）
+t.className.includes('opacity-50')   // → false
+
+// 2) 或者把过渡关掉，再读最终值
+t.style.transition = 'none'
+getComputedStyle(t).opacity           // → '1'
+```
+
+判据：虚拟时钟探针里，**能用类名/属性断言的，就别用计算样式断言**；非要用计算样式，先 `transition: none`。
 
 ## 参考
 

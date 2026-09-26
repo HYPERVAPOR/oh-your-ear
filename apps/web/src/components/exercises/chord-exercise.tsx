@@ -73,6 +73,9 @@ export function ChordExercise({ onBack }: { onBack?: () => void }) {
     pickOptions(seed?.type ?? question.type, allowedTypes),
   )
   const [selected, setSelected] = useState<string | null>(null)
+  // Nothing is answerable before it has been heard once: choosing first is guessing,
+  // and the tiles cannot tell you that they are only waiting for a first listen.
+  const [heard, setHeard] = useState(false)
 
   const { type, notes } = question
   const isCorrect = selected ? selected === type : null
@@ -83,6 +86,7 @@ export function ChordExercise({ onBack }: { onBack?: () => void }) {
     setQuestion(next)
     setOptions(pickOptions(next.type, pool))
     setSelected(null)
+    setHeard(false)
   }, [active.types])
 
   if (round.finished) {
@@ -130,7 +134,14 @@ export function ChordExercise({ onBack }: { onBack?: () => void }) {
       score={{ correct: round.correct, total: round.total }}
       progress={roundSize > 0 ? { done: round.total, size: roundSize } : undefined}
     >
-      <Button size="hero" className="mb-10" onClick={() => playChord(notes)}>
+      <Button
+        size="hero"
+        className="mb-10"
+        onClick={() => {
+          setHeard(true)
+          playChord(notes)
+        }}
+      >
         {t('actions.play')}
       </Button>
 
@@ -138,9 +149,9 @@ export function ChordExercise({ onBack }: { onBack?: () => void }) {
         {options.map((chordType) => (
           <OptionTile
             key={chordType}
-            disabled={!!selected}
+            disabled={!heard || !!selected}
             onClick={() => handleGuess(chordType)}
-            className="h-16 leading-tight"
+            className={`h-16 leading-tight${heard ? '' : ' opacity-50'}`}
             state={
               selected && chordType === type
                 ? 'correct'

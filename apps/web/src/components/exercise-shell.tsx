@@ -1,11 +1,10 @@
 import type { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useSearchParams } from 'react-router-dom'
 import { ArrowLeft, Check, X } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import type { ExerciseKind } from '@/components/ui/orb'
-import { pickText, type Level } from '@/lib/levels'
+import { pickText, useLevelRequested, type Level } from '@/lib/levels'
 
 /**
  * Shared frame for every exercise screen: 64px header, the module's orb blooming
@@ -32,7 +31,7 @@ export function ExerciseShell({
   const { t, i18n } = useTranslation('common')
   // A level's name arrives with the catalogue. Until it does, say nothing rather than
   // "Random Test" on a level: the wrong word is worse than a wait.
-  const askedForALevel = useSearchParams()[0].has('level')
+  const askedForALevel = useLevelRequested()
 
   return (
     <div className="flex min-h-screen flex-col">

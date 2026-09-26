@@ -11,13 +11,19 @@ export interface PlayButtonProps {
   className?: string
   duration?: string
   label?: string
+  /** Fired when the screen asks for the note, alongside the click rather than after the
+   *  sample has loaded: every other module marks a question heard the moment its play
+   *  button is pressed, and waiting on the loader would leave the answer tiles locked
+   *  for good if it never arrives. */
+  onPlay?: () => void
 }
 
 /** Plays a note (or a stored chord/sequence) and resumes the audio context. */
-export function PlayButton({ note, className, duration = '8n', label }: PlayButtonProps) {
+export function PlayButton({ note, className, duration = '8n', label, onPlay }: PlayButtonProps) {
   const { t } = useTranslation('common')
 
   async function handleClick() {
+    onPlay?.()
     await Tone.start()
     const piano = await getPiano()
     piano.triggerAttackRelease(note, duration)

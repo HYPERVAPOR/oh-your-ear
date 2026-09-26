@@ -52,6 +52,9 @@ export function SingleNoteExercise({ onBack }: { onBack?: () => void }) {
   const round = useRound(roundSize)
   const [question, setQuestion] = useState(() => createRound(seededNote, notePool))
   const [selected, setSelected] = useState<string | null>(null)
+  // Nothing is answerable before it has been heard once: choosing first is guessing,
+  // and the tiles cannot tell you that they are only waiting for a first listen.
+  const [heard, setHeard] = useState(false)
 
   const isCorrect = selected ? Note.midi(selected) === Note.midi(question.target) : null
 
@@ -82,6 +85,7 @@ export function SingleNoteExercise({ onBack }: { onBack?: () => void }) {
   const startRound = useCallback(() => {
     setQuestion(createRound(null, buildSingleNotePool(active)))
     setSelected(null)
+    setHeard(false)
   }, [active])
 
   if (round.finished) {
@@ -108,15 +112,20 @@ export function SingleNoteExercise({ onBack }: { onBack?: () => void }) {
       score={{ correct: round.correct, total: round.total }}
       progress={roundSize > 0 ? { done: round.total, size: roundSize } : undefined}
     >
-      <PlayButton note={question.target} label={t('actions.play')} className="mb-10" />
+      <PlayButton
+        note={question.target}
+        label={t('actions.play')}
+        className="mb-10"
+        onPlay={() => setHeard(true)}
+      />
 
       <div className="grid w-full grid-cols-4 gap-2.5">
         {question.options.map((note) => (
           <OptionTile
             key={note}
-            disabled={!!selected}
+            disabled={!heard || !!selected}
             onClick={() => handleGuess(note)}
-            className="tabular h-16"
+            className={`tabular h-16${heard ? '' : ' opacity-50'}`}
             state={
               selected && Note.midi(note) === Note.midi(question.target)
                 ? 'correct'
