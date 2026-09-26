@@ -7,7 +7,7 @@ import { ChevronRight } from 'lucide-react'
 import { apiClient } from '@/api/client'
 import type { components } from '@/api/schema'
 import { ExerciseShell } from '@/components/exercise-shell'
-import { ModuleSettings, QuestionBody, makeQuestion, type AnswerEvent } from '@/components/question'
+import { QuestionBody, makeQuestion, type AnswerEvent } from '@/components/question'
 import { RoundSummary } from '@/components/round-summary'
 import { Button } from '@/components/ui/button'
 import { MODULES, type ExerciseKind } from '@/components/ui/orb'
@@ -125,9 +125,9 @@ function DailySession({ plan, onBack }: { plan: StudyPlan; onBack: () => void })
         }}
       />
 
-      {/* Keyed by module, because a hook cannot take a module that changes from one
-          question to the next. */}
-      <ModuleSettings key={kind} kind={kind} />
+      {/* No settings here, for the same reason a question set has none: this is the day's
+          work, and the place to change how hard the questions are is random practice. The
+          module's own settings are what draws them; they are just not editable mid-sitting. */}
 
       <div className="mt-8 flex min-h-[52px] items-center">
         {step.answer && (
