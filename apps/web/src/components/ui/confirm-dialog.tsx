@@ -24,12 +24,16 @@ import { Button } from '@/components/ui/button'
 export function ConfirmDialog({
   open,
   title,
+  description,
   confirmLabel,
   onConfirm,
   onDismiss,
 }: {
   open: boolean
   title: string
+  /** The sentence under the question. Only questions with a consequence to spell out need
+   *  one — "sign out?" does not, "this cannot be undone" does. */
+  description?: string
   confirmLabel: string
   onConfirm: () => void
   /** Close, whether anything was done or not. Also called after `onConfirm`. */
@@ -63,6 +67,8 @@ export function ConfirmDialog({
       <h2 id={titleId} className="px-6 pt-6 text-[18px] leading-snug font-medium">
         {title}
       </h2>
+
+      {description && <p className="px-6 pt-2 text-[14px] text-muted">{description}</p>}
 
       <div className="flex justify-end gap-2 px-6 pt-6 pb-6">
         <Button variant="outline" onClick={onDismiss}>
