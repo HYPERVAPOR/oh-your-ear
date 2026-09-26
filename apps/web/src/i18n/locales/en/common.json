@@ -111,7 +111,7 @@
     "loginWithGoogle": "Continue with Google",
     "loginMock": "Mock login (dev only)",
     "avatarUpload": "Change avatar",
-    "avatarRemove": "Remove",
+    "avatarPreview": "Preview picture",
     "avatarFailed": "That picture did not go through. Try again.",
     "avatarWrongType": "PNG or JPEG, please.",
     "avatarTooBig": "That file is over 512KB.",

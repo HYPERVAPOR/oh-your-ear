@@ -1,3 +1,6 @@
+import { useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
+
 import { avatarColors, avatarPattern } from '@/lib/avatar'
 import { cn } from '@/lib/utils'
 
@@ -10,7 +13,7 @@ type AvatarUser = {
 }
 
 /** Literal classes, so Tailwind sees them. */
-const SIZES = { md: 'size-10', lg: 'size-16' } as const
+const SIZES = { md: 'size-10', lg: 'size-16', xl: 'size-64' } as const
 
 /**
  * The generated avatar of an account that has no picture: five columns of blocks mirrored
@@ -46,4 +49,49 @@ export function Avatar({ user, size = 'md' }: { user: AvatarUser; size?: keyof t
     return <img src={user.avatarUrl} alt="" className={cn('shrink-0 object-cover', SIZES[size])} />
   }
   return <PixelAvatar seed={user.id} size={size} />
+}
+
+/** The same picture at its own size, in the browser's own modal.
+ *
+ *  Clicking a small picture means "let me look at that", not "open a file picker": the picker
+ *  cannot be taken back, and the thing that replaces a picture has its own button. So this is
+ *  what the click opens, and replacing is somewhere else.
+ *
+ *  `<dialog>` + `showModal()` again: the top layer, the `::backdrop`, Esc, the focus trap and
+ *  the inert page behind all come from the platform. The one thing it does not do is close on a
+ *  click outside, so this catches that itself — such a click arrives with the dialog element as
+ *  its target, and everything the reader sees inside it is a child of that element. */
+export function AvatarPreview({
+  open,
+  user,
+  onClose,
+}: {
+  open: boolean
+  user: AvatarUser
+  onClose: () => void
+}) {
+  const { t } = useTranslation('common')
+  const ref = useRef<HTMLDialogElement>(null)
+
+  useEffect(() => {
+    const dialog = ref.current
+    if (!dialog) return
+    if (open && !dialog.open) dialog.showModal()
+    if (!open && dialog.open) dialog.close()
+  }, [open])
+
+  return (
+    <dialog
+      ref={ref}
+      aria-label={t('auth.avatarPreview')}
+      // Esc: the element closes itself, so this only has to catch the state up.
+      onCancel={onClose}
+      onClick={(event) => {
+        if (event.target === ref.current) onClose()
+      }}
+      className="m-auto bg-transparent p-0 backdrop:bg-ink/60"
+    >
+      <Avatar user={user} size="xl" />
+    </dialog>
+  )
 }

@@ -111,7 +111,7 @@
     "loginWithGoogle": "使用 Google 继续",
     "loginMock": "模拟登录（仅开发环境）",
     "avatarUpload": "更换头像",
-    "avatarRemove": "移除",
+    "avatarPreview": "预览头像",
     "avatarFailed": "这张图没传上去，稍后再试一次。",
     "avatarWrongType": "请用 PNG 或 JPEG。",
     "avatarTooBig": "这张图超过 512KB 了。",
