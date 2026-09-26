@@ -811,6 +811,9 @@ components:
           maximum: 500
         focusExercises:
           type: array
+          description: |
+            The modules the daily session draws from. Empty means no narrowing down, so every
+            module counts. A plan that was never saved answers with the defaults.
           items:
             $ref: '#/components/schemas/ExerciseKind'
         today:

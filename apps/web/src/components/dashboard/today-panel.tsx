@@ -5,17 +5,12 @@ import { Link, useNavigate } from 'react-router-dom'
 import { apiClient } from '@/api/client'
 import { AccountIdentity } from '@/components/account-identity'
 import { PracticeHeatmap } from '@/components/practice-heatmap'
-import { modulePath } from '@/components/round-summary'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { MODULES, type ExerciseKind } from '@/components/ui/orb'
 import { DEFAULT_GOAL } from '@/lib/heatmap'
 import { useDelayedLoading } from '@/lib/use-delayed'
 import { loginHere, loginPath } from '@/lib/auth'
 import { useAuthStore } from '@/stores/auth-store'
-
-/** One session is a round; the plan can ask for more, but not in a single sitting. */
-const MAX_SESSION = 20
 
 /** The account's own two pages. Not practice modes: where your answers end up. */
 const ACCOUNT_LINKS = [
@@ -55,21 +50,13 @@ export function TodayPanel() {
 
   const goal = plan?.dailyGoal ?? DEFAULT_GOAL
   const solved = plan?.today.solved ?? 0
-  const remaining = Math.max(goal - solved, 0)
   const met = goal > 0 && solved >= goal
 
-  // The focus modules, or all of them when the plan does not narrow it down.
-  const focus: ExerciseKind[] = (plan?.focusExercises as ExerciseKind[] | undefined)?.length
-    ? (plan?.focusExercises as ExerciseKind[])
-    : MODULES
-  const byExercise = plan?.today.byExercise ?? {}
-  // The module with the least done today, so a session evens the day out.
-  const next = [...focus].sort((a, b) => (byExercise[a] ?? 0) - (byExercise[b] ?? 0))[0]
-
+  // The session lives at /daily now: it runs the whole day in one sitting, spreading the
+  // questions over the focus modules, which the homepage's one-button-per-visit shape
+  // could not do.
   function startSession() {
-    if (!next) return
-    const size = Math.min(remaining > 0 ? remaining : MAX_SESSION, MAX_SESSION)
-    navigate(`/exercise/${modulePath(next)}?round=${size}`)
+    navigate('/daily')
   }
 
   return (

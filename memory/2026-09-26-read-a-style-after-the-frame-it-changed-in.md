@@ -57,3 +57,19 @@ getComputedStyle(t).opacity           // → '1'
 
 - `apps/web/src/components/avatar.tsx`（`AvatarPreview`）
 - `memory/2026-09-25-assert-the-thing-the-user-can-see.md`
+
+## 再追加：这条规则要用在**每一个读状态的探针**上
+
+同一天里这个坑又咬了两次（都是「按钮/格子从一个状态切到另一个状态，读 computed style」）：
+保存按钮从禁用（灰底）切到可用（墨底）、模块格子从选中切到未选中。两次读到的都是**切换前**的值，
+两次都让我以为代码写错了。
+
+所以别把它当特例判断，当流程：
+
+```js
+// 任何按状态读颜色的探针，读之前无条件关掉过渡
+el.style.transition = 'none'
+const st = getComputedStyle(el)
+```
+
+或者干脆断言**类名 / aria 属性 / disabled**，那些不经过过渡，断言它们永远不会被骗。
