@@ -8,7 +8,7 @@ import { loginHere, loginPath } from '@/lib/auth'
 import { AppHeader } from '@/components/app-header'
 import { EmptyState } from '@/components/ui/card'
 import { CollectMenu } from '@/components/collect-menu'
-import { ModuleSwatch, type ExerciseKind } from '@/components/ui/orb'
+import { ModuleSwatch, MODULE_SWATCH, type ExerciseKind } from '@/components/ui/orb'
 import { useAuthStore } from '@/stores/auth-store'
 import { pickText, useLevelCatalog, type Level } from '@/lib/levels'
 import { modulePath } from '@/components/round-summary'
@@ -83,30 +83,43 @@ export function Levels() {
             </div>
           )}
 
-          {/* The same welded group as the dashboard's Learn / Random switch and the
-              calendar's four magnifications: one outline, one rule between neighbours, the
-              selected one a shade darker. It scrolls sideways rather than wrapping when
-              five names do not fit on a phone. */}
-          <div
-            role="group"
-            aria-label={t('levels.title')}
-            className="mt-8 inline-flex max-w-full items-stretch divide-x divide-hairline-strong overflow-x-auto border border-hairline-strong"
-          >
-            {modules.map((value) => (
-              <button
-                key={value}
-                type="button"
-                aria-pressed={activeKind === value}
-                onClick={() => pick(value)}
-                className={cn(
-                  'h-10 shrink-0 px-3 text-[15px] transition-colors',
-                  activeKind === value ? 'bg-surface-strong text-ink' : 'text-muted hover:text-ink',
-                )}
-              >
-                {t(`modules.${value}`)}
-              </button>
-            ))}
-          </div>
+          {/* Five siblings, not a switch. The welded group belongs to the dashboard's Learn /
+              Random pair and the calendar's four magnifications — two or four answers to one
+              question, cut out of a single plate. These are five modules, and each one already
+              has a colour on the dashboard, so the tab carries that colour and the one you are
+              on is underlined with it.
+
+              Equal shares, because the English names are nothing like each other in length and
+              a row that resizes as you click is a row that jumps. A floor under each one, so
+              they stay wide enough to hit on a phone, where the row scrolls rather than wraps. */}
+          <nav aria-label={t('levels.title')} className="mt-8 flex max-w-full overflow-x-auto">
+            {modules.map((value) => {
+              const active = activeKind === value
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => pick(value)}
+                  className={cn(
+                    'relative flex min-w-28 flex-1 items-center justify-center gap-2 whitespace-nowrap px-3 py-2.5 text-[15px] transition-colors',
+                    active ? 'text-ink' : 'text-muted hover:text-ink',
+                  )}
+                >
+                  <ModuleSwatch kind={value} />
+                  {t(`modules.${value}`)}
+                  {/* Only the one you are on, and absolutely placed so that having it or not
+                      having it cannot change the height of the row. */}
+                  {active && (
+                    <span
+                      aria-hidden="true"
+                      className={cn('absolute inset-x-0 bottom-0 h-0.5', MODULE_SWATCH[value])}
+                    />
+                  )}
+                </button>
+              )
+            })}
+          </nav>
 
           <div className="mt-8 space-y-10">
             {shown.map((set) => {
