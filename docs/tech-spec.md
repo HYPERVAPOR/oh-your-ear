@@ -52,6 +52,7 @@
 - **PWA**：Vite PWA plugin 1.3.0
 - **本地缓存**：IndexedDB（Dexie.js）
 - **策略**：离线时写本地，联网后批量同步到后端
+- **导航兜底**：Service Worker 把整页导航回 `index.html`，但**排除 `/api/`** —— Google 登录的起点与回调都是整页导航，被兜底接住就变成了应用自己的 404 页（CI 检查：`apps/web/scripts/check-sw-navigation-fallback.mjs`）
 
 ## 部署
 

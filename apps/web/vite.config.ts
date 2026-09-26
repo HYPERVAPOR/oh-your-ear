@@ -29,6 +29,13 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
+      workbox: {
+        // Full-page navigations to the API have to reach the network. The
+        // service worker's navigation fallback would otherwise answer them
+        // with index.html, which turns the Google sign-in start (and the
+        // callback Google sends people back to) into the app's own 404 page.
+        navigateFallbackDenylist: [/^\/api\//],
+      },
       manifest: {
         name: 'Oh Your Ear',
         short_name: 'OYE',
