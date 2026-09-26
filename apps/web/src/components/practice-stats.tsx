@@ -4,6 +4,7 @@ import { Check } from 'lucide-react'
 
 import { apiClient } from '@/api/client'
 import { Card } from '@/components/ui/card'
+import { PracticeTrend } from '@/components/practice-trend'
 import { ModuleSwatch, MODULES, MODULE_SWATCH } from '@/components/ui/orb'
 import { cn } from '@/lib/utils'
 
@@ -43,7 +44,6 @@ export function PracticeStats() {
 
   const accuracy = Math.round(data.accuracy * 100)
   const activeDays = data.daily.filter((day) => day.solved > 0).length
-  const peak = Math.max(...data.daily.map((day) => day.solved), 1)
 
   return (
     <Card className="p-6 sm:p-7">
@@ -56,37 +56,7 @@ export function PracticeStats() {
         <Stat label={t('stats.streak')} value={data.streak} />
       </div>
 
-      <h3 className="badge-label mt-8 text-muted">
-        {t('stats.trend', { days: data.daily.length })}
-      </h3>
-      <div
-        className="mt-3 flex h-20 max-w-md items-end gap-1.5"
-        role="img"
-        aria-label={t('stats.trendLabel', {
-          from: data.daily[0]?.date ?? '',
-          to: data.daily[data.daily.length - 1]?.date ?? '',
-          solved: data.daily.reduce((sum, day) => sum + day.solved, 0),
-        })}
-      >
-        {data.daily.map((day) => (
-          <div
-            key={day.date}
-            title={t('stats.dayTitle', { date: day.date, solved: day.solved })}
-            className="flex h-full flex-1 flex-col justify-end overflow-hidden rounded-sm bg-surface-strong"
-          >
-            <div
-              className={day.solved > 0 ? 'rounded-sm bg-primary' : ''}
-              style={{
-                height: day.solved > 0 ? `${Math.max(10, (day.solved / peak) * 100)}%` : '0',
-              }}
-            />
-          </div>
-        ))}
-      </div>
-      <div className="mt-2 flex max-w-md justify-between text-[13px] text-muted">
-        <span className="tabular">{data.daily[0]?.date}</span>
-        <span className="tabular">{data.daily[data.daily.length - 1]?.date}</span>
-      </div>
+      <PracticeTrend daily={data.daily} />
 
       <h3 className="badge-label mt-8 text-muted">{t('stats.byExercise')}</h3>
       {/* All five modules, practised or not: an empty column says something too, and a chart
