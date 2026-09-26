@@ -181,6 +181,25 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
+  /me:
+    delete:
+      operationId: deleteMyAccount
+      summary: Delete this account and everything it owns
+      description: >
+        The account goes together with everything hanging off it: practice records, study
+        plan, mistake notebook, collections, level progress and avatar. Irreversible.
+
+        The account page only draws a way to call this in dev builds (the button is behind
+        `import.meta.env.DEV`); production is meant to put an email-code step in front of it
+        first.
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: The account is gone
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
   /me/name:
     put:
       operationId: setMyName

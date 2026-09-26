@@ -16,6 +16,7 @@ import (
 	"github.com/HYPERVAPOR/oh-your-ear/apps/api/internal/db"
 	"github.com/HYPERVAPOR/oh-your-ear/apps/api/internal/services"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 func run() error {
@@ -211,6 +212,23 @@ func registerAuthRoutes(r *gin.Engine, cfg config.Config, server *api.Server, au
 		}
 		if revoked {
 			c.JSON(http.StatusUnauthorized, api.ErrorResponse{Error: "refresh token revoked"})
+			return
+		}
+
+		// The account still has to exist. Refresh tokens are stateless and the revocation list
+		// only holds the ones a logout handed in, so without this a token from a deleted account
+		// would keep minting access tokens (PRD 5.10: deleting an account ends its sessions).
+		userID, err := uuid.Parse(claims.UserID)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, api.ErrorResponse{Error: "invalid refresh token"})
+			return
+		}
+		if _, err := authSvc.GetUserByID(c.Request.Context(), userID); err != nil {
+			if errors.Is(err, services.ErrUserNotFound) {
+				c.JSON(http.StatusUnauthorized, api.ErrorResponse{Error: "account no longer exists"})
+				return
+			}
+			c.JSON(http.StatusInternalServerError, api.ErrorResponse{Error: "failed to load user"})
 			return
 		}
 

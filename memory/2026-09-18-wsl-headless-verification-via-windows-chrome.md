@@ -68,6 +68,10 @@ zustand persist 的主题存在 `oye-app-storage`，headless 每次都是干净 
 
 访问 `/__seed.html`，它写完就跳转，于是能验证"预置 light + 系统深色 → 首屏保持 light"。顺带证明 zustand 的存储结构假设是对的。**用完记得删掉**（Vite 的 `public/` 会被打进产物）。
 
+## 探针可以直接 import 应用自己的 TS 模块（测 store / 非视觉逻辑）
+
+开发服务器（Vite）会把 `/src/**.ts` 当模块提供，所以 `public/__probe.html` 里写 `<script type="module">` + `await import('/src/stores/auth-store.ts')` 就能拿到**真实的** store 实例（`@/` 别名也解析得了）—— 不靠点击、不靠截图，headless 一次 dump 就能把 store 行为验完。例：种两条 query 缓存 → `await useAuthStore.getState().logout()` → 读 `queryClient.getQueryCache().getAll()` 看还在不在，JSON 打成一行 `RESULT {…}` 塞进 `<pre>`，用 Windows Chrome `--dump-dom | grep RESULT` 取回。顺手能验到「同一个模块被 import 两次是不是同一个实例」（成环或重复打包时会变成两份，行为直接不对）。用完删探针（`public/` 会被打进产物）。
+
 ## 结论
 
 - 可视化验证：Windows Chrome headless（截图 + dump-dom）。

@@ -153,6 +153,27 @@ export interface paths {
     patch?: never
     trace?: never
   }
+  '/me': {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    get?: never
+    put?: never
+    post?: never
+    /**
+     * Delete this account and everything it owns
+     * @description The account goes together with everything hanging off it: practice records, study plan, mistake notebook, collections, level progress and avatar. Irreversible.
+     *     The account page only draws a way to call this in dev builds (the button is behind `import.meta.env.DEV`); production is meant to put an email-code step in front of it first.
+     */
+    delete: operations['deleteMyAccount']
+    options?: never
+    head?: never
+    patch?: never
+    trace?: never
+  }
   '/me/name': {
     parameters: {
       query?: never
@@ -903,6 +924,25 @@ export interface operations {
     requestBody?: never
     responses: {
       /** @description Logged out successfully */
+      204: {
+        headers: {
+          [name: string]: unknown
+        }
+        content?: never
+      }
+      401: components['responses']['Unauthorized']
+    }
+  }
+  deleteMyAccount: {
+    parameters: {
+      query?: never
+      header?: never
+      path?: never
+      cookie?: never
+    }
+    requestBody?: never
+    responses: {
+      /** @description The account is gone */
       204: {
         headers: {
           [name: string]: unknown

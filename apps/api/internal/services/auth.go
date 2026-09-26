@@ -501,6 +501,28 @@ func (s *AuthService) SetName(ctx context.Context, userID uuid.UUID, name string
 	return s.GetUserByID(ctx, userID)
 }
 
+// DeleteUser removes the account and everything it owns.
+//
+// Every table that hangs off a user declares ON DELETE CASCADE, so this does not carry a
+// list of tables to work through — a list is the thing that falls out of date as the schema
+// grows, and a half-deleted account is worse than a whole one. One row is the whole account.
+//
+// Pending email codes go too: they were requested by this address, and leaving them behind
+// would let a code mailed to a deleted account still verify.
+//
+// ponytail: the session is the only proof this asks for, which is enough while the surface
+// is dev-only; production wants the email-code step in front of it (PRD §5.10, M38.2).
+func (s *AuthService) DeleteUser(ctx context.Context, userID uuid.UUID) error {
+	_, err := s.pool.Exec(ctx, `
+		WITH gone AS (DELETE FROM users WHERE id = $1 RETURNING email)
+		DELETE FROM email_codes WHERE email IN (SELECT email FROM gone)`, userID)
+	if err != nil {
+		return fmt.Errorf("delete user: %w", err)
+	}
+
+	return nil
+}
+
 // validateName trims a display name and checks that it is one, returning the version that is
 // stored. Trimmed here rather than at the call site so that what was checked is what is kept:
 // a name of nothing but spaces would otherwise be stored as a name.

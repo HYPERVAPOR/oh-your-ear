@@ -4,6 +4,7 @@ import { ArrowLeft } from 'lucide-react'
 
 import { AppHeader } from '@/components/app-header'
 import { AccountIdentity } from '@/components/account-identity'
+import { DangerZone } from '@/components/danger-zone'
 import { PracticeStats } from '@/components/practice-stats'
 import { StudyPlanForm } from '@/components/study-plan-form'
 import { iconKey } from '@oh-your-ear/shared/pref-controls'
@@ -70,6 +71,10 @@ export function Me() {
                 {t('mistakes.open')}
               </span>
             </Link>
+
+            {/* Deleting the account is a dev-only surface for now: production wants an email
+                code in front of it first (PRD 5.10, M38.2). */}
+            {import.meta.env.DEV && <DangerZone />}
           </div>
         </div>
       </main>

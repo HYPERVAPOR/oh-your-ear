@@ -224,6 +224,20 @@ export function Signup() {
 
       {step === 'password' && (
         <form className="mt-6 space-y-5" onSubmit={savePassword}>
+          {/* The address rides along as a hidden username field. Chrome only reads a form
+              as a sign-up form — which is what offers "Suggest password" — when the
+              account being created is visible in it, and it stores the password against
+              that address instead of storing a nameless one. It is hidden, not shown,
+              because it is not editable here: the session, not this field, is what
+              `PUT /me/password` authorises. Chromium's own guidance for an "email first"
+              flow is exactly this, hidden with CSS included. */}
+          <input
+            type="email"
+            name="username"
+            autoComplete="username"
+            defaultValue={emailed}
+            hidden
+          />
           <Field label={t('auth.newPassword')} htmlFor="new-password" hint="">
             <Input
               id="new-password"

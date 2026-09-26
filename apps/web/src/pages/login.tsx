@@ -82,7 +82,10 @@ export function Login() {
             type="email"
             required
             autoFocus
-            autoComplete="email"
+            // `username` rather than `email`: password managers key the saved account on
+            // this, and only `username` is understood as "the account name" on a form
+            // that carries a password.
+            autoComplete="username"
             value={email}
             onChange={(e) => {
               setEmail(e.target.value)

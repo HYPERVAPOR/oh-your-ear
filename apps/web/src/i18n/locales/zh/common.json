@@ -66,13 +66,13 @@
     "8P": "纯八度"
   },
   "chords": {
+    "7": "属七和弦",
     "major": "大三和弦",
     "minor": "小三和弦",
     "diminished": "减三和弦",
     "augmented": "增三和弦",
     "maj7": "大七和弦",
-    "min7": "小七和弦",
-    "7": "属七和弦"
+    "min7": "小七和弦"
   },
   "auth": {
     "loginTitle": "登录",
@@ -236,7 +236,14 @@
   "account": {
     "addName": "添加用户名",
     "editName": "改用户名",
-    "nameFailed": "没能保存用户名，请再试一次"
+    "nameFailed": "没能保存用户名，请再试一次",
+    "dangerTitle": "危险区",
+    "dangerBody": "删除账号会连同练习记录、学习计划、错题本与收藏一起删掉。",
+    "dangerDelete": "删除账号",
+    "dangerFailed": "没能删除账号，请再试一次",
+    "dangerConfirmTitle": "确定删除账号？",
+    "dangerConfirmBody": "这些数据会跟着账号一起消失，无法恢复。",
+    "dangerConfirmLabel": "删除"
   },
   "daily": {
     "title": "每日练习",

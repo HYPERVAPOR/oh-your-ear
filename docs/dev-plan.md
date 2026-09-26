@@ -701,6 +701,42 @@
 - **description**: `/me` 统计卡最底部的成就徽章（起步 / 热身完毕 / 百题 / 五百题 / 坚持一周）读者判断「没啥用」，整块下线 —— **连 API 一起**：`/me/stats` 不再返回 `achievements`，`services/practice.go` 里的 `achievementSpecs` / `StreakAchievementTarget` / `achievements()`、`models.Achievement`（含 `Achieved()`）、handler 里的映射、`openapi.yaml` 的 schema 与 `required` 项、`TestAchievements` 全部删掉，两份生成物（`schema.d.ts` / `generated.go`）重新生成。前端同时删掉那一块 UI、`stats.achievements` 与 `achievements.*`（5 个徽章 × 两种语言）文案键。数据库不受影响（成就按累计数实时算，没有表）。实测：接口顶层字段只剩 `solved / correct / accuracy / streak / byExercise / daily`；页面 `h3` 只剩「每日题数（近 14 天）」与「各模块正确率」；文案键 212 → 201。
 - **depends on**: 5.10、7.1.2
 
+## M38 删账号：`/me` 底部的危险区（暂 dev only）
+
+### 38.1 `DELETE /me` 与那一块危险区
+
+- **issue**: #201
+- **status**: 🟡 doing
+- **description**: 开发时要能删掉测试账号，所以 `/me` 内容区最下面加一块**危险区**：标题用 `error-text`、一句说清楚代价（练习记录 / 学习计划 / 错题本 / 收藏 / 头像一起没）、一颗 `variant="destructive"` 的「删除账号」（不是新变体，本来就有），点开用现成的 `ConfirmDialog` —— 顺手给它加了一个可选的 `description`：按钮已经把问题问完了，而「不可恢复」这种代价得有一行自己的地方说，挤进标题里会变成一个又长又大的句子。失败的话在按钮下面说一句，那一行**恒定占位**（照 `Field` 的做法），免得消息一出现就把刚点的按钮挪走。界面**只在开发构建里有**：`pages/me.tsx` 里 `{import.meta.env.DEV && <DangerZone />}`，组件本身是完整的表面，上生产时把验证码那一步加进去就直接能用（见下）。服务端只加一条 `DELETE /me`（`openapi.yaml` + 重新生成两份产物），handler 就是 `requireUser` → `auth.DeleteUser` → 清 refresh cookie → 204。删除本身是**一条语句**：`WITH gone AS (DELETE FROM users WHERE id = $1 RETURNING email) DELETE FROM email_codes WHERE email IN (SELECT email FROM gone)` —— 其余七张表全部 `ON DELETE CASCADE`，不写“该删哪些表”的清单；`email_codes` 按地址而不是按账号，所以顺手一起删（它本来就是发给这个地址的）。为什么只删一行是安全的，由一条 DB 测试守着：`services/delete_account_test.go` 在每张挂在账号下的表里各插一行，删完逐张数剩余行数，全为 0 —— 将来加表忘了级联，它会失败。客户端删成功后走 store 新的 `clearSession()`（与登出同一条路：清令牌 + 清 query 缓存）再回首页（`useAuthStore` 因此从 `(set)` 变成 `(set, get)`，`logout` 复用它）。**顺手补的一个洞**：`/auth/refresh` 原先不查账号还在不在（refresh token 是无状态 JWT，黑名单只装登出交上去的），所以已删账号的 token 还能继续换新的 access token —— 现在多一次 `GetUserByID`，不存在就 401。
+- **note**: 上生产前要加**邮箱验证码核实**（读者要求的方向）：`DELETE /me` 现在只认会话，这在开发环境够用，线上要让用户先过一道寄到邮箱的验证码；代码里以 `ponytail:` 注在 `DeleteUser` 上，PRD 也写了这一条。
+- **depends on**: 7.1.4、M28
+
+### 38.2 危险区不够 danger：在设计规矩内把信号做满
+
+- **issue**: #205
+- **status**: 🟡 doing
+- **description**: 初版除了标题是深红，其余和上面几张卡一样（同样的中性发丝线、`surface` 底、按钮只有文字是红的），读起来像一个普通设置块。但 `DESIGN.md` 有一条硬规矩：**ink 是唯一的动作色，产品里不允许出现第二个饱和按钮底色** —— 所以不能靠塞一个实心红按钮了事。做法是在语言内把信号做满：卡片换成 `border-error/40` 发丝线 + `bg-error/5` 淡染（一块被标出来的区域，而不是又一张卡）；按钮从「只有文字红」升级成**描边红**（`destructive` 加 `border border-error-text`），于是它是页面上唯一一颗红色控件、却仍是描边而非实心，ink 依旧唯一；`ConfirmDialog` 加可选 `destructive`，确认键在不可撤销的动作上用同一颗（「退出登录」不用），最后一步长得像它会做的事。`DESIGN.md` 的按钮行与确认框行同步写明这条规矩。实测（编译产物 + 计算，不看感觉）：`.border-error\/40` → `color-mix(in oklab, var(--error) 40%, transparent)`、`.bg-error\/5` → 5% 淡染都真的编译了出来（Tailwind 对拼错的类只会静默丢弃，所以这两条是实测而非目测）；对比度 #991b1b on 浅色淡染 = **7.69:1**、#f87171 on 暗色淡染 = **5.88:1**，两档都过 AA（浅色还过 AAA）。
+- **note**: 更狠的三个备选留在 issue #205（实心红按钮 —— 要先改 `DESIGN.md`；标题加警告图标；去掉淡染），默认不做。
+- **depends on**: M38.1
+
+## M37 登出：账号数据不活过会话
+
+### 37.1 登出清 query 缓存（不是整页刷新）
+
+- **issue**: #200
+- **status**: 🟡 doing
+- **description**: 登出之后首页那两排进度还在（账号卡的按钮文案、关卡进度条、热力图的格子）：`['study-plan']` / `['level-progress']` / `['daily-history']` 这些查询只按 `user` 决定**要不要取**，显示却直接读 `data` —— 登出后查询被禁用了，缓存里上一个账号的数字就留在屏幕上。同一个洞还有个更重的后果：共用浏览器上换账号登录，新账号会先看到前一个人的进度，直到自己的回来。修法不是在登出后刷新页面，而是把「账号数据不活过会话」落在会话结束的那一处：`QueryClient` 从 `main.tsx` 搬进一个模块（`api/query-client.ts`，只依赖 `@tanstack/react-query`，所以 store 能安全地 import 它 —— `api/client.ts` 反过来 import store，放那儿会成环），store 的 `logout` 在 `finally` 里 `queryClient.clear()`：缓存清空，页面照常渲染成游客态（零），不重载应用。实测（探针直接 import store + query-client，种两条缓存再调 `logout()`）：调用前 `['level-progress','study-plan']` + `user=u1`，调用后 `keys=[]`、`user=null`、`token=null`，且两次 import 拿到同一个实例（没被拆成两份）。
+- **depends on**: 7.1.4、M28
+
+## M36 密码这一步：让浏览器密码管理器认得出账号
+
+### 36.1 密码表单里带上邮箱（隐藏），登录页改用 `username`
+
+- **issue**: #199
+- **status**: 🟡 doing
+- **description**: 注册第三步与重设第二步的表单里**只有密码字段**，邮箱留在上一屏（或只作为提示文字），于是 Chrome 的表现是：右键密码框的「Suggest password」没反应（生成器只在它判定为注册/改密表单时才提供，而判定要看表单里能不能认出「账号 + 新密码」这个组合），以及保存下来的凭据只有站点和密码、没有邮箱（`PasswordForm` 的 username 取到空串），下次登录匹配不到账号。修法按 Chromium 官方文档 *Password Form Styles that Chromium Understands* 对「邮箱在另一屏」流程的说法：**在收集密码的那个表单里放一个含用户名的字段，用 CSS 隐藏即可** —— 两个表单各加 `<input type="email" name="username" autocomplete="username" value={已发出的地址} hidden>`（隐藏而非显示，是因为它在这一步不可编辑：真正授权 `PUT /me/password` 的是会话，重设那边是验证码）；登录页的邮箱字段 `autocomplete` 从 `email` 改成 `username`（web.dev *Sign-in form best practices*：password manager 认的是 `username`）。界面零变化（`hidden` 就是 `display:none`，全局 CSS 没有给 `input` 设 display），实测改动后三个页面解析出的表单字段：注册第三步 = 隐藏邮箱 + `new-password` × 2、重设第二步 = 隐藏邮箱 + `one-time-code` + `new-password` × 2、登录 = `username` + `current-password`。
+- **depends on**: 7.1.4、M28
+
 ## M35 生产 Google 登录：Service Worker 的导航兜底吞掉了 /api 导航
 
 ### 35.1 导航兜底排除 `/api/`，并加一条 CI 检查
