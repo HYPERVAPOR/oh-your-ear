@@ -701,6 +701,15 @@
 - **description**: `/me` 统计卡最底部的成就徽章（起步 / 热身完毕 / 百题 / 五百题 / 坚持一周）读者判断「没啥用」，整块下线 —— **连 API 一起**：`/me/stats` 不再返回 `achievements`，`services/practice.go` 里的 `achievementSpecs` / `StreakAchievementTarget` / `achievements()`、`models.Achievement`（含 `Achieved()`）、handler 里的映射、`openapi.yaml` 的 schema 与 `required` 项、`TestAchievements` 全部删掉，两份生成物（`schema.d.ts` / `generated.go`）重新生成。前端同时删掉那一块 UI、`stats.achievements` 与 `achievements.*`（5 个徽章 × 两种语言）文案键。数据库不受影响（成就按累计数实时算，没有表）。实测：接口顶层字段只剩 `solved / correct / accuracy / streak / byExercise / daily`；页面 `h3` 只剩「每日题数（近 14 天）」与「各模块正确率」；文案键 212 → 201。
 - **depends on**: 5.10、7.1.2
 
+## M33 热力图：今天的形状还给日历
+
+### 33.1 今天不再是菱形，还没到的日期用更浅的颜色
+
+- **issue**: #191
+- **status**: 🟡 doing
+- **description**: 「今天」那格原来自带 `rotate-45 scale-75`（菱形），是为了避开描边又不让形状闲着，但读者判断**难看**。现在**今天与别的日子画法一致**（颜色照旧说那天达标没有），改用**更浅的颜色标「还没到」**：周 / 月档里今天之后的格子（本周剩下的几天、本月剩下的几天）用 `FUTURE_CLASS = bg-surface-strong/40`，即空日子一半浓度。于是今天由**淡色格子的起点**代替记号，图例里给菱形留的那一格改成淡色方块（`heatmap.today` → `heatmap.future`，中英各一键）。年档不受影响：它的数据序列本来就在今天结束，没有未来的日子。实测：周 / 月档里 `> today` 的格子算出 `color-mix(… 40%, transparent)` 的浅色、其余空日子仍是满浓度；今天那格 `transform: none`、类名里没有 `rotate-45`；年档 371 格无一带旋转；图例四格是「没练 / 练了一部分 / 达标 / 未来」，第 4 格的底色与未来格子逐像素相同。
+- **depends on**: 7.1.4
+
 ## M32 练习页：三处「东西不该在那儿」
 
 ### 32.1 没听就能选、关卡模式还能改设置、多余的「重放」按钮

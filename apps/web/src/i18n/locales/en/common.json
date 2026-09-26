@@ -230,7 +230,7 @@
       "none": "Nothing"
     },
     "cell": "{{date}}: {{solved}} of {{goal}}",
-    "today": "Today"
+    "future": "Future"
   },
   "account": {
     "addName": "Add a name",

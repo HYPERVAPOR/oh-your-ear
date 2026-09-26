@@ -230,7 +230,7 @@
       "none": "没练"
     },
     "cell": "{{date}}：{{solved}} / {{goal}} 题",
-    "today": "今天"
+    "future": "未来"
   },
   "account": {
     "addName": "添加用户名",

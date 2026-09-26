@@ -4,7 +4,15 @@ import { useTranslation } from 'react-i18next'
 
 import { apiClient } from '@/api/client'
 import { emptyRange, type DailyBucket, type Level, type Square } from '@/lib/heatmap'
-import { CELL, DayView, MonthGrid, TIER_CLASS, WeekRow, YearGrid } from '@/components/heatmap-views'
+import {
+  CELL,
+  DayView,
+  FUTURE_CLASS,
+  MonthGrid,
+  TIER_CLASS,
+  WeekRow,
+  YearGrid,
+} from '@/components/heatmap-views'
 import { useDelayedLoading } from '@/lib/use-delayed'
 import { useAuthStore } from '@/stores/auth-store'
 import { cn } from '@/lib/utils'
@@ -66,14 +74,11 @@ export function PracticeHeatmap() {
         data-tier={item.tier}
         className={cn(
           cell,
-          TIER_CLASS[item.tier === 3 ? 2 : item.tier],
-          // Today is a diamond, not an outline. A 1px ring was the only line on the whole
-          // calendar — even muted it was the loudest thing there — and it left the shape
-          // saying nothing. Rotated and a quarter smaller, the diamond stays inside the
-          // 22px pitch without reaching its neighbours' corners, and it still reads at the
-          // year's 8px cells, where a ring was a smudge. Colour keeps saying whether that
-          // day met its goal; shape says "this one is today".
-          item.date === today && 'rotate-45 scale-75',
+          // The calendar keeps drawing the whole week or month, so the days ahead are there
+          // — in half the empty day's colour, which says "not yet" instead of "missed".
+          // Today itself is an ordinary square: it is simply where the pale ones start, and
+          // a rotated square on a grid of straight ones was the loudest mark on the card.
+          item.date > today ? FUTURE_CLASS : TIER_CLASS[item.tier === 3 ? 2 : item.tier],
         )}
       />
     )
@@ -149,11 +154,11 @@ export function PracticeHeatmap() {
                 {t(`heatmap.tier.${key}`)}
               </li>
             ))}
-            {/* The shape is the only thing on this calendar that is not a tier, so it
-                    gets a key of its own: it wears the empty day's colour on purpose. */}
+            {/* The pale squares are the only thing on this calendar that is not a tier, so
+                they get a key of their own: a day that has not arrived yet. */}
             <li className="flex items-center gap-1.5">
-              <span className={cn(CELL, TIER_CLASS[0], 'rotate-45 scale-75')} />
-              {t('heatmap.today')}
+              <span className={cn(CELL, FUTURE_CLASS)} />
+              {t('heatmap.future')}
             </li>
           </>
         )}

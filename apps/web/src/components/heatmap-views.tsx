@@ -27,6 +27,9 @@ import { cn } from '@/lib/utils'
  */
 export const CELL = 'size-5 shrink-0'
 export const TIER_CLASS = ['bg-surface-strong', 'bg-success/35', 'bg-success']
+/** A day that has not arrived yet: half of the empty day's colour, so the calendar still
+ *  shows the shape of the week or month ahead without pretending those days were missed. */
+export const FUTURE_CLASS = 'bg-surface-strong/40'
 /** The year's cell fills its track, so the square is as wide as whatever the card allows. */
 const YEAR_CELL = 'aspect-square w-full'
 /** 8px + 2px apart is exactly the dashboard card's width for 54 columns. */
