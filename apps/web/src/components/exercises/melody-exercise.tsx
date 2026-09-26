@@ -93,6 +93,9 @@ export function MelodyExercise({ onBack }: { onBack?: () => void }) {
   const round = useRound(roundSize)
   const [question, setQuestion] = useState(() => newQuestion(seed))
   const [selected, setSelected] = useState<number | null>(null)
+  // Nothing is answerable before it has been heard once: choosing first is guessing,
+  // and the tiles cannot tell you that they are only waiting for a first listen.
+  const [heard, setHeard] = useState(false)
   const [playing, setPlaying] = useState(false)
 
   const gap = melodyGap(active)
@@ -102,6 +105,7 @@ export function MelodyExercise({ onBack }: { onBack?: () => void }) {
 
   const playMelody = useCallback(
     async (notes: string[]) => {
+      setHeard(true)
       setPlaying(true)
       // Turns the per-note gap into the total duration of the phrase.
       await playSequence(notes, '8n', gap)
@@ -134,6 +138,7 @@ export function MelodyExercise({ onBack }: { onBack?: () => void }) {
   function startRound() {
     setQuestion(newQuestion())
     setSelected(null)
+    setHeard(false)
   }
 
   if (round.finished) {
@@ -160,32 +165,22 @@ export function MelodyExercise({ onBack }: { onBack?: () => void }) {
       score={{ correct: round.correct, total: round.total }}
       progress={roundSize > 0 ? { done: round.total, size: roundSize } : undefined}
     >
-      <div className="mb-10 flex items-center gap-2.5">
-        <Button
-          size="hero"
-          onClick={() => playMelody(question.notes)}
-          disabled={playing}
-          className="gap-2"
-        >
-          {playing ? t('actions.playing') : t('actions.play')}
-        </Button>
-        <Button
-          variant="outline"
-          size="lg"
-          onClick={() => playMelody(question.notes)}
-          disabled={playing}
-        >
-          {t('actions.replay')}
-        </Button>
-      </div>
+      <Button
+        size="hero"
+        onClick={() => playMelody(question.notes)}
+        disabled={playing}
+        className="mb-10 gap-2"
+      >
+        {playing ? t('actions.playing') : t('actions.play')}
+      </Button>
 
       <div className="grid w-full gap-2.5 sm:grid-cols-2">
         {question.options.map((option, index) => (
           <OptionTile
             key={option.join(' ')}
-            disabled={selected !== null}
+            disabled={!heard || selected !== null}
             onClick={() => handleGuess(index)}
-            className="group flex flex-col items-start gap-2.5 px-4 py-3.5 text-[15px] leading-none"
+            className={`group flex flex-col items-start gap-2.5 px-4 py-3.5 text-[15px] leading-none${heard ? '' : ' opacity-50'}`}
             state={
               selected !== null && index === question.answerIndex
                 ? 'correct'

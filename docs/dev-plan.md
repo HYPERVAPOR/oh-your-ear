@@ -701,6 +701,15 @@
 - **description**: `/me` 统计卡最底部的成就徽章（起步 / 热身完毕 / 百题 / 五百题 / 坚持一周）读者判断「没啥用」，整块下线 —— **连 API 一起**：`/me/stats` 不再返回 `achievements`，`services/practice.go` 里的 `achievementSpecs` / `StreakAchievementTarget` / `achievements()`、`models.Achievement`（含 `Achieved()`）、handler 里的映射、`openapi.yaml` 的 schema 与 `required` 项、`TestAchievements` 全部删掉，两份生成物（`schema.d.ts` / `generated.go`）重新生成。前端同时删掉那一块 UI、`stats.achievements` 与 `achievements.*`（5 个徽章 × 两种语言）文案键。数据库不受影响（成就按累计数实时算，没有表）。实测：接口顶层字段只剩 `solved / correct / accuracy / streak / byExercise / daily`；页面 `h3` 只剩「每日题数（近 14 天）」与「各模块正确率」；文案键 212 → 201。
 - **depends on**: 5.10、7.1.2
 
+## M32 练习页：三处「东西不该在那儿」
+
+### 32.1 没听就能选、关卡模式还能改设置、多余的「重放」按钮
+
+- **issue**: #190
+- **status**: 🟡 doing
+- **description**: `/exercise/` 一屏三处：**(1)** 选项区在题目响之前就可点 —— 先选等于猜，改成听过一遍之前锁着（灰 `opacity-50` + `disabled`，点「下一题」重新锁上）；锁着而不是播放完才出现，是因为选项在指针底下跳出来更糟。四个有选项的模块各自记一个 `heard`，`PlayButton` 加了 `onPlay`（在点击当下触发，不 `await` 采样 —— 等加载器回来再置位，采样到不了就把选项永久锁死）。节奏模块本来就要先播放才有相位可点，不用改。**(2)** 关卡模式（`?level=`）不该出现「练习设置」：面板里是用户自己的配置，实际生效的是关卡的，改它没有效果 —— 判断放在 `ConfigPanel` 里一处（五个练习屏都从这里画设置，写五遍 `if` 就是五次机会忘掉一次），用新抽的 `useLevelRequested()`（读 URL 而不是等目录，免得目录到达前先闪一下）。**(3)** 旋律模块「播放」旁边那个「重放」按钮删掉：两个按钮调同一个函数、播同一段旋律，播放按钮点第二次本来就是重放；`actions.replay` 键一并删除。实测：单音 8 / 音程 4 / 和弦 4 / 旋律 4 个选项，播放前都是 `锁/0.5`、播放后 `可/1`、点「下一题」回到 `锁/0.5`；随机练习有设置面板、五个模块的关卡模式都没有；旋律只剩一个播放按钮。
+- **depends on**: 5.1、5.7、5.0.2、5.11
+
 ## M31 关卡页的模块选项卡
 
 ### 31.1 等宽 + 模块色下划线，不再用焊接块

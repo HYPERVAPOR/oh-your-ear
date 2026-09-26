@@ -82,7 +82,16 @@ export function currentLevel(
   return chain.find((level) => !progress.get(level.slug)?.passed) ?? chain[chain.length - 1]
 }
 
-/** True when every level of the chain is passed. */
+/**
+ * Whether this screen was opened as a question set. Read from the URL rather than from
+ * the catalogue, so the answer is the same before the catalogue has loaded: a level
+ * fixes the configuration and the round size, and its screen must not offer to change
+ * them — not even for the moment before the level itself arrives.
+ */
+export function useLevelRequested(): boolean {
+  return useSearchParams()[0].has('level')
+}
+
 /**
  * The level the current screen was opened with, if any. A level pins the exercise
  * configuration and the round size, which is what lets a question set run through

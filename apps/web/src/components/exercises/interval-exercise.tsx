@@ -104,6 +104,9 @@ export function IntervalExercise({ onBack }: { onBack?: () => void }) {
     createRound(seed, allowedSemitones, allowedIntervals),
   )
   const [selected, setSelected] = useState<string | null>(null)
+  // Nothing is answerable before it has been heard once: choosing first is guessing,
+  // and the tiles cannot tell you that they are only waiting for a first listen.
+  const [heard, setHeard] = useState(false)
 
   const correctInterval = Interval.fromSemitones(question.semitones)
   const isCorrect = selected ? selected === correctInterval : null
@@ -111,6 +114,7 @@ export function IntervalExercise({ onBack }: { onBack?: () => void }) {
   const startRound = useCallback(() => {
     setQuestion(createRound(null, pickAllowedIntervalSemitones(active), active.intervals))
     setSelected(null)
+    setHeard(false)
   }, [active])
 
   if (round.finished) {
@@ -130,6 +134,7 @@ export function IntervalExercise({ onBack }: { onBack?: () => void }) {
   }
 
   function handlePlay() {
+    setHeard(true)
     playSequence([question.root, question.second])
   }
 
@@ -170,9 +175,9 @@ export function IntervalExercise({ onBack }: { onBack?: () => void }) {
         {question.options.map((ivl) => (
           <OptionTile
             key={ivl}
-            disabled={!!selected}
+            disabled={!heard || !!selected}
             onClick={() => handleGuess(ivl)}
-            className="h-16 leading-tight"
+            className={`h-16 leading-tight${heard ? '' : ' opacity-50'}`}
             state={
               selected && ivl === correctInterval
                 ? 'correct'
