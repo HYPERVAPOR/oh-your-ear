@@ -529,6 +529,10 @@ export interface components {
     }
     StudyPlan: {
       dailyGoal: number
+      /**
+       * @description The modules the daily session draws from. Empty means no narrowing down, so every
+       *     module counts. A plan that was never saved answers with the defaults.
+       */
       focusExercises: components['schemas']['ExerciseKind'][]
       today: components['schemas']['DailyProgress']
     }

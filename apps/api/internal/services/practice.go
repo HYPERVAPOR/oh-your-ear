@@ -15,6 +15,13 @@ import (
 // DefaultDailyGoal is used until a user sets their own target.
 const DefaultDailyGoal = 20
 
+// DefaultFocus is what a reader practises until they choose for themselves: the three
+// modules the first lessons use. The daily session draws from the plan, and someone who
+// has never opened the settings should not find all five in it, rhythm included.
+func DefaultFocus() []string {
+	return []string{"singleNote", "interval", "chord"}
+}
+
 // PracticeService stores practice results and study plans.
 type PracticeService struct {
 	pool *pgxpool.Pool
@@ -416,7 +423,7 @@ func (s *PracticeService) ResolveMistake(ctx context.Context, userID, id uuid.UU
 
 // GetPlan returns the stored plan, or the default one when the user never saved any.
 func (s *PracticeService) GetPlan(ctx context.Context, userID uuid.UUID) (*models.StudyPlan, error) {
-	plan := &models.StudyPlan{UserID: userID, DailyGoal: DefaultDailyGoal, FocusExercises: []string{}}
+	plan := &models.StudyPlan{UserID: userID, DailyGoal: DefaultDailyGoal, FocusExercises: DefaultFocus()}
 
 	var dailyGoal int
 	var focus []string

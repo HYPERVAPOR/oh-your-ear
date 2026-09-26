@@ -115,7 +115,9 @@ export function StudyPlanForm() {
                     on ? 'text-ink' : 'text-muted hover:text-ink',
                   )}
                 >
-                  <ModuleSwatch kind={kind} />
+                  {/* Unlit until chosen, the way a tab's own colour is: a row of five
+                      saturated dots promises five things are on. */}
+                  <ModuleSwatch kind={kind} className={on ? '' : 'opacity-40'} />
                   {t(`modules.${kind}`)}
                   {/* The level page's handle: the module's own colour under the ones you
                       chose, absolutely placed so that having it or not having it cannot
