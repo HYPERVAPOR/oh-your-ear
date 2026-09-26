@@ -701,6 +701,15 @@
 - **description**: `/me` 统计卡最底部的成就徽章（起步 / 热身完毕 / 百题 / 五百题 / 坚持一周）读者判断「没啥用」，整块下线 —— **连 API 一起**：`/me/stats` 不再返回 `achievements`，`services/practice.go` 里的 `achievementSpecs` / `StreakAchievementTarget` / `achievements()`、`models.Achievement`（含 `Achieved()`）、handler 里的映射、`openapi.yaml` 的 schema 与 `required` 项、`TestAchievements` 全部删掉，两份生成物（`schema.d.ts` / `generated.go`）重新生成。前端同时删掉那一块 UI、`stats.achievements` 与 `achievements.*`（5 个徽章 × 两种语言）文案键。数据库不受影响（成就按累计数实时算，没有表）。实测：接口顶层字段只剩 `solved / correct / accuracy / streak / byExercise / daily`；页面 `h3` 只剩「每日题数（近 14 天）」与「各模块正确率」；文案键 212 → 201。
 - **depends on**: 5.10、7.1.2
 
+## M37 登出：账号数据不活过会话
+
+### 37.1 登出清 query 缓存（不是整页刷新）
+
+- **issue**: #200
+- **status**: 🟡 doing
+- **description**: 登出之后首页那两排进度还在（账号卡的按钮文案、关卡进度条、热力图的格子）：`['study-plan']` / `['level-progress']` / `['daily-history']` 这些查询只按 `user` 决定**要不要取**，显示却直接读 `data` —— 登出后查询被禁用了，缓存里上一个账号的数字就留在屏幕上。同一个洞还有个更重的后果：共用浏览器上换账号登录，新账号会先看到前一个人的进度，直到自己的回来。修法不是在登出后刷新页面，而是把「账号数据不活过会话」落在会话结束的那一处：`QueryClient` 从 `main.tsx` 搬进一个模块（`api/query-client.ts`，只依赖 `@tanstack/react-query`，所以 store 能安全地 import 它 —— `api/client.ts` 反过来 import store，放那儿会成环），store 的 `logout` 在 `finally` 里 `queryClient.clear()`：缓存清空，页面照常渲染成游客态（零），不重载应用。实测（探针直接 import store + query-client，种两条缓存再调 `logout()`）：调用前 `['level-progress','study-plan']` + `user=u1`，调用后 `keys=[]`、`user=null`、`token=null`，且两次 import 拿到同一个实例（没被拆成两份）。
+- **depends on**: 7.1.4、M28
+
 ## M36 密码这一步：让浏览器密码管理器认得出账号
 
 ### 36.1 密码表单里带上邮箱（隐藏），登录页改用 `username`
