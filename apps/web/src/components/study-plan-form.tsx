@@ -3,7 +3,9 @@ import { useQuery } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
 
 import { apiClient } from '@/api/client'
-import { ConfigRow, Toggle } from '@/components/exercises/config-panel'
+import { ConfigRow } from '@/components/exercises/config-panel'
+import { MODULE_SWATCH, ModuleSwatch } from '@/components/ui/orb'
+import { cn } from '@/lib/utils'
 import { Link } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
@@ -91,18 +93,43 @@ export function StudyPlanForm() {
         </ConfigRow>
 
         <div>
-          <ConfigRow label={t('plan.focus')}>
-            <div className="flex flex-wrap justify-end gap-2">
-              {EXERCISES.map((kind) => (
-                <Toggle
+          <span className="text-[15px] font-medium">{t('plan.focus')}</span>
+          {/* The label sits above rather than beside: five cells that have to come out the
+              same length cannot share a row with a label that is a different length in every
+              language. Equal columns at every width, for the same reason the level page's tabs
+              give each module an equal share — the names are nothing like each other in length,
+              and a row that resizes as you tick a box is a row that jumps. Five across on a
+              phone leaves each one 49px, where "Single Note" runs over its neighbours, so below
+              the dashboard's own breakpoint this is two columns like the module grids are. */}
+          <div className="mt-3 grid auto-rows-fr grid-cols-2 gap-x-2 md:grid-cols-5">
+            {EXERCISES.map((kind) => {
+              const on = focus.includes(kind)
+              return (
+                <button
                   key={kind}
-                  label={t(`modules.${kind}`)}
-                  checked={focus.includes(kind)}
-                  onChange={() => toggle(kind)}
-                />
-              ))}
-            </div>
-          </ConfigRow>
+                  type="button"
+                  aria-pressed={on}
+                  onClick={() => toggle(kind)}
+                  className={cn(
+                    'relative flex min-h-12 items-center justify-center gap-2 whitespace-nowrap px-3 py-2.5 text-[15px] transition-colors',
+                    on ? 'text-ink' : 'text-muted hover:text-ink',
+                  )}
+                >
+                  <ModuleSwatch kind={kind} />
+                  {t(`modules.${kind}`)}
+                  {/* The level page's handle: the module's own colour under the ones you
+                      chose, absolutely placed so that having it or not having it cannot
+                      change the height of the row. */}
+                  {on && (
+                    <span
+                      aria-hidden="true"
+                      className={cn('absolute inset-x-0 bottom-0 h-0.5', MODULE_SWATCH[kind])}
+                    />
+                  )}
+                </button>
+              )
+            })}
+          </div>
         </div>
       </div>
 
