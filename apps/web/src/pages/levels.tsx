@@ -1,18 +1,19 @@
 import { useQuery } from '@tanstack/react-query'
-import { useTranslation } from 'react-i18next'
+import { useTranslation, Trans } from 'react-i18next'
 import { Link, useSearchParams } from 'react-router-dom'
-import { Check, Lock } from 'lucide-react'
+import { ArrowLeft, Check, Lock } from 'lucide-react'
 
 import { apiClient } from '@/api/client'
 import { loginHere, loginPath } from '@/lib/auth'
 import { AppHeader } from '@/components/app-header'
 import { EmptyState } from '@/components/ui/card'
 import { CollectMenu } from '@/components/collect-menu'
-import { ModuleSwatch, type ExerciseKind } from '@/components/ui/orb'
+import { ModuleSwatch, MODULE_SWATCH, type ExerciseKind } from '@/components/ui/orb'
 import { useAuthStore } from '@/stores/auth-store'
 import { pickText, useLevelCatalog, type Level } from '@/lib/levels'
 import { modulePath } from '@/components/round-summary'
 import { cn } from '@/lib/utils'
+import { iconKey } from '@oh-your-ear/shared/pref-controls'
 
 /**
  * All levels: one chain per module, easy to hard, for signed-in users. A level is locked
@@ -66,13 +67,25 @@ export function Levels() {
         {/* Gutter outside the 1200px box and the same width as the header: with the
             padding inside, this column sat 300px inboard of the bar above it. */}
         <div className="mx-auto w-full max-w-[1200px]">
+          {/* Where you came from, at the top left of the content and not in the bar: the bar is
+              identical on every page and stays that way. The same 32px square the account page
+              and its two subpages carry. */}
+          <Link
+            to="/"
+            className={`${iconKey} mb-5 no-underline`}
+            aria-label={t('actions.back')}
+            title={t('actions.back')}
+          >
+            <ArrowLeft aria-hidden="true" className="h-4 w-4" strokeWidth={1.75} />
+          </Link>
+
           <h1 className="text-[30px] font-medium leading-tight sm:text-[36px]">
             {t('levels.title')}
           </h1>
           <p className="mt-3 max-w-[52ch] text-[15px] text-body">{t('levels.intro')}</p>
 
           {!user && (
-            <div className="mt-6 flex flex-wrap items-center gap-4 rounded-xl border border-hairline bg-surface px-5 py-4">
+            <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-hairline bg-surface px-5 py-4">
               <p className="text-[15px] text-body">{t('levels.guestBanner')}</p>
               <Link
                 to={loginHere()}
@@ -80,33 +93,63 @@ export function Levels() {
               >
                 {t('actions.login')}
               </Link>
+              {/* The other answer, in the same place: the random tab needs no account at all,
+                  which is the thing a guest looking at a locked chain most needs to hear. The
+                  words around the link stay in the translation, so neither language has to be
+                  assembled out of halves. */}
+              <p className="text-[15px] text-body">
+                <Trans
+                  i18nKey="levels.guestTryRandom"
+                  components={{
+                    randomTest: (
+                      <Link
+                        to="/?mode=random"
+                        className="font-medium text-ink underline underline-offset-4"
+                      />
+                    ),
+                  }}
+                />
+              </p>
             </div>
           )}
 
-          {/* The same welded group as the dashboard's Learn / Random switch and the
-              calendar's four magnifications: one outline, one rule between neighbours, the
-              selected one a shade darker. It scrolls sideways rather than wrapping when
-              five names do not fit on a phone. */}
-          <div
-            role="group"
-            aria-label={t('levels.title')}
-            className="mt-8 inline-flex max-w-full items-stretch divide-x divide-hairline-strong overflow-x-auto border border-hairline-strong"
-          >
-            {modules.map((value) => (
-              <button
-                key={value}
-                type="button"
-                aria-pressed={activeKind === value}
-                onClick={() => pick(value)}
-                className={cn(
-                  'h-10 shrink-0 px-3 text-[15px] transition-colors',
-                  activeKind === value ? 'bg-surface-strong text-ink' : 'text-muted hover:text-ink',
-                )}
-              >
-                {t(`modules.${value}`)}
-              </button>
-            ))}
-          </div>
+          {/* Five siblings, not a switch. The welded group belongs to the dashboard's Learn /
+              Random pair and the calendar's four magnifications — two or four answers to one
+              question, cut out of a single plate. These are five modules, and each one already
+              has a colour on the dashboard, so the tab carries that colour and the one you are
+              on is underlined with it.
+
+              Equal shares, because the English names are nothing like each other in length and
+              a row that resizes as you click is a row that jumps. A floor under each one, so
+              they stay wide enough to hit on a phone, where the row scrolls rather than wraps. */}
+          <nav aria-label={t('levels.title')} className="mt-8 flex max-w-full overflow-x-auto">
+            {modules.map((value) => {
+              const active = activeKind === value
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => pick(value)}
+                  className={cn(
+                    'relative flex min-w-28 flex-1 items-center justify-center gap-2 whitespace-nowrap px-3 py-2.5 text-[15px] transition-colors',
+                    active ? 'text-ink' : 'text-muted hover:text-ink',
+                  )}
+                >
+                  <ModuleSwatch kind={value} />
+                  {t(`modules.${value}`)}
+                  {/* Only the one you are on, and absolutely placed so that having it or not
+                      having it cannot change the height of the row. */}
+                  {active && (
+                    <span
+                      aria-hidden="true"
+                      className={cn('absolute inset-x-0 bottom-0 h-0.5', MODULE_SWATCH[value])}
+                    />
+                  )}
+                </button>
+              )
+            })}
+          </nav>
 
           <div className="mt-8 space-y-10">
             {shown.map((set) => {
