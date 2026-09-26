@@ -1,6 +1,7 @@
-import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useMemo, useState } from 'react'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useTranslation } from 'react-i18next'
+import { Check } from 'lucide-react'
 
 import { apiClient } from '@/api/client'
 import { ConfigRow } from '@/components/exercises/config-panel'
@@ -25,8 +26,11 @@ interface Draft {
 /** Daily goal and focus modules. Creating a plan is what unlocks progress stats. */
 export function StudyPlanForm() {
   const { t } = useTranslation('common')
+  const queryClient = useQueryClient()
   const [draft, setDraft] = useState<Draft | null>(null)
   const [saving, setSaving] = useState(false)
+  // Set only by a save that went through: "saved" is something that happened, not a way of
+  // describing a plan nobody has touched yet.
   const [saved, setSaved] = useState(false)
 
   const { data } = useQuery({
@@ -38,14 +42,16 @@ export function StudyPlanForm() {
   })
 
   // The stored plan is the source of truth until the user edits the form.
-  const dailyGoal = draft?.dailyGoal ?? data?.dailyGoal ?? 20
-  const storedFocus = (data?.focusExercises ?? []) as ExerciseKind[]
-  // An empty list is stored as "no narrowing down", which the app reads as every module.
-  // The form has to show that meaning, or it says the opposite of what the plan does.
-  const focus = draft?.focus ?? (storedFocus.length > 0 ? storedFocus : EXERCISES)
+  const stored = useMemo(() => {
+    const focus = (data?.focusExercises ?? []) as ExerciseKind[]
+    // An empty list is stored as "no narrowing down", which the app reads as every module.
+    // The form has to show that meaning, or it says the opposite of what the plan does.
+    return { dailyGoal: data?.dailyGoal ?? 20, focus: focus.length > 0 ? focus : EXERCISES }
+  }, [data])
+  const dailyGoal = draft?.dailyGoal ?? stored.dailyGoal
+  const focus = draft?.focus ?? stored.focus
 
   function toggle(kind: ExerciseKind) {
-    setSaved(false)
     const next = focus.includes(kind) ? focus.filter((item) => item !== kind) : [...focus, kind]
     setDraft({ dailyGoal, focus: next })
   }
@@ -57,12 +63,23 @@ export function StudyPlanForm() {
     })
     setSaving(false)
     if (response.ok && plan) {
+      // The saved plan is now the stored plan, so there is nothing left to compare the draft
+      // against. Writing it into the cache is what keeps the two in step; without it the form
+      // would still be measuring against the plan it just replaced.
+      queryClient.setQueryData(['study-plan'], plan)
+      setDraft(null)
       setSaved(true)
-      setDraft({ dailyGoal: plan.dailyGoal, focus: plan.focusExercises })
     }
   }
 
   const valid = dailyGoal >= 1 && dailyGoal <= 500 && focus.length > 0
+  // Whether there is anything to save. Order does not matter in the focus list, so it is
+  // compared as a set; nothing counts as changed until the stored plan has arrived.
+  const changed =
+    data !== undefined &&
+    (dailyGoal !== stored.dailyGoal ||
+      focus.length !== stored.focus.length ||
+      focus.some((kind) => !stored.focus.includes(kind)))
   // A disabled button has to say why it is disabled.
   const refused =
     dailyGoal < 1 || dailyGoal > 500
@@ -84,7 +101,6 @@ export function StudyPlanForm() {
             max={500}
             value={dailyGoal}
             onChange={(event) => {
-              setSaved(false)
               setDraft({ dailyGoal: Number(event.target.value), focus })
             }}
             className="tabular w-28"
@@ -136,10 +152,19 @@ export function StudyPlanForm() {
       </div>
 
       <div className="mt-6 flex flex-wrap items-center gap-4">
-        <Button onClick={save} disabled={saving || !valid}>
-          {t('plan.save')}
+        {/* One width for both labels: the button says "saved" where it said "save", and a
+            button that changes size when you press it is a button you notice instead of the
+            thing it did. */}
+        <Button onClick={save} disabled={saving || !valid || !changed} className="min-w-32 gap-2">
+          {saved && !changed ? (
+            <>
+              <Check className="h-4 w-4" />
+              {t('plan.saved')}
+            </>
+          ) : (
+            t('plan.save')
+          )}
         </Button>
-        {saved && <span className="text-[14px] text-success-text">{t('plan.saved')}</span>}
         {refused && <span className="text-[14px] text-muted">{refused}</span>}
         <Link
           to="/daily"
