@@ -124,6 +124,17 @@ export function Reset() {
         </form>
       ) : (
         <form className="mt-6 space-y-5" onSubmit={reset}>
+          {/* Same hidden username field as the sign-up screen, same reason: this form
+              carries the new password, so the address it belongs to has to be in it for
+              the password manager to key the credential on the account rather than on
+              the site alone. */}
+          <input
+            type="email"
+            name="username"
+            autoComplete="username"
+            defaultValue={emailed}
+            hidden
+          />
           <Field
             label={t('auth.code')}
             htmlFor="code"
