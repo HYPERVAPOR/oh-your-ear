@@ -190,6 +190,13 @@ jobs:
       - name: Build
         run: pnpm run build
 
+      # The service worker's navigation fallback only exists in a production
+      # build, which is why a bug there (it swallowed the Google sign-in
+      # navigations) could never show up in dev.
+      - name: Check the service worker lets /api/ navigations through
+        if: matrix.app == 'web'
+        run: node scripts/check-sw-navigation-fallback.mjs
+
   api:
     name: API checks
     runs-on: ubuntu-24.04

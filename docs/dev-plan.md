@@ -701,6 +701,16 @@
 - **description**: `/me` 统计卡最底部的成就徽章（起步 / 热身完毕 / 百题 / 五百题 / 坚持一周）读者判断「没啥用」，整块下线 —— **连 API 一起**：`/me/stats` 不再返回 `achievements`，`services/practice.go` 里的 `achievementSpecs` / `StreakAchievementTarget` / `achievements()`、`models.Achievement`（含 `Achieved()`）、handler 里的映射、`openapi.yaml` 的 schema 与 `required` 项、`TestAchievements` 全部删掉，两份生成物（`schema.d.ts` / `generated.go`）重新生成。前端同时删掉那一块 UI、`stats.achievements` 与 `achievements.*`（5 个徽章 × 两种语言）文案键。数据库不受影响（成就按累计数实时算，没有表）。实测：接口顶层字段只剩 `solved / correct / accuracy / streak / byExercise / daily`；页面 `h3` 只剩「每日题数（近 14 天）」与「各模块正确率」；文案键 212 → 201。
 - **depends on**: 5.10、7.1.2
 
+## M35 生产 Google 登录：Service Worker 的导航兜底吞掉了 /api 导航
+
+### 35.1 导航兜底排除 `/api/`，并加一条 CI 检查
+
+- **issue**: #196
+- **status**: 🟡 doing
+- **description**: 线上点「Continue with Google」直接落到应用自己的 404 页（`404` + 「页面不存在」），地址栏停在 `/api/v1/auth/google?next=%2F`，而在那个页面上 Ctrl+Shift+R 就正常跳 Google；退出登录后再点又 404，换浏览器、隐私模式一样，清缓存无效，curl 同一个 URL 永远 307。根因不在网络层：`apps/web` 由 VitePWA 生成的 Service Worker 注册了一条**无白名单**的导航兜底（`new NavigationRoute(createHandlerBoundToURL("index.html"))`），它会接管作用域内所有 `mode: navigate` 的请求并回 SPA，于是**登录起点与 Google 回调这两条整页导航根本没到 API**，React Router 找不到路由就画了 404；而 Chrome 的硬刷新会**绕过 Service Worker**，所以强刷就通 —— 这也是它一路被误判成缓存问题的原因。`skipWaiting` + `clientsClaim` 让它装上就接管（第二次打开页面起必中招）。修法：`workbox.navigateFallbackDenylist: [/^\/api\//]`，其余路径的 SPA 兜底与离线行为不变。同时补一条**确定性检查** `apps/web/scripts/check-sw-navigation-fallback.mjs`（挂在 CI 的 web-checks、`pnpm run build` 之后）：把生成的 sw.js 与真实 workbox bundle 载进 node，直接问那条 `NavigationRoute`「这条导航你接不接」，断言 `/api/v1/auth/google`、`/api/v1/auth/google/callback`、`/api/` 判给网络，`/`、`/login`、`/daily` 仍走兜底。
+- **note**: 这个 bug 在本地开发与命令行上都**不可见**：`pnpm dev` 里 VitePWA 不注册 SW（`devOptions.enabled` 默认 false），curl 里没有 SW，只有生产构建才有它。本地用 headless 两段式（先加载 `/login` 让 SW 装上，再导航到登录起点）能复现线上现象（`id="root"` + 「页面不存在」），但虚拟时间下 SW 激活与进程交接会让结果抖动，所以不拿它当验收。
+- **depends on**: 7.1.4、M17
+
 ## M34 每日练习：一个会话把今天练完（`/daily`）
 
 ### 34.1 一个会话 N 题、模块混排
