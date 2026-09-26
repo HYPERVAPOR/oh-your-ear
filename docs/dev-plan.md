@@ -701,6 +701,15 @@
 - **description**: `/me` 统计卡最底部的成就徽章（起步 / 热身完毕 / 百题 / 五百题 / 坚持一周）读者判断「没啥用」，整块下线 —— **连 API 一起**：`/me/stats` 不再返回 `achievements`，`services/practice.go` 里的 `achievementSpecs` / `StreakAchievementTarget` / `achievements()`、`models.Achievement`（含 `Achieved()`）、handler 里的映射、`openapi.yaml` 的 schema 与 `required` 项、`TestAchievements` 全部删掉，两份生成物（`schema.d.ts` / `generated.go`）重新生成。前端同时删掉那一块 UI、`stats.achievements` 与 `achievements.*`（5 个徽章 × 两种语言）文案键。数据库不受影响（成就按累计数实时算，没有表）。实测：接口顶层字段只剩 `solved / correct / accuracy / streak / byExercise / daily`；页面 `h3` 只剩「每日题数（近 14 天）」与「各模块正确率」；文案键 212 → 201。
 - **depends on**: 5.10、7.1.2
 
+## M36 密码这一步：让浏览器密码管理器认得出账号
+
+### 36.1 密码表单里带上邮箱（隐藏），登录页改用 `username`
+
+- **issue**: #199
+- **status**: 🟡 doing
+- **description**: 注册第三步与重设第二步的表单里**只有密码字段**，邮箱留在上一屏（或只作为提示文字），于是 Chrome 的表现是：右键密码框的「Suggest password」没反应（生成器只在它判定为注册/改密表单时才提供，而判定要看表单里能不能认出「账号 + 新密码」这个组合），以及保存下来的凭据只有站点和密码、没有邮箱（`PasswordForm` 的 username 取到空串），下次登录匹配不到账号。修法按 Chromium 官方文档 *Password Form Styles that Chromium Understands* 对「邮箱在另一屏」流程的说法：**在收集密码的那个表单里放一个含用户名的字段，用 CSS 隐藏即可** —— 两个表单各加 `<input type="email" name="username" autocomplete="username" value={已发出的地址} hidden>`（隐藏而非显示，是因为它在这一步不可编辑：真正授权 `PUT /me/password` 的是会话，重设那边是验证码）；登录页的邮箱字段 `autocomplete` 从 `email` 改成 `username`（web.dev *Sign-in form best practices*：password manager 认的是 `username`）。界面零变化（`hidden` 就是 `display:none`，全局 CSS 没有给 `input` 设 display），实测改动后三个页面解析出的表单字段：注册第三步 = 隐藏邮箱 + `new-password` × 2、重设第二步 = 隐藏邮箱 + `one-time-code` + `new-password` × 2、登录 = `username` + `current-password`。
+- **depends on**: 7.1.4、M28
+
 ## M35 生产 Google 登录：Service Worker 的导航兜底吞掉了 /api 导航
 
 ### 35.1 导航兜底排除 `/api/`，并加一条 CI 检查
