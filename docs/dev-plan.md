@@ -694,3 +694,10 @@
 - **status**: 🟡 doing
 - **description**: `AccountIdentity`（首页卡片与 `/me` 同一个组件）里，点头像原来是直接弹文件选择器，而卡片底部那行放的是「移除」—— 不常走、不可逆，却占着唯一的键。改成：点头像**预览**（`AvatarPreview`，`<dialog>` + `showModal()`，`<Avatar>` 的 `xl` = 256px；点图片外面关掉，靠 ConfirmDialog 那套「`event.target` 是 dialog 本体」的判法，Esc 由平台自己关），底部那行改成**「更换头像」按钮**（复用现成的 `auth.avatarUpload`），文件选择器归它。顺带删掉因此没人用的 `isUploadedAvatar` / `UPLOADED_PREFIX` 与 `avatarRemove` 文案。实测（首页与 `/me` 各一遍）：底行只剩一个按钮、文案是「更换头像」、`min-h` 与行高都是 20px（占位那行没变）、头像底边与邮箱底边差 0.00px（行没被推动）；点头像后 `showModal` 被调用一次、`:modal=true`、`::backdrop` 显示为 `bg-ink/60`、焦点落在 dialog 上、图 256×256，且**没有**碰文件选择器（拦截 `input.click` 计数为 0）；点左上角（即背景层，命中元素就是 dialog 本体）关掉、Esc（`cancel`）关掉；点「更换头像」触发且只触发一次文件选择；英文一侧文案是 `Change avatar`、`aria-label` 是 `Preview picture`。
 - **depends on**: 5.0.3、7.1.4
+
+### 30.2 `/me` 上的三处读不懂
+
+- **issue**: #185
+- **status**: 🟡 doing
+- **description**: ①计划卡顶部那句 `plan.description`（「设定每日题数与重点模块……」）删掉：字段名自己已经说了，句式又是"X 和 Y；Z 按它生成"，属于自解释的说明句。②统计卡的「模块分布 / By module」原来那根条画的是**该模块占累计题数的比例**，而同一行右边的数字是**正确率** —— 一行两个量、只有一个有条，读的人自然把条当成正确率（然后就对不上）。改成条 = 正确率（同一个 `percent` 既写文字又定宽度），标题照实叫「各模块正确率 / Accuracy by module」。③「每日题数 / Questions per day」是那张 14 根柱子的图，标题没说范围、也没说柱高是什么：标题改成 `每日题数（近 {{days}} 天）`（天数取 `data.daily.length`，不写死 14）。实测：计划卡那句没了；14 根柱子**每根**都命中 `title`（`2026-09-26：9 题`）；模块条宽度与文字对上（单音 75.0% ↔ 正确率 75%、音程 50.0% ↔ 50%）；四个大数（10 / 70% / 2 / 1）不变。
+- **depends on**: 7.1.2、5.0.1、5.2

@@ -127,7 +127,6 @@
   "plan": {
     "solvedOfGoal": "{{solved}} / {{goal}} 题",
     "title": "每日练习设置",
-    "description": "设定每日题数与重点模块；每日练习按它生成当天要练的题。",
     "dailyGoal": "每日目标题数",
     "focus": "重点模块",
     "save": "保存计划",
@@ -141,10 +140,10 @@
     "accuracy": "正确率",
     "activeDays": "近 14 天练习",
     "streak": "连续打卡",
-    "trend": "每日题数",
+    "trend": "每日题数（近 {{days}} 天）",
     "trendLabel": "每日题数：{{from}} 至 {{to}}，共 {{solved}} 题",
     "dayTitle": "{{date}}：{{solved}} 题",
-    "byExercise": "模块分布",
+    "byExercise": "各模块正确率",
     "moduleDetail": "{{solved}} 题，正确率 {{percent}}%",
     "achievements": "成就"
   },

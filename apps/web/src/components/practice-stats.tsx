@@ -59,7 +59,9 @@ export function PracticeStats() {
         <Stat label={t('stats.streak')} value={data.streak} />
       </div>
 
-      <h3 className="badge-label mt-8 text-muted">{t('stats.trend')}</h3>
+      <h3 className="badge-label mt-8 text-muted">
+        {t('stats.trend', { days: data.daily.length })}
+      </h3>
       <div
         className="mt-3 flex h-20 max-w-md items-end gap-1.5"
         role="img"
@@ -94,22 +96,25 @@ export function PracticeStats() {
         {practised.map((kind) => {
           const entry = data.byExercise[kind]
           if (!entry) return null
-          const share = Math.round((entry.solved / data.solved) * 100)
+          const percent = Math.round(entry.accuracy * 100)
 
           return (
             <li key={kind} className="flex items-center gap-3 text-[15px]">
               <ModuleSwatch kind={kind} />
               <span className="w-20 shrink-0 whitespace-nowrap">{t(`modules.${kind}`)}</span>
+              {/* The bar is the number next to it and nothing else. It used to be this module's
+                  share of all the questions solved, so a row showed two different quantities
+                  while only one of them had a bar — the one nobody was asking about. */}
               <span className="h-1.5 flex-1 overflow-hidden rounded-none bg-surface-strong">
                 <span
                   className="block h-full rounded-none bg-primary"
-                  style={{ width: `${share}%` }}
+                  style={{ width: `${percent}%` }}
                 />
               </span>
               <span className="tabular shrink-0 text-[13px] text-muted">
                 {t('stats.moduleDetail', {
                   solved: entry.solved,
-                  percent: Math.round(entry.accuracy * 100),
+                  percent,
                 })}
               </span>
             </li>
