@@ -144,9 +144,8 @@
     "trendLabel": "Questions per day: {{from}} to {{to}}, {{solved}} in total",
     "dayTitle": "{{date}}: {{solved}} questions",
     "byExercise": "Accuracy by module",
-    "moduleDetail": "{{solved}} solved, {{percent}}%",
     "achievements": "Achievements",
-    "moduleSolved": "{{count}} solved"
+    "cardTally": "{{solved}} tried, {{correct}} right"
   },
   "mistakes": {
     "title": "Mistake notebook",
