@@ -28,6 +28,7 @@ export function ConfirmDialog({
   confirmLabel,
   onConfirm,
   onDismiss,
+  destructive,
 }: {
   open: boolean
   title: string
@@ -38,6 +39,9 @@ export function ConfirmDialog({
   onConfirm: () => void
   /** Close, whether anything was done or not. Also called after `onConfirm`. */
   onDismiss: () => void
+  /** True when the confirm button does something that cannot be taken back: it wears the
+   *  destructive control instead of the ink one. The header's "sign out?" does not. */
+  destructive?: boolean
 }) {
   const { t } = useTranslation('common')
   const ref = useRef<HTMLDialogElement>(null)
@@ -75,6 +79,7 @@ export function ConfirmDialog({
           {t('actions.cancel')}
         </Button>
         <Button
+          variant={destructive ? 'destructive' : 'primary'}
           onClick={() => {
             onConfirm()
             onDismiss()
