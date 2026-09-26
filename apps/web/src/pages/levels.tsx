@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
-import { useTranslation } from 'react-i18next'
+import { useTranslation, Trans } from 'react-i18next'
 import { Link, useSearchParams } from 'react-router-dom'
-import { Check, Lock } from 'lucide-react'
+import { ArrowLeft, Check, Lock } from 'lucide-react'
 
 import { apiClient } from '@/api/client'
 import { loginHere, loginPath } from '@/lib/auth'
@@ -13,6 +13,7 @@ import { useAuthStore } from '@/stores/auth-store'
 import { pickText, useLevelCatalog, type Level } from '@/lib/levels'
 import { modulePath } from '@/components/round-summary'
 import { cn } from '@/lib/utils'
+import { iconKey } from '@oh-your-ear/shared/pref-controls'
 
 /**
  * All levels: one chain per module, easy to hard, for signed-in users. A level is locked
@@ -66,13 +67,25 @@ export function Levels() {
         {/* Gutter outside the 1200px box and the same width as the header: with the
             padding inside, this column sat 300px inboard of the bar above it. */}
         <div className="mx-auto w-full max-w-[1200px]">
+          {/* Where you came from, at the top left of the content and not in the bar: the bar is
+              identical on every page and stays that way. The same 32px square the account page
+              and its two subpages carry. */}
+          <Link
+            to="/"
+            className={`${iconKey} mb-5 no-underline`}
+            aria-label={t('actions.back')}
+            title={t('actions.back')}
+          >
+            <ArrowLeft aria-hidden="true" className="h-4 w-4" strokeWidth={1.75} />
+          </Link>
+
           <h1 className="text-[30px] font-medium leading-tight sm:text-[36px]">
             {t('levels.title')}
           </h1>
           <p className="mt-3 max-w-[52ch] text-[15px] text-body">{t('levels.intro')}</p>
 
           {!user && (
-            <div className="mt-6 flex flex-wrap items-center gap-4 rounded-xl border border-hairline bg-surface px-5 py-4">
+            <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-hairline bg-surface px-5 py-4">
               <p className="text-[15px] text-body">{t('levels.guestBanner')}</p>
               <Link
                 to={loginHere()}
@@ -80,6 +93,23 @@ export function Levels() {
               >
                 {t('actions.login')}
               </Link>
+              {/* The other answer, in the same place: the random tab needs no account at all,
+                  which is the thing a guest looking at a locked chain most needs to hear. The
+                  words around the link stay in the translation, so neither language has to be
+                  assembled out of halves. */}
+              <p className="text-[15px] text-body">
+                <Trans
+                  i18nKey="levels.guestTryRandom"
+                  components={{
+                    randomTest: (
+                      <Link
+                        to="/?mode=random"
+                        className="font-medium text-ink underline underline-offset-4"
+                      />
+                    ),
+                  }}
+                />
+              </p>
             </div>
           )}
 
