@@ -426,7 +426,7 @@ hero 的副标题分两段，**先列功能，再给一句人话**：
   **这一行必须能一行放下**，所以消息只能是短句。原来的验证码提示带着一句"若服务端未配置邮件投递，验证码会打印在服务端日志里"—— 那是 `docs/deploy.md` 的知识（它是开发期的事实，不是用户要读的东西），留在界面里就会换行，把"高度恒定"这件事破掉。**能一行放下是这条规则的一部分，不是巧合。**
 ### 7.5 搜索与分享元数据
 
-落地页 `xxx.xxx` 是**唯一需要被搜索引擎收录**的站点；app 站点 `app.xxx.xxx` 反过来要 `noindex` —— 它是登录后才完整的应用界面，与营销页构成重复内容，被收录没有收益。
+落地页 `xxx.xxx` 是**唯一需要被搜索引擎收录**的站点；app 站点 `app.xxx.xxx` 反过来要 `noindex` —— 它是登录后才完整的应用界面，与营销页构成重复内容，被收录没有收益。同一个文档只能有一个 URL（`/index.html` 308 到 `/`），而 app 的去索引必须**两条一起上**：`Disallow` 会让爬虫根本不取页面，于是 `<meta name="robots">` 里的 `noindex` 永远读不到 —— 只挡抓取、或只写 meta，都是半条。
 
 | 项目 | 要求 |
 | --- | --- |
@@ -434,12 +434,17 @@ hero 的副标题分两段，**先列功能，再给一句人话**：
 | 分享卡片（OG/Twitter） | 1200×630，品牌调性，绝对 URL —— 社交平台不解析相对路径 |
 | 分享卡源文件 | `apps/landing/og-card.html`，渲染命令写在文件注释里。**模板必须进仓库**：第一版卡片的模板没提交，改一次文案就得靠量像素盲猜重画 |
 | 语言 | 机器可见层一律英文：title / description / OG / Twitter / JSON-LD / `robots.txt` / `llms.txt` / 分享卡上的文字。读者看到的内容仍跟随语言偏好，`<html lang>` 在 i18n 初始化后由 `languageChanged` 改写 |
-| 元数据 | title / description（长度控制在搜索结果不被截断）、`canonical`、Open Graph、Twitter `summary_large_image`、深浅两套 `theme-color`、JSON-LD（软件类结构化数据） |
+| 元数据 | title / description（长度控制在搜索结果不被截断）、`canonical`、Open Graph、Twitter `summary_large_image`、深浅两套 `theme-color`、JSON-LD：`Organization` + `WebSite` + `WebApplication` 三个节点用 `@id` 串起来（一个节点只说「这里有个 web app」，看不出出品方是谁） |
+| URL 唯一 | 同一个文档只有一个 URL：`/index.html` 308 到 `/` |
 | robots.txt | 允许抓取落地页，指向 `sitemap.xml` |
-| sitemap.xml | 至少包含落地页 |
-| llms.txt | 给大模型的站点说明：产品是什么、能做什么、关键页面，遵循 llmstxt.org 格式 |
+| app 的去索引 | `robots.txt` 的 `Disallow: /` **加上**全站响应头 `X-Robots-Tag: noindex, nofollow`：头是爬虫被挡住时唯一还能生效的那一半 |
+| sitemap.xml | 至少包含落地页；**不写 `lastmod`** —— 它只在永远准确时才有价值，写错会让整个字段被忽略 |
+| 缓存头 | 入口文档 `no-cache, must-revalidate`（不用 `no-store`：它会把页面踢出 bfcache，前进后退都变慢）；带内容 hash 的 `/assets/*` 反过来永久缓存 `max-age=31536000, immutable` |
+| llms.txt | 给其他 AI 客户端的站点说明：产品是什么、能做什么、关键页面，遵循 llmstxt.org 格式。**Google 官方明确表示忽略它** —— 保留可以，但不能当 SEO 手段 |
 
-两个站点的品牌标记保持一致。落地页当前是客户端渲染的 SPA，搜索引擎能执行 JS，但**首屏 HTML 里没有正文** —— 要做到极致需要预渲染/SSG，单列为待办。
+两个站点的品牌标记保持一致。落地页当前是客户端渲染的 SPA，搜索引擎能执行 JS，但**首屏 HTML 里没有正文** —— 要做到极致需要预渲染/SSG，单列为待办（dev-plan 18.4）：Google 官方明说预渲染「对用户和爬虫都更快，而且并非所有机器人都能运行 JavaScript」，这是把中文内容也变成可索引内容的唯一办法（语言靠 localStorage 切换，`/` 永远只有一份英文的 HTML）。
+
+**不靠 SEO 花活**：Google 2026-07 的《Optimizing your website for generative AI features》写明 —— `llms.txt` 之类的新式文件被 Google 忽略、内容不需要为 AI 切块、结构化数据只为 rich result 资格、第三方 AEO/GEO 工具无法访问其内部系统。所以这里只有三条路：让内容可被抓取、写出真有价值的内容、把速度做好。
 
 ### 7.6 仓库的检索面（GitHub）
 
