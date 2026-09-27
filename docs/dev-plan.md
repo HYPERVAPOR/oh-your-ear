@@ -802,22 +802,22 @@
 ### 39.1 落地页的 URL 与缓存分层
 
 - **issue**: #208
-- **status**: 🟡 doing
-- **description**: 三件一起做：**(1)** `/index.html` 308 到 `/` —— 原来同一个文档两个 URL，canonical 只是建议，重定向才是事实；**(2)** 缓存分层：入口文档 `no-cache, must-revalidate`，带内容 hash 的 `/assets/*` 改 `public, max-age=31536000, immutable`（线上实测前者本来就是「每次回源确认」，而后者本该永久缓存却被同样对待）；**(3)** `sitemap.xml` 去掉写死的 `lastmod` —— 它写的是 `2026-09-19`，而落地页最后一次改动是 `2026-09-26`，不可靠的 lastmod 会让整个字段被忽略。规则靠 `apps/landing/vercel.json` 的 `redirects` + `headers`，负向先行断言按 path-to-regexp 语法包进捕获组（`/((?!assets/).*)`），并用 Vercel 同款库 `path-to-regexp@6` 本地逐条验过：`/`、`/login`、`/daily`、`/index.html`、`/sw.js`、`/fonts/*` 落在文档那条，`/assets/index-abc.js` 落在 immutable 那条，两条互不重叠。
+- **status**: 🟢 done
+- **description**: 三件一起做：**(1)** `/index.html` 308 到 `/` —— 原来同一个文档两个 URL，canonical 只是建议，重定向才是事实；**(2)** 缓存分层：入口文档 `no-cache, must-revalidate`，带内容 hash 的 `/assets/*` 改 `public, max-age=31536000, immutable`（线上实测前者本来就是「每次回源确认」，而后者本该永久缓存却被同样对待）；**(3)** `sitemap.xml` 去掉写死的 `lastmod` —— 它写的是 `2026-09-19`，而落地页最后一次改动是 `2026-09-26`，不可靠的 lastmod 会让整个字段被忽略。规则靠 `apps/landing/vercel.json` 的 `redirects` + `headers`，负向先行断言按 path-to-regexp 语法包进捕获组（`/((?!assets/).*)`），并用 Vercel 同款库 `path-to-regexp@6` 本地逐条验过：`/`、`/login`、`/daily`、`/index.html`、`/sw.js`、`/fonts/*` 落在文档那条，`/assets/index-abc.js` 落在 immutable 那条，两条互不重叠。**发布后线上实测**（`main` = `e725de4`）：`/index.html` 回 `308 → https://ohyourear.com/`；落地页文档回 `cache-control: no-cache, must-revalidate`；`/assets/index-EelGAanm.js` 回 `public, max-age=31536000, immutable`；`sitemap.xml` 里 `<lastmod>` 元素数为 0。
 - **depends on**: 18.2
 
 ### 39.2 app 的去索引机制：`Disallow` 让 `noindex` 永远读不到
 
 - **issue**: #208
-- **status**: 🟡 doing
-- **description**: app 原来是「`robots.txt` 全站 `Disallow` + `<meta name="robots" content="noindex">`」两条一起用，但被挡住的 URL 爬虫根本不去取，也就永远读不到那个 meta —— 等于只有半条（Google 原文：disallowed 的 URL「Googlebot skips making an HTTP request to this URL」，且「won't render JavaScript … on blocked pages」）。补上另一半：`apps/web/vercel.json` 给除 `/assets/*` 与 `/api/*` 之外的所有响应加 `X-Robots-Tag: noindex, nofollow` —— 头在 robots 挡爬取时依然随直接访问返回。已经收录的 URL 仍然只能靠 Search Console 的 Removals，所以要人工确认的是 app 的收录数是否为 0（见 39.4）。
+- **status**: 🟢 done
+- **description**: app 原来是「`robots.txt` 全站 `Disallow` + `<meta name="robots" content="noindex">`」两条一起用，但被挡住的 URL 爬虫根本不去取，也就永远读不到那个 meta —— 等于只有半条（Google 原文：disallowed 的 URL「Googlebot skips making an HTTP request to this URL」，且「won't render JavaScript … on blocked pages」）。补上另一半：`apps/web/vercel.json` 给除 `/assets/*` 与 `/api/*` 之外的所有响应加 `X-Robots-Tag: noindex, nofollow` —— 头在 robots 挡爬取时依然随直接访问返回。已经收录的 URL 仍然只能靠 Search Console 的 Removals，所以要人工确认的是 app 的收录数是否为 0（见 39.4）。**发布后线上实测**：`app.ohyourear.com/login` 回 `cache-control: no-cache, must-revalidate` + `x-robots-tag: noindex, nofollow`；`/assets/index-dTZiAzxT.js` 只有 `immutable`、**没有** `x-robots-tag`；`/api/v1/auth/me` 只有 `cache-control: no-store`、也没有 `x-robots-tag` —— 两条排除（资源与 API）都真的生效了。
 - **depends on**: 18.3
 
 ### 39.3 结构化数据：三个节点串成一个实体
 
 - **issue**: #208
-- **status**: 🟡 doing
-- **description**: JSON-LD 原来只有一个 `WebApplication` 节点，机器看得出「这里有个 web app」，看不出**是谁出的**。改成 `@graph`：`Organization`（HYPERVAPOR，`sameAs` → GitHub 组织）+ `WebSite`（`inLanguage` 中英）+ 原来的 `WebApplication`，三者用 `@id` 互指（`publisher` / `isPartOf`）。**不为 AI 曝光加任何 markup**：Google 官方写明结构化数据只影响 rich result 资格，与生成式 AI 的可见性无关。
+- **status**: 🟢 done
+- **description**: JSON-LD 原来只有一个 `WebApplication` 节点，机器看得出「这里有个 web app」，看不出**是谁出的**。改成 `@graph`：`Organization`（HYPERVAPOR，`sameAs` → GitHub 组织）+ `WebSite`（`inLanguage` 中英）+ 原来的 `WebApplication`，三者用 `@id` 互指（`publisher` / `isPartOf`）。**不为 AI 曝光加任何 markup**：Google 官方写明结构化数据只影响 rich result 资格，与生成式 AI 的可见性无关。**发布后线上实测**：落地页 HTML（5761 字节）里的 JSON-LD 解析出 `Organization` / `WebSite` / `WebApplication` 三个节点。
 - **depends on**: 18.2
 
 ### 39.4 需要人工在后台做的三件（代码做不到）
