@@ -796,3 +796,40 @@
 - **status**: 🟡 doing
 - **description**: ①`/levels` 补一个 32px `←` 返回键（与 `/me`、收藏夹、错题本同款，回首页）—— 这三处都有，唯独关卡目录漏了。②游客横幅里加一句「不想登录？试试随机练习。」，链接指向 `/?mode=random`：关卡链要账号，而随机练习不需要，这是游客最该听见的一条出路。为了能从别处链过去，**首页的 Learn / Random 也改成 URL 参数**（`/?mode=learn|random`，缺失或非法值退回 Learn，切换用 `replace`），与关卡页的模块选项卡同一套做法。实测：游客横幅里两个链接（登录 → `/login?next=%2Flevels`、随机练习 → `/?mode=random`）、点过去落到随机那格且该 tab 选中、`replace` 不改历史条数（3→3）、非法值退回 Learn、登录后横幅与引导一起消失而返回键仍在；`Trans` 的标签用 `randomTest`（非空元素名）没漏标签。
 - **depends on**: 7.1.5、5.10
+
+## M39 SEO 批次 1：URL 唯一、缓存分层、去索引机制、结构化数据
+
+### 39.1 落地页的 URL 与缓存分层
+
+- **issue**: #208
+- **status**: 🟡 doing
+- **description**: 三件一起做：**(1)** `/index.html` 308 到 `/` —— 原来同一个文档两个 URL，canonical 只是建议，重定向才是事实；**(2)** 缓存分层：入口文档 `no-cache, must-revalidate`，带内容 hash 的 `/assets/*` 改 `public, max-age=31536000, immutable`（线上实测前者本来就是「每次回源确认」，而后者本该永久缓存却被同样对待）；**(3)** `sitemap.xml` 去掉写死的 `lastmod` —— 它写的是 `2026-09-19`，而落地页最后一次改动是 `2026-09-26`，不可靠的 lastmod 会让整个字段被忽略。规则靠 `apps/landing/vercel.json` 的 `redirects` + `headers`，负向先行断言按 path-to-regexp 语法包进捕获组（`/((?!assets/).*)`），并用 Vercel 同款库 `path-to-regexp@6` 本地逐条验过：`/`、`/login`、`/daily`、`/index.html`、`/sw.js`、`/fonts/*` 落在文档那条，`/assets/index-abc.js` 落在 immutable 那条，两条互不重叠。
+- **depends on**: 18.2
+
+### 39.2 app 的去索引机制：`Disallow` 让 `noindex` 永远读不到
+
+- **issue**: #208
+- **status**: 🟡 doing
+- **description**: app 原来是「`robots.txt` 全站 `Disallow` + `<meta name="robots" content="noindex">`」两条一起用，但被挡住的 URL 爬虫根本不去取，也就永远读不到那个 meta —— 等于只有半条（Google 原文：disallowed 的 URL「Googlebot skips making an HTTP request to this URL」，且「won't render JavaScript … on blocked pages」）。补上另一半：`apps/web/vercel.json` 给除 `/assets/*` 与 `/api/*` 之外的所有响应加 `X-Robots-Tag: noindex, nofollow` —— 头在 robots 挡爬取时依然随直接访问返回。已经收录的 URL 仍然只能靠 Search Console 的 Removals，所以要人工确认的是 app 的收录数是否为 0（见 39.4）。
+- **depends on**: 18.3
+
+### 39.3 结构化数据：三个节点串成一个实体
+
+- **issue**: #208
+- **status**: 🟡 doing
+- **description**: JSON-LD 原来只有一个 `WebApplication` 节点，机器看得出「这里有个 web app」，看不出**是谁出的**。改成 `@graph`：`Organization`（HYPERVAPOR，`sameAs` → GitHub 组织）+ `WebSite`（`inLanguage` 中英）+ 原来的 `WebApplication`，三者用 `@id` 互指（`publisher` / `isPartOf`）。**不为 AI 曝光加任何 markup**：Google 官方写明结构化数据只影响 rich result 资格，与生成式 AI 的可见性无关。
+- **depends on**: 18.2
+
+### 39.4 需要人工在后台做的三件（代码做不到）
+
+- **issue**: #208
+- **status**: 🔴 todo
+- **description**: ①Search Console 验证 `ohyourear.com`，提交 sitemap，**打开「生成式 AI 性能报告」** —— Google 官方要求站点先进入该报告才可能出现在 AI 概览/AI 模式；②Search Console 验证 `app.ohyourear.com` 并确认收录数为 0（若不是 0，用 Removals 清理）；③Bing Webmaster 提交站点与 sitemap。
+- **depends on**: 39.1、39.2
+
+### 39.5 实测后决定不做：交互组件的懒加载拆分
+
+- **issue**: #208
+- **status**: 🔴 todo
+- **description**: 落地页三个交互组件（`piano-roll` / `pitch-chart-2d` / `sound-check`）全改 `React.lazy`，实测只省 **9.07KB gzip**（100.45 → 91.38），而其中最大的一块是首屏就并排显示的那份卷轴，拆出去会在首屏弹入。40KB 等宽字体的 preload 复核后**成立**：`--font-sans` 就是 JetBrains Mono，h1 也用同一字族，它不是可以推迟的装饰。结论：不留这层 Suspense 弹入，等 18.4 的预渲染一并解决（预渲染之后首屏干脆不再依赖这份 JS）。
+- **depends on**: 18.4
