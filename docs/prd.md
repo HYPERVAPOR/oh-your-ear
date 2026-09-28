@@ -439,7 +439,7 @@ hero 的副标题分两段，**先列功能，再给一句人话**：
 | 分享卡源文件 | `apps/landing/og-card.html`，渲染命令写在文件注释里。**模板必须进仓库**：第一版卡片的模板没提交，改一次文案就得靠量像素盲猜重画 |
 | 语言 | **按 URL**：`/` 的机器可见层是英文，`/zh` 的是中文（title / description / OG / Twitter）；`robots.txt`、`llms.txt`、JSON-LD、分享卡上的文字保持英文。读者第一次访问时按 `navigator.language` 跳一次（只从 `/` 往 `/zh` 跳，从 `/zh` 不弹人），**一旦自己选过语言就不再跳**：URL 说什么就是什么 |
 | 元数据 | title / description（长度控制在搜索结果不被截断）、`canonical`、Open Graph、Twitter `summary_large_image`、深浅两套 `theme-color`、JSON-LD：`Organization` + `WebSite` + `WebApplication` 三个节点用 `@id` 串起来（一个节点只说「这里有个 web app」，看不出出品方是谁） |
-| URL 唯一 | 同一个文档只有一个 URL：`/index.html` 308 到 `/`；中文页是 `/zh`（不带尾斜杠 —— 那是 Vercel 不重定向的形式） |
+| URL 唯一 | 同一个文档只有一个 URL：`/index.html` 308 到 `/`；中文页是 `/zh`，`/zh/` 由 `apps/landing/vercel.json` 里一条 redirect 308 到它 —— 线上实测 Vercel 对目录索引的两种形式都发 200，不重定向，只靠 canonical 能收敛但不如一条重定向干净 |
 | hreflang | 两个文档都列出一组完整的三条（`en` / `zh-CN` / `x-default`），互相指到对方；只在 HTML 里声明，不在 sitemap 里重复 |
 | 预渲染 | 落地页由 `apps/landing/scripts/prerender.mjs` 在构建期渲染成两静态文档；CI 用 `check-prerender.mjs` 断言产物里有 `<h1>`、有文案、有 hreflang —— 剥掉预渲染即失败 |
 | 交互部分 | 卷轴 / 二维图 / 声音自检只在浏览器里渲染（`live-demos.tsx`）：它们读 URL、画布尺寸与音频时钟，预渲染的 HTML 里只留内容，hydration 就没有可对不上的东西。占位块保持原高度，手机上不会因此跳版 |
