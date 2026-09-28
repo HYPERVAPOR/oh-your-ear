@@ -197,6 +197,13 @@ jobs:
         if: matrix.app == 'web'
         run: node scripts/check-sw-navigation-fallback.mjs
 
+      # Nothing in a browser can tell whether the prerender step ran: the client renders
+      # the same tree either way, and the page it serves from an empty #root looks
+      # identical once React is done with it. Only the build output knows.
+      - name: Check the landing page ships prerendered HTML
+        if: matrix.app == 'landing'
+        run: node scripts/check-prerender.mjs
+
   api:
     name: API checks
     runs-on: ubuntu-24.04

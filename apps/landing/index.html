@@ -102,21 +102,32 @@
     </script>
 
     <script>
-      // Apply the stored theme before first paint, otherwise dark-mode readers get a
-      // white flash while the React tree mounts. The cookie first: on this site it is
-      // the preference written by the app, and it is the copy both sites share. Keep in
-      // step with packages/shared/src/prefs.ts.
+      // Two things have to happen before the first paint: the theme class, and — on the
+      // English document only — sending a reader whose browser is Chinese to the Chinese
+      // one. Both read the preference cookie the two sites share, so keep this in step with
+      // packages/shared/src/prefs.ts.
       try {
         const cookie = document.cookie.match(/(?:^|; )oye_prefs=([^;]*)/)
-        const fromCookie = cookie ? cookie[1].split('|')[0] : null
+        const [fromCookie, fromCookieLanguage] = cookie ? cookie[1].split('|') : []
         const stored = JSON.parse(localStorage.getItem('oye-app-storage') || '{}')
         const theme = fromCookie || (stored.state && stored.state.theme) || 'system'
         const dark =
           theme === 'dark' ||
           (theme === 'system' && matchMedia('(prefers-color-scheme: dark)').matches)
         document.documentElement.classList.add(dark ? 'dark' : 'light')
+
+        // `/` is the English document and `/zh` is the Chinese one (PRD 7.5), so the
+        // language is in the URL and not in a preference — but a first-time reader should
+        // not have to find the switch. The cookie is only written when someone picks a
+        // language, so a choice already made is never overruled here: `/zh` opened by an
+        // English reader stays Chinese.
+        const chosen = fromCookieLanguage || (stored.state && stored.state.language)
+        const readsChinese = (navigator.language || '').toLowerCase().startsWith('zh')
+        if (!chosen && readsChinese && location.pathname === '/') {
+          location.replace('/zh' + location.search)
+        }
       } catch {
-        // Unreadable storage: fall through to the light default.
+        // Unreadable storage: fall through to the light, English default.
       }
     </script>
   </head>

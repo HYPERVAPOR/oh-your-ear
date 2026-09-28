@@ -2,6 +2,7 @@ import { Languages, Monitor, Moon, Sun } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { GITHUB_URL } from './links'
+import { shownLanguage } from './i18n'
 import { useAppStore, type Language, type Theme } from './prefs'
 
 /** Every control in a header is the same 32px square as the brand mark, so a bar of
@@ -43,13 +44,33 @@ export function ThemeKey() {
   )
 }
 
-export function LanguageKey() {
+/** The language switch. On the app it changes the copy in place: one URL, a preference
+ *  that follows the reader. On the landing site it is a link to the other URL instead —
+ *  a language a crawler can follow and a reader can share. Either way the choice is
+ *  remembered in the shared cookie, so the other site opens in the same language. */
+export function LanguageKey({ href }: { href?: string } = {}) {
   const { t, i18n } = useTranslation()
-  const language = useAppStore((state) => state.language)
   const setLanguage = useAppStore((state) => state.setLanguage)
 
-  const next: Language = language === 'zh-CN' ? 'en' : 'zh-CN'
+  const next: Language = shownLanguage(i18n) === 'zh' ? 'en' : 'zh-CN'
   const label = t('settings.switchLanguage', { language: next === 'zh-CN' ? '中文' : 'English' })
+
+  const mark = <Languages aria-hidden="true" className={icon} strokeWidth={1.75} />
+
+  if (href) {
+    return (
+      <a
+        href={href}
+        hrefLang={next}
+        className={`${iconKey} no-underline`}
+        aria-label={label}
+        title={label}
+        onClick={() => setLanguage(next)}
+      >
+        {mark}
+      </a>
+    )
+  }
 
   return (
     <button
@@ -59,10 +80,10 @@ export function LanguageKey() {
       title={label}
       onClick={() => {
         setLanguage(next)
-        i18n.changeLanguage(next)
+        void i18n.changeLanguage(next)
       }}
     >
-      <Languages aria-hidden="true" className={icon} strokeWidth={1.75} />
+      {mark}
     </button>
   )
 }
