@@ -21,5 +21,11 @@ export default defineConfig({
     allowedHosts: ['localhost', '.oye.test'],
     port: 5174,
   },
+  build: {
+    // Two documents, because there are two kinds of page: the landing page (a React screen
+    // with the piano on it) and the guides under /learn, which are prerendered from
+    // markdown and hydrate a different tree. Vite builds one client bundle per HTML entry.
+    rollupOptions: { input: { index: 'index.html', learn: 'learn.html' } },
+  },
   plugins: [react(), tailwindcss()],
 })

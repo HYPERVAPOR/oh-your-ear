@@ -4,6 +4,12 @@
     "title": "Oh Your Ear — ear training in the browser",
     "description": "Train your ear in the browser: single notes, intervals, chords, melody and rhythm. Start with no account; sign in to keep progress and mistakes."
   },
+  "guide": {
+    "allGuides": "All guides",
+    "previous": "Previous",
+    "next": "Next",
+    "practiceBody": "Every guide ends where it can be used: the drills it describes run free in the browser, no account needed."
+  },
   "tagline": "Train your ear, anywhere.",
   "drills": {
     "pitch": "pitch",
