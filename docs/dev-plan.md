@@ -870,3 +870,40 @@
 - **status**: 🟡 doing
 - **description**: ①**已做**（`main` = `7e6bff5`）：两站点 200、`/` 与 `/zh` 都带正文、hreflang 三条齐全、`/index.html` 仍 308、文档 `no-cache` 与 `/assets/*` `immutable` 都在、app 的 `X-Robots-Tag` 与 SW 兜底未回退、API 401 正常、sitemap 两条 URL。发现 `/zh/` 也是 200（Vercel 对目录索引两种形式都发 200），已在 `apps/landing/vercel.json` 补一条 308 —— 随下一批发布。②GSC 里对 `/` 与 `/zh` 各请求一次编入索引、重交 sitemap（含两条 URL）—— 要账号，归人工。③隔几天看 Bing 的「缺少 h1」是否消失、GSC `Pages` 里两条 URL 的收录。
 - **depends on**: 40.1、40.2
+
+## M41 教程区：从两个可索引页面到一个内容区
+
+### 41.1 管线：markdown 进，静态页出
+
+- **issue**: #214
+- **status**: 🟡 doing
+- **description**: 落地页原本只有 `/` 与 `/zh` 两个可索引页面，收录上限就是 2。现在构建的最后两步多了一层：`scripts/learn.mjs` 读 `content/learn/<slug>.<en|zh>.md`（frontmatter 三个平铺键手写解析，正文交给 **构建期**依赖 `marked`），产出页面数据；`prerender.mjs` 把它喂给 `renderPage()`，用 React 19 的 `prerenderToNodeStream` 渲染进 `learn.html` 外壳，写成 `dist/learn/<slug>/index.html` 与 `dist/zh/learn/<slug>/index.html`（目录索引形态，`/learn` 与 `/zh/learn` 同理）。外壳是 Vite 的第二个入口（`vite.config.ts` 的 `rollupOptions.input`），客户端 `learn-main.tsx` 从页面里的 `<script id="oye-page" type="application/json">` 读回 props 再 hydrate —— 浏览器永远不解析 markdown。`dist/learn.html` 用完即删，不作为页面存在。实测：6 个页面（2 首页 + 2 索引 + 2 篇文章，联调样例）共 **70 项**断言通过；四个破坏测试都能让它失败（删页面 / 链接到计划外 slug / 让外壳可访问 / sitemap 塞进未完成的教程）。
+- **depends on**: 40.1
+
+### 41.2 契约：slug 冻结、链接不带语言前缀、title 追加品牌
+
+- **issue**: #214
+- **status**: 🟡 doing
+- **description**: 8 个主题的 slug 冻结（`what-is-ear-training`、`interval-ear-training`、`chord-identification`、`melodic-dictation`、`rhythm-basics`、`relative-vs-perfect-pitch`、`daily-practice-routine`、`aural-exam-prep`，加索引页共 9 页 × 2 语言 = 18 个 URL）—— slug 是 URL，发布后不能改。作者在正文里写 `/learn/<slug>`，中文页的 `/zh` 前缀由管线加；`<title>` 由管线追加 `| Oh Your Ear`；FAQ 是普通小节（FAQPage 富媒体结果 2026-05 已下线）；索引页列表由管线从**已存在的文件**生成，markdown 只写引言。CI 的链接白名单用**冻结集合**而不是「已存在的文件」（隔壁 agent 提的修正）：链接到计划内但尚未写完的文章是正常进度，链接到计划外的 slug 才是错误。
+- **depends on**: 41.1
+
+### 41.3 闸门：没写完就不进 sitemap、不从首页链
+
+- **issue**: #214
+- **status**: 🟡 doing
+- **description**: 教程区在 9 篇双语齐备前不进 sitemap、不从首页链接：CI 断言「sitemap 条数 = 首页 2 条，除非内容完整」。这样「白名单允许指向未写完的文章」不会变成用户可点的 404 —— 索引页从已有文件生成、整块区域没人宣布。索引页文件缺失时该语言整个区块不构建（构建不失败），所以管线先落地、内容后到也能跑通。实测：联调状态下 sitemap 只列 2 条，而 18 个 URL 的页面照常生成且 canonical/hreflang 正确。
+- **depends on**: 41.1
+
+### 41.4 内容：18 个文件与首页入口
+
+- **issue**: #214
+- **status**: 🟡 doing
+- **description**: 内容由另一个 agent（kimi，独立 worktree `learn-content-batch` 分支）撰写：18 个文件（索引 + 8 篇 × 中英），已提交在它自己的分支上。内容标准不设字数下限（Google 官方「没有理想篇幅」），改为五项清单：定义/为什么、可执行的练法（带时长频率）、至少一个具体例子或参照、常见误区、CTA。**首页要不要加一个指到 `/learn` 的入口（页脚一行链接或导航）属于可见改动，等用户点头**；在那之前教程区只靠 sitemap 被搜到（内容齐备后）。
+- **depends on**: 41.2
+
+### 41.5 发布后要看的
+
+- **issue**: #214
+- **status**: 🔴 todo
+- **description**: ①线上 curl 复核 `/learn`、`/zh/learn` 与文章页（含 `/learn/` 这类尾斜杠是否 308 到无斜杠形态）；②GSC 重交 sitemap 并对索引页请求编入索引，看 `Pages` 里新页是否被收录；③隔几周看「音程听辨」这类长尾词的展示量是否出现；④`og:image:alt` 在中文页仍是英文 —— 分享图上的文字本身是英文，alt 描述的是图的内容，保持英文（与隔壁 agent 的建议相反，理由记在此）。
+- **depends on**: 41.3、41.4

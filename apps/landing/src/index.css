@@ -6,3 +6,90 @@
 /* Tailwind only scans a project's own sources by default, so it would miss the class
    names inside the shared components (the 32px icon keys). */
 @source '../../../packages/shared/src';
+
+/* The guides under /learn are markdown, so their markup arrives as plain elements with no
+   classes on them. Tailwind has no typography plugin here — one more dependency for one
+   block of prose — so the article's type is written out against the design tokens: the
+   same family, the same measure, the same hairlines as everywhere else. */
+.article {
+  font-size: 16px;
+  line-height: 1.75;
+  color: var(--body);
+}
+.article > :first-child {
+  margin-top: 0;
+}
+.article p,
+.article ul,
+.article ol,
+.article blockquote {
+  margin-top: 1.15em;
+}
+.article h2,
+.article h3 {
+  margin-top: 2em;
+  margin-bottom: 0.6em;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.article h2 {
+  font-size: 22px;
+}
+.article h3 {
+  font-size: 17px;
+}
+.article ul,
+.article ol {
+  padding-left: 1.2em;
+}
+.article ul {
+  list-style: square;
+}
+.article ol {
+  list-style: decimal;
+}
+.article li + li {
+  margin-top: 0.4em;
+}
+.article strong {
+  color: var(--ink);
+  font-weight: 500;
+}
+.article a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: var(--hairline-strong);
+  text-underline-offset: 4px;
+}
+.article a:hover {
+  text-decoration-color: var(--ink);
+}
+.article blockquote {
+  border-left: 2px solid var(--hairline-strong);
+  padding-left: 1em;
+  color: var(--muted);
+}
+.article code {
+  font-size: 0.95em;
+  background: var(--surface-strong);
+  padding: 0 4px;
+}
+.article table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  margin-top: 1.15em;
+}
+.article th,
+.article td {
+  border: 1px solid var(--hairline);
+  padding: 8px 10px;
+  text-align: left;
+  vertical-align: top;
+}
+.article th {
+  color: var(--ink);
+  font-weight: 500;
+}

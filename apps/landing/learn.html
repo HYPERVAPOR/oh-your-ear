@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- Self-hosted face: preload it so the first paint is not the fallback font. -->
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      href="/fonts/jetbrains-mono-latin.woff2"
+      crossorigin
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Everything an index or a link preview reads is English, like llms.txt: the copy
+         a *reader* sees is still switched by their own language preference. -->
+    <title>Oh Your Ear — ear training in the browser</title>
+    <meta
+      name="description"
+      content="Train your ear in the browser: single notes, intervals, chords, melody and rhythm. Start with no account; sign in to keep progress and mistakes."
+    />
+    <link rel="canonical" href="https://ohyourear.com/" />
+
+    <!-- The tab strip and the platform chrome follow the reader's colour scheme. -->
+    <meta name="theme-color" content="#f5f5f5" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#12100f" media="(prefers-color-scheme: dark)" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Oh Your Ear" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:locale:alternate" content="zh_CN" />
+    <meta property="og:url" content="https://ohyourear.com/" />
+    <meta property="og:title" content="Oh Your Ear — ear training in the browser" />
+    <meta
+      property="og:description"
+      content="Five exercises: single notes, intervals, chords, melody, rhythm. No account needed to start."
+    />
+    <!-- Absolute URL: social platforms do not resolve relative image paths. -->
+    <meta property="og:image" content="https://ohyourear.com/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Oh Your Ear — ear training in the browser" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Oh Your Ear — ear training in the browser" />
+    <meta
+      name="twitter:description"
+      content="Five exercises: single notes, intervals, chords, melody, rhythm. No account needed to start."
+    />
+    <meta name="twitter:image" content="https://ohyourear.com/og.png" />
+
+    <!-- Structured data: what this is, in the vocabulary a crawler already knows. Three
+         nodes rather than one, joined by @id: the organisation that publishes it, the site
+         itself, and the application. One node said "there is a web app here" and left a
+         machine to guess who is behind it. -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://ohyourear.com/#publisher",
+            "name": "HYPERVAPOR",
+            "sameAs": ["https://github.com/HYPERVAPOR"]
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://ohyourear.com/#website",
+            "name": "Oh Your Ear",
+            "url": "https://ohyourear.com/",
+            "inLanguage": ["en", "zh-CN"],
+            "publisher": { "@id": "https://ohyourear.com/#publisher" }
+          },
+          {
+            "@type": "WebApplication",
+            "@id": "https://ohyourear.com/#app",
+            "name": "Oh Your Ear",
+            "alternateName": "随时随地练耳",
+            "url": "https://ohyourear.com/",
+            "applicationCategory": "EducationalApplication",
+            "operatingSystem": "Web",
+            "inLanguage": ["en", "zh-CN"],
+            "description": "Ear training in the browser: single notes, intervals, chords, melody and rhythm. Guests can start right away; signing in saves progress, mistakes and streaks.",
+            "featureList": [
+              "Single-note practice",
+              "Interval practice",
+              "Chord practice",
+              "Melody practice",
+              "Rhythm practice",
+              "Mistake notebook",
+              "Daily practice",
+              "Level sets"
+            ],
+            "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+            "isPartOf": { "@id": "https://ohyourear.com/#website" },
+            "publisher": { "@id": "https://ohyourear.com/#publisher" }
+          }
+        ]
+      }
+    </script>
+
+    <script>
+      // Two things have to happen before the first paint: the theme class, and — on the
+      // English document only — sending a reader whose browser is Chinese to the Chinese
+      // one. Both read the preference cookie the two sites share, so keep this in step with
+      // packages/shared/src/prefs.ts.
+      try {
+        const cookie = document.cookie.match(/(?:^|; )oye_prefs=([^;]*)/)
+        const [fromCookie, fromCookieLanguage] = cookie ? cookie[1].split('|') : []
+        const stored = JSON.parse(localStorage.getItem('oye-app-storage') || '{}')
+        const theme = fromCookie || (stored.state && stored.state.theme) || 'system'
+        const dark =
+          theme === 'dark' ||
+          (theme === 'system' && matchMedia('(prefers-color-scheme: dark)').matches)
+        document.documentElement.classList.add(dark ? 'dark' : 'light')
+      } catch {
+        // Unreadable storage: fall through to the light, English default.
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/learn-main.tsx"></script>
+  </body>
+</html>
