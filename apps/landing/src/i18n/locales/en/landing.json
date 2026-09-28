@@ -1,5 +1,9 @@
 {
   "appName": "Oh Your Ear",
+  "meta": {
+    "title": "Oh Your Ear — ear training in the browser",
+    "description": "Train your ear in the browser: single notes, intervals, chords, melody and rhythm. Start with no account; sign in to keep progress and mistakes."
+  },
   "tagline": "Train your ear, anywhere.",
   "drills": {
     "pitch": "pitch",

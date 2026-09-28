@@ -35,6 +35,11 @@ function write(theme: Theme, language: Language) {
 
 /** Whatever another site last chose, if it is a value we recognise. */
 function read(): Partial<{ theme: Theme; language: Language }> {
+  // Prerendering this runs on a server, where there are no cookies and no reader: the
+  // defaults below stand, and the theme is put on the document by the inline script the
+  // two sites already ship for the first paint.
+  if (typeof document === 'undefined') return {}
+
   const raw = document.cookie.match(new RegExp(`(?:^|; )${COOKIE}=([^;]*)`))?.[1]
   if (!raw) return {}
 

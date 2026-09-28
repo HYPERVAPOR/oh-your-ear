@@ -379,9 +379,9 @@
 
 ### 18.4 Prerender the landing page
 
-- **issue**: #86
-- **status**: ⚪ backlog
-- **description**: The landing page ships an empty HTML shell and renders in the browser, so a crawler that does not execute JavaScript sees no copy at all. Prerendering (or SSG) would put the headline, the description and the links into the first response. Not done now because search engines do execute JS and the page is a single screen; revisit when the page grows or when organic traffic is being measured.
+- **issue**: #211
+- **status**: 🟢 done
+- **description**: The landing page shipped an empty HTML shell and rendered in the browser, so a crawler that does not execute JavaScript saw no copy at all. Done in M40: the build now renders both documents, and Bing's "missing h1" report was the measurement that settled it (Bingbot fetched `HTTP 200 · 5781 bytes` with `<body>` holding 42 characters and no `<h1>`).
 - **depends on**: 18.2
 
 ## M19 The hero's instrument
@@ -833,3 +833,40 @@
 - **status**: 🔴 todo
 - **description**: 落地页三个交互组件（`piano-roll` / `pitch-chart-2d` / `sound-check`）全改 `React.lazy`，实测只省 **9.07KB gzip**（100.45 → 91.38），而其中最大的一块是首屏就并排显示的那份卷轴，拆出去会在首屏弹入。40KB 等宽字体的 preload 复核后**成立**：`--font-sans` 就是 JetBrains Mono，h1 也用同一字族，它不是可以推迟的装饰。结论：不留这层 Suspense 弹入，等 18.4 的预渲染一并解决（预渲染之后首屏干脆不再依赖这份 JS）。
 - **depends on**: 18.4
+
+## M40 落地页预渲染：两个文档、一种语言一个 URL
+
+### 40.1 构建期把两份文档渲染出来
+
+- **issue**: #211
+- **status**: 🟡 doing
+- **description**: 落地页原来发的是空壳（`<div id="root"></div>`），只有会执行 JS 的浏览器才看得到正文 —— Bingbot 抓到的 `HTTP 200 · 5781 bytes` 里 `<body>` 只有 42 个字符、`<h1>` 0 个，Bing 因此报了「缺少 h1」。现在构建的最后两步：`vite build --ssr src/entry-server.tsx --outDir dist-ssr` 打出服务端产物，`scripts/prerender.mjs` 用 React 19 的 `prerenderToNodeStream` 把同一棵树渲染两次，写进 `dist/index.html`（18.6 KB）与 `dist/zh/index.html`（17.8 KB），然后删掉 `dist-ssr`。**不引入任何依赖**：`react-dom/static` 与 `hydrateRoot` 都在 React 19.3 里，`vite build --ssr` 也是 Vite 自带的。对比过 vike（1633 KB / 861 文件 / 12 个月 315 次发版）与 vite-react-ssg（108 KB）：单页、无路由、Tailwind 无 CSS-in-JS，框架的三个卖点都用不上，真正的工作量（语言进 URL + hreflang + hydration 一致）三个方案都得自己写。实测：禁用 JS 时 body 有 11833 字节正文（标题、五个练习项、卖点、CTA 全在）；两份产物各 22 项 CI 断言全过。
+- **depends on**: 18.4
+
+### 40.2 语言进 URL：`/` 与 `/zh`，hreflang 互指
+
+- **issue**: #211
+- **status**: 🟡 doing
+- **description**: 中文在索引层面等于不存在，因为语言靠 localStorage/navigator 原地切换、`/` 永远只有一份英文 HTML。现在语言是路径的第一个片段：`/` 英文、`/zh` 中文（不带尾斜杠 —— Vercel 默认把带斜杠的 308 掉，canonical 不能指向一个重定向）。两份文档各自翻译 title / description / OG / `og:locale`，canonical 指向自己，并各自列出一组完整的三条 `hreflang`（`en` / `zh-CN` / `x-default`，互相指到对方 —— Google 会忽略不成对的集合）。文案的单一口径在 `src/i18n/locales/{en,zh}/landing.json` 的 `meta.title` / `meta.description`，`check:i18n` 保证两种语言键对齐，`check-prerender.mjs` 反过来断言模板里写死的英文 title/description 与 JSON 一致，防止两边漂移。`<html lang>` 由预渲染写好（`en` / `zh-CN`），客户端 `languageChanged` 时对齐成同一个值（i18n 资源键是 `zh`，写进文档的是 `zh-CN`）。**首次访问跳一次**：内联脚本在首屏前读共享 cookie 与 localStorage，没有已选语言且 `navigator.language` 是中文时把 `/` 换成 `/zh`（带上原 query）；已经选过语言就不跳，`/zh` 也从不把人弹回 `/` —— URL 说什么就是什么。实测（Windows Chrome headless）：`/` + 中文浏览器 → 落到中文页且零 console 错误；`/zh` + 英文浏览器 → 留在中文页；英文文档 hydration 后 `lang="en"`、h1 是英文标题。
+- **depends on**: 40.1
+
+### 40.3 交互部分只在浏览器里渲染
+
+- **issue**: #211
+- **status**: 🟡 doing
+- **description**: 预渲染要求同一棵树渲染两次（Node 一次、hydrate 一次），而卷轴 / 二维图 / 声音自检读 query string、画布尺寸与音频时钟 —— 让它们参与预渲染就等于给自己排队等一个 hydration mismatch。现在它们收进 `components/live-demos.tsx`，挂载后才画；预渲染的 HTML 里只剩**内容**，hydration 没有可对不上的东西。占位块保持各自高度（卷轴 232/260px、声音自检 190px），手机上它们在首屏内堆叠，不预留就会在挂载时把下面的东西推下去。实测：两份文档 hydration 后 `rootChildren: 1`、图表节点 6 个（说明 effect 跑过、交互件真的长出来了）、`console.error` 计数 0。
+- **depends on**: 40.1
+
+### 40.4 构建产物自己证明它预渲染过
+
+- **issue**: #211
+- **status**: 🟡 doing
+- **description**: 新增 `apps/landing/scripts/check-prerender.mjs`（挂在 CI 的 `Web checks (landing)` 里、`pnpm build` 之后，与 web 那条 SW 检查同一个套路）：断言两份产物都有 `<html lang>`、canonical 指向自己、`<h1>` 里有文案且就是 tagline、`#root` 不是空的、三条 `hreflang` 齐全、两份文档不同、title 不同，并断言模板里的英文 meta 与 `en/landing.json` 一致。理由是：这件事在浏览器里看不出来 —— 预渲染和客户端渲染的最终 DOM 一样，只有构建产物知道差别；一条没人看的构建步骤，就是一条会悄悄停掉的构建步骤。
+- **depends on**: 40.1
+
+### 40.5 发布后要做/要看的
+
+- **issue**: #211
+- **status**: 🔴 todo
+- **description**: ①线上用 `curl -s https://ohyourear.com/ | grep -c '<h1'` 与 `curl -s https://ohyourear.com/zh/ | head` 复核两份文档（同时确认 `/zh/` 是否被 308 到 `/zh`）；②GSC 里对 `/` 与 `/zh` 各请求一次编入索引，重交 sitemap（现在含两条 URL）；③隔几天看 Bing 的「缺少 h1」报告是否消失、GSC `Pages` 里两条 URL 的收录情况。
+- **depends on**: 40.1、40.2

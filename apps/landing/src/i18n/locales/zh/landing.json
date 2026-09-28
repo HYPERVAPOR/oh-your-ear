@@ -1,5 +1,9 @@
 {
   "appName": "Oh Your Ear",
+  "meta": {
+    "title": "Oh Your Ear — 浏览器里练耳：单音、音程、和弦、旋律、节奏",
+    "description": "在浏览器里练耳：单音、音程、和弦、旋律、节奏。无需注册即可开练，登录后保存进度和错题。"
+  },
   "tagline": "随时随地练耳。",
   "drills": {
     "pitch": "音高",

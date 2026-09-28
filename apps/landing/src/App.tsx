@@ -2,12 +2,12 @@ import { Ear, Play } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { buttonVariants } from '@oh-your-ear/shared/button-variants'
+import { shownLanguage } from '@oh-your-ear/shared/i18n'
 import { GITHUB_URL, LICENSE_URL } from '@oh-your-ear/shared/links'
 import { GitHubKey, LanguageKey, ThemeKey, iconGroup } from '@oh-your-ear/shared/pref-controls'
 
-import { PitchChart2D } from '@/components/pitch-chart-2d'
-import { SoundCheck } from '@/components/sound-check'
-import { PianoRoll } from '@/components/piano-roll'
+import { HeroChart, SoundCheckDemo } from '@/components/live-demos'
+import { pathFor } from '@/lib/locale'
 
 /** Where "开始练习" goes. Configurable because the two sites live on different hosts in
  *  production and on different ports in development. */
@@ -30,11 +30,6 @@ const DRILLS = [
  *  it costs. Nothing here loads a practice screen, because the whole point of the site
  *  split (PRD 7.1.2) is that a visitor who is not ready to practise pays for a headline, a
  *  button and a few lines of Web Audio rather than for an audio engine. */
-/** Which chart to draw: the piano roll — the editor (#91) — by default, the flat bar chart
- *  when asked. Both read the same octave, and both play the same three samples. */
-function chartVariant(): string {
-  return new URLSearchParams(window.location.search).get('chart') ?? 'roll'
-}
 
 /** The second screen's three claims, each with the sentence that backs it up. Order is the
  *  order they are read in, and the labels are the words a visitor is looking for. */
@@ -49,7 +44,7 @@ const ACCOUNT_ITEMS = ['levels', 'plan', 'progress', 'mistakes', 'bookmarks'] as
 const CONTACT_EMAIL = 'me@hypervapor.org'
 
 export default function App() {
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -70,7 +65,9 @@ export default function App() {
           </div>
 
           <nav className={iconGroup}>
-            <LanguageKey />
+            {/* The other language is another URL, so this is a link and not a button
+                (PRD 7.5): a crawler can follow it, and a reader can share it. */}
+            <LanguageKey href={pathFor(shownLanguage(i18n) === 'zh' ? 'en' : 'zh')} />
             <ThemeKey />
             <GitHubKey />
           </nav>
@@ -116,8 +113,9 @@ export default function App() {
               </a>
             </div>
 
-            {/* ?chart=2d brings back the bar chart; the roll is the editor (#91). */}
-            {chartVariant() === '2d' ? <PitchChart2D /> : <PianoRoll />}
+            {/* The instrument is held back until the browser has taken over: see
+                `live-demos.tsx`. `?chart=2d` still swaps the editor for the bar chart. */}
+            <HeroChart />
           </div>
         </section>
 
@@ -206,7 +204,7 @@ export default function App() {
                 </a>
               </div>
 
-              <SoundCheck />
+              <SoundCheckDemo />
             </div>
 
             {/* One string, one link: splitting a sentence around a link is what makes

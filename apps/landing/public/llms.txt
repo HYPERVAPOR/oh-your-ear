@@ -15,6 +15,7 @@ For anyone who wants to train their ear: instrumentalists, sight-singing student
 ## Pages
 
 - [Landing page](https://ohyourear.com/): what the product is and how to start
+- [Landing page, Chinese](https://ohyourear.com/zh): the same page in Chinese
 - [Start practising](https://app.ohyourear.com/): the practice hub (the app interface, not indexed)
 
 ## Facts
