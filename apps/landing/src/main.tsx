@@ -1,5 +1,5 @@
 import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
+import { hydrateRoot } from 'react-dom/client'
 
 import './i18n'
 import './index.css'
@@ -16,7 +16,11 @@ console.log(
   'font:12px monospace',
 )
 
-createRoot(document.getElementById('root')!).render(
+// Hydrated, not created: the page in `dist/index.html` was rendered at build time, and
+// `createRoot` would throw that markup away and draw it again (PRD 7.5). What is written
+// here has to match what `entry-server.tsx` renders, or React tears the tree down.
+hydrateRoot(
+  document.getElementById('root')!,
   <StrictMode>
     <ThemeProvider>
       <App />

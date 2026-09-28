@@ -428,21 +428,28 @@ hero 的副标题分两段，**先列功能，再给一句人话**：
 
 落地页 `xxx.xxx` 是**唯一需要被搜索引擎收录**的站点；app 站点 `app.xxx.xxx` 反过来要 `noindex` —— 它是登录后才完整的应用界面，与营销页构成重复内容，被收录没有收益。同一个文档只能有一个 URL（`/index.html` 308 到 `/`），而 app 的去索引必须**两条一起上**：`Disallow` 会让爬虫根本不取页面，于是 `<meta name="robots">` 里的 `noindex` 永远读不到 —— 只挡抓取、或只写 meta，都是半条。
 
+**语言是 URL 的一部分，不是偏好。** 落地页有两个文档：`/` 是英文，`/zh` 是中文，各自有自己的 title / description / OG / canonical，两页用 `hreflang`（含 `x-default`）互指。中文第一次有了可排名的页面 —— 在那之前，`/` 永远只有一份英文 HTML，`练耳` 这类词无处可落。`<html lang>` 在预渲染时就写好了（英文页 `en`、中文页 `zh-CN`），客户端只把它对齐成同一个值。
+
+**首屏在构建期就渲染好。** 爬虫、AI 引擎、社交平台的抓取器大多不执行 JavaScript，只看到一个空 `<div id="root">` —— 这件事不要靠「Google 会渲染」兜底，因为它只对 Google 成立（见 dev-plan M40）。落地页因此是**构建期预渲染 + 客户端 hydrate**：`dist/index.html` 与 `dist/zh/index.html` 都带完整正文，客户端用同一棵树 hydrate。**首屏不要依赖 JS** 是验收标准，不是优化项。
+
 | 项目 | 要求 |
 | --- | --- |
 | favicon | 品牌耳朵标记 + 垫底色，**跟随系统深浅色**切换（浅色：黑图案白底；深色：白图案黑底） |
 | 分享卡片（OG/Twitter） | 1200×630，品牌调性，绝对 URL —— 社交平台不解析相对路径 |
 | 分享卡源文件 | `apps/landing/og-card.html`，渲染命令写在文件注释里。**模板必须进仓库**：第一版卡片的模板没提交，改一次文案就得靠量像素盲猜重画 |
-| 语言 | 机器可见层一律英文：title / description / OG / Twitter / JSON-LD / `robots.txt` / `llms.txt` / 分享卡上的文字。读者看到的内容仍跟随语言偏好，`<html lang>` 在 i18n 初始化后由 `languageChanged` 改写 |
+| 语言 | **按 URL**：`/` 的机器可见层是英文，`/zh` 的是中文（title / description / OG / Twitter）；`robots.txt`、`llms.txt`、JSON-LD、分享卡上的文字保持英文。读者第一次访问时按 `navigator.language` 跳一次（只从 `/` 往 `/zh` 跳，从 `/zh` 不弹人），**一旦自己选过语言就不再跳**：URL 说什么就是什么 |
 | 元数据 | title / description（长度控制在搜索结果不被截断）、`canonical`、Open Graph、Twitter `summary_large_image`、深浅两套 `theme-color`、JSON-LD：`Organization` + `WebSite` + `WebApplication` 三个节点用 `@id` 串起来（一个节点只说「这里有个 web app」，看不出出品方是谁） |
-| URL 唯一 | 同一个文档只有一个 URL：`/index.html` 308 到 `/` |
+| URL 唯一 | 同一个文档只有一个 URL：`/index.html` 308 到 `/`；中文页是 `/zh`（不带尾斜杠 —— 那是 Vercel 不重定向的形式） |
+| hreflang | 两个文档都列出一组完整的三条（`en` / `zh-CN` / `x-default`），互相指到对方；只在 HTML 里声明，不在 sitemap 里重复 |
+| 预渲染 | 落地页由 `apps/landing/scripts/prerender.mjs` 在构建期渲染成两静态文档；CI 用 `check-prerender.mjs` 断言产物里有 `<h1>`、有文案、有 hreflang —— 剥掉预渲染即失败 |
+| 交互部分 | 卷轴 / 二维图 / 声音自检只在浏览器里渲染（`live-demos.tsx`）：它们读 URL、画布尺寸与音频时钟，预渲染的 HTML 里只留内容，hydration 就没有可对不上的东西。占位块保持原高度，手机上不会因此跳版 |
 | robots.txt | 允许抓取落地页，指向 `sitemap.xml` |
 | app 的去索引 | `robots.txt` 的 `Disallow: /` **加上**全站响应头 `X-Robots-Tag: noindex, nofollow`：头是爬虫被挡住时唯一还能生效的那一半 |
 | sitemap.xml | 至少包含落地页；**不写 `lastmod`** —— 它只在永远准确时才有价值，写错会让整个字段被忽略 |
 | 缓存头 | 入口文档 `no-cache, must-revalidate`（不用 `no-store`：它会把页面踢出 bfcache，前进后退都变慢）；带内容 hash 的 `/assets/*` 反过来永久缓存 `max-age=31536000, immutable` |
 | llms.txt | 给其他 AI 客户端的站点说明：产品是什么、能做什么、关键页面，遵循 llmstxt.org 格式。**Google 官方明确表示忽略它** —— 保留可以，但不能当 SEO 手段 |
 
-两个站点的品牌标记保持一致。落地页当前是客户端渲染的 SPA，搜索引擎能执行 JS，但**首屏 HTML 里没有正文** —— 要做到极致需要预渲染/SSG，单列为待办（dev-plan 18.4）：Google 官方明说预渲染「对用户和爬虫都更快，而且并非所有机器人都能运行 JavaScript」，这是把中文内容也变成可索引内容的唯一办法（语言靠 localStorage 切换，`/` 永远只有一份英文的 HTML）。
+两个站点的品牌标记保持一致。**剩下的不是预渲染，而是内容**：落地页只有一屏，`ear training` 这类通用词要靠真有价值的专题页（音程 / 和弦 / 节奏 + 可打印的对照图）去争，那是下一批的事（批次 3：内容页，尚未立里程碑）。预渲染只是让这些内容**可被读到**的前提，它本身不会带来排名。
 
 **不靠 SEO 花活**：Google 2026-07 的《Optimizing your website for generative AI features》写明 —— `llms.txt` 之类的新式文件被 Google 忽略、内容不需要为 AI 切块、结构化数据只为 rich result 资格、第三方 AEO/GEO 工具无法访问其内部系统。所以这里只有三条路：让内容可被抓取、写出真有价值的内容、把速度做好。
 

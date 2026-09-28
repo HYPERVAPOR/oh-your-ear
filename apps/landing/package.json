@@ -5,13 +5,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && vite build --ssr src/entry-server.tsx --outDir dist-ssr && node scripts/prerender.mjs && rm -rf dist-ssr",
     "lint": "oxlint . -D correctness -D suspicious -D perf --allow react/react-in-jsx-scope --allow no-unassigned-import --allow no-named-as-default-member",
     "check:i18n": "node ../../scripts/check-i18n.mjs .",
     "format:check": "prettier --check .",
     "format:write": "prettier --write .",
     "typecheck": "tsc -b",
-    "clean": "rm -rf dist",
+    "clean": "rm -rf dist dist-ssr",
     "preview": "vite preview",
     "test": "node --test src/lib/*.test.ts"
   },
